@@ -9,6 +9,7 @@ client/build/
 # Database
 *.db
 *.db-journal
+data/
 
 # Environment
 .env

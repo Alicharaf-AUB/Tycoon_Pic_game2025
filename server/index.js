@@ -649,18 +649,25 @@ io.on('connection', (socket) => {
 
 // Auto-seed database if empty (for production deployments)
 const checkAndSeedDatabase = () => {
+  console.log('🔍 Checking database status...');
   try {
     const startupCount = db.prepare('SELECT COUNT(*) as count FROM startups').get();
+    console.log(`📊 Current startup count: ${startupCount.count}`);
+    
     if (startupCount.count === 0) {
       console.log('📦 Database is empty, running seed script...');
       const { seedDatabase } = require('./seed');
       seedDatabase();
-      console.log('✅ Database seeded successfully');
+      
+      // Verify seeding worked
+      const newCount = db.prepare('SELECT COUNT(*) as count FROM startups').get();
+      console.log(`✅ Database seeded successfully! Now has ${newCount.count} startups`);
     } else {
       console.log(`✅ Database already has ${startupCount.count} startups`);
     }
   } catch (error) {
     console.error('❌ Error checking/seeding database:', error);
+    console.error('Stack trace:', error.stack);
   }
 };
 

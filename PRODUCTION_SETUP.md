@@ -17,6 +17,25 @@ NODE_ENV=production
 ADMIN_USERNAME=admin
 ```
 
+## ⚠️ CRITICAL: Add Persistent Storage for Database
+
+Railway's filesystem is ephemeral (resets on deploy). To persist your database:
+
+1. Go to your Railway service
+2. Click on "Variables" tab
+3. Scroll down to "Volumes"
+4. Click "New Volume"
+5. Set:
+   - **Mount Path**: `/app/data`
+   - **Name**: `investment-game-db`
+6. Add environment variable:
+   ```
+   DATA_DIR=/app/data
+   ```
+7. Redeploy your service
+
+**Without this, your database will reset on every deployment!**
+
 ## What's Already Configured ✅
 
 ### Database
