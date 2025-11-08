@@ -1,14 +1,15 @@
 const { v4: uuidv4 } = require('uuid');
 const db = require('./database');
 
-console.log('🚀 Seeding AUB Angel Investor database with AIM Startups...\n');
+function seedDatabase() {
+  console.log('🚀 Seeding AUB Angel Investor database with AIM Startups...\n');
 
-// Clear existing data
-db.exec(`
-  DELETE FROM investments;
-  DELETE FROM investors;
-  DELETE FROM startups;
-`);
+  // Clear existing data
+  db.exec(`
+    DELETE FROM investments;
+    DELETE FROM investors;
+    DELETE FROM startups;
+  `);
 
 // Real AIM Startups from CSV
 const startups = [
@@ -126,3 +127,12 @@ console.log('   Password: demo123');
 console.log('   URL: /admin');
 console.log('\n💡 TIP: Change admin password in .env before deploying!');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+}
+
+// Export the seed function
+module.exports = { seedDatabase };
+
+// Run if called directly
+if (require.main === module) {
+  seedDatabase();
+}

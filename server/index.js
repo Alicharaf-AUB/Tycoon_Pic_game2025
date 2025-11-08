@@ -653,7 +653,8 @@ const checkAndSeedDatabase = () => {
     const startupCount = db.prepare('SELECT COUNT(*) as count FROM startups').get();
     if (startupCount.count === 0) {
       console.log('📦 Database is empty, running seed script...');
-      require('./seed');
+      const { seedDatabase } = require('./seed');
+      seedDatabase();
       console.log('✅ Database seeded successfully');
     } else {
       console.log(`✅ Database already has ${startupCount.count} startups`);
