@@ -635,6 +635,17 @@ io.on('connection', (socket) => {
 
 // ===== START SERVER =====
 
+// Serve React app in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from client build
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+  
+  // Serve React app for any non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  });
+}
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Admin credentials: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
@@ -644,10 +655,3 @@ server.listen(PORT, () => {
     console.log('Serving client from /client/dist');
   }
 });
-
-// Serve React app for any non-API routes in production
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  });
-}
