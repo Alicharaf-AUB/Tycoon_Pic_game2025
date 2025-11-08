@@ -92,8 +92,8 @@ export default function JoinPage() {
                 placeholder="Your Name"
                 className="input text-lg"
                 disabled={loading}
-                autoFocus
                 maxLength={50}
+                autoComplete="name"
               />
             </div>
 
