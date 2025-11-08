@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
-import { adminApi, formatCurrency } from '../utils/api';
+import { adminApi, api, formatCurrency, getFileUrl } from '../utils/api';
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -643,7 +643,7 @@ function StartupsTab({ username, password, gameState }) {
                   </label>
                 </div>
                 {newStartup.logo && (
-                  <img src={`http://localhost:3001${newStartup.logo}`} alt="Logo preview" className="mt-2 h-16 w-16 object-contain border rounded" />
+                  <img src={getFileUrl(newStartup.logo)} alt="Logo preview" className="mt-2 h-16 w-16 object-contain border rounded" />
                 )}
               </div>
               <div>
@@ -680,7 +680,7 @@ function StartupsTab({ username, password, gameState }) {
                   </label>
                 </div>
                 {newStartup.pitch_deck && (
-                  <a href={`http://localhost:3001${newStartup.pitch_deck}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
+                  <a href={getFileUrl(newStartup.pitch_deck)} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
                     View uploaded file →
                   </a>
                 )}
@@ -882,7 +882,7 @@ function StartupsTab({ username, password, gameState }) {
                     </label>
                   </div>
                   {editForm.logo && (
-                    <img src={`http://localhost:3001${editForm.logo}`} alt="Logo preview" className="mt-2 h-16 w-16 object-contain border rounded" />
+                    <img src={getFileUrl(editForm.logo)} alt="Logo preview" className="mt-2 h-16 w-16 object-contain border rounded" />
                   )}
                 </div>
                 <div>
@@ -918,7 +918,7 @@ function StartupsTab({ username, password, gameState }) {
                     </label>
                   </div>
                   {editForm.pitch_deck && (
-                    <a href={`http://localhost:3001${editForm.pitch_deck}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
+                    <a href={getFileUrl(editForm.pitch_deck)} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
                       View file →
                     </a>
                   )}

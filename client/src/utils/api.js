@@ -3,6 +3,14 @@ import axios from 'axios';
 // Use relative path in production (same domain), localhost in development
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
+// Helper to get full URL for uploaded files
+export const getFileUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path; // Already a full URL
+  const base = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
+  return `${base}${path}`;
+};
+
 // Helper to format currency
 export const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {

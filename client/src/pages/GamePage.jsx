@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { api, formatCurrency, formatPercentage } from '../utils/api';
+import { api, formatCurrency, formatPercentage, getFileUrl } from '../utils/api';
 
 export default function GamePage() {
   const { investorId } = useParams();
@@ -274,7 +274,7 @@ export default function GamePage() {
                   {startup.logo && (
                     <div className="mb-3 flex justify-center">
                       <img 
-                        src={`http://localhost:3001${startup.logo}`} 
+                        src={getFileUrl(startup.logo)} 
                         alt={`${startup.name} logo`}
                         className="h-16 w-16 object-contain cursor-pointer"
                         onClick={() => setViewingStartup(startup)}
@@ -393,7 +393,7 @@ export default function GamePage() {
             {viewingStartup.logo && (
               <div className="mb-6 flex justify-center">
                 <img 
-                  src={`http://localhost:3001${viewingStartup.logo}`} 
+                  src={getFileUrl(viewingStartup.logo)} 
                   alt={`${viewingStartup.name} logo`}
                   className="h-24 w-24 object-contain"
                 />
@@ -485,7 +485,7 @@ export default function GamePage() {
               <div className="mb-6">
                 <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">Pitch Deck</h3>
                 <a 
-                  href={`http://localhost:3001${viewingStartup.pitch_deck}`} 
+                  href={getFileUrl(viewingStartup.pitch_deck)} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="btn-secondary inline-block"
