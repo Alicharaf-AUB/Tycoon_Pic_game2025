@@ -13,14 +13,43 @@ export default function GamePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [fallbackGameState, setFallbackGameState] = useState(null);
+
+  // Load game state via API as fallback
+  useEffect(() => {
+    const loadGameState = async () => {
+      try {
+        const state = await api.getGameState();
+        console.log('Loaded game state via API:', state);
+        setFallbackGameState(state);
+      } catch (err) {
+        console.error('Error loading game state:', err);
+      }
+    };
+
+    // Load immediately
+    loadGameState();
+    
+    // Reload every 5 seconds if not connected via socket
+    const interval = setInterval(() => {
+      if (!isConnected) {
+        loadGameState();
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isConnected]);
 
   // Load investor data
   useEffect(() => {
     const loadInvestor = async () => {
       try {
+        console.log('Loading investor:', investorId);
         const { investor } = await api.getInvestor(investorId);
+        console.log('Investor loaded:', investor);
         setInvestor(investor);
       } catch (err) {
+        console.error('Error loading investor:', err);
         setError('Investor not found');
       } finally {
         setLoading(false);
@@ -39,10 +68,18 @@ export default function GamePage() {
       }
     }
   }, [gameState, investorId]);
+  
+  // Log game state for debugging
+  useEffect(() => {
+    console.log('Game state updated:', gameState);
+    console.log('Startups:', gameState?.startups);
+    console.log('Is connected:', isConnected);
+  }, [gameState, isConnected]);
 
   const getInvestmentForStartup = (startupId) => {
-    if (!gameState?.investments) return null;
-    return gameState.investments.find(
+    const state = gameState || fallbackGameState;
+    if (!state?.investments) return null;
+    return state.investments.find(
       inv => inv.investor_id === investorId && inv.startup_id === startupId
     );
   };
@@ -125,8 +162,10 @@ export default function GamePage() {
     );
   }
 
-  const isLocked = gameState?.isLocked || false;
-  const startups = gameState?.startups || [];
+  // Use socket game state if available, otherwise use fallback
+  const currentGameState = gameState || fallbackGameState;
+  const isLocked = currentGameState?.isLocked || false;
+  const startups = currentGameState?.startups || [];
 
   return (
     <div className="min-h-screen p-4 pb-20">
@@ -217,7 +256,7 @@ export default function GamePage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {startups.map((startup) => {
               const myInvestment = getInvestmentForStartup(startup.id);
-              const investors = gameState.investments
+              const investors = (currentGameState?.investments || [])
                 .filter(inv => inv.startup_id === startup.id)
                 .sort((a, b) => b.amount - a.amount);
 

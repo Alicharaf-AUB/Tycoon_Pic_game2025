@@ -17,17 +17,29 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketInstance = io(import.meta.env.VITE_API_URL || 'http://localhost:3001', {
-      transports: ['websocket', 'polling']
+    // Use relative path in production (same domain), localhost in development
+    const socketUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? window.location.origin : 'http://localhost:3001');
+    
+    console.log('Connecting to socket:', socketUrl);
+    const socketInstance = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     socketInstance.on('connect', () => {
-      console.log('Connected to server');
+      console.log('✅ Connected to server');
       setIsConnected(true);
     });
 
     socketInstance.on('disconnect', () => {
-      console.log('Disconnected from server');
+      console.log('❌ Disconnected from server');
+      setIsConnected(false);
+    });
+    
+    socketInstance.on('connect_error', (error) => {
+      console.error('Connection error:', error);
       setIsConnected(false);
     });
 
