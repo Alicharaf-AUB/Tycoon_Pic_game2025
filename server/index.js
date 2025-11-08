@@ -13,18 +13,30 @@ const db = require('./database');
 
 const app = express();
 const server = http.createServer(app);
+
+// Configure CORS based on environment
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? (process.env.CLIENT_URL || true) // In production, allow same origin
+    : "http://localhost:5173", // In development, allow local client
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+};
+
 const io = socketIo(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"]
-  }
+  cors: corsOptions
 });
 
 const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'demo123';
 
-app.use(cors());
+// Warn if using default password in production
+if (process.env.NODE_ENV === 'production' && ADMIN_PASSWORD === 'demo123') {
+  console.warn('⚠️  WARNING: Using default admin password in production! Please set ADMIN_PASSWORD environment variable.');
+}
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve uploaded files
