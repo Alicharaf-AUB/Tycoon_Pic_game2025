@@ -114,7 +114,7 @@ export default function JoinPage() {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  🎯 Join Game & Start Investing
+                  🎯 Join Live & Start Investing
                 </span>
               )}
             </button>
