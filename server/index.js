@@ -635,6 +635,22 @@ io.on('connection', (socket) => {
 
 // ===== START SERVER =====
 
+// Auto-seed database if empty (for production deployments)
+const checkAndSeedDatabase = () => {
+  try {
+    const startupCount = db.prepare('SELECT COUNT(*) as count FROM startups').get();
+    if (startupCount.count === 0) {
+      console.log('📦 Database is empty, running seed script...');
+      require('./seed');
+      console.log('✅ Database seeded successfully');
+    } else {
+      console.log(`✅ Database already has ${startupCount.count} startups`);
+    }
+  } catch (error) {
+    console.error('❌ Error checking/seeding database:', error);
+  }
+};
+
 // Serve React app in production
 if (process.env.NODE_ENV === 'production') {
   // Serve static files from client build
@@ -654,4 +670,7 @@ server.listen(PORT, () => {
     console.log('Running in PRODUCTION mode');
     console.log('Serving client from /client/dist');
   }
+  
+  // Check and seed database after server starts
+  checkAndSeedDatabase();
 });
