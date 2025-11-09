@@ -29,14 +29,14 @@ export const formatPercentage = (value, total) => {
 // Public API
 export const api = {
   // Join as investor
-  join: async (name) => {
-    const { data } = await axios.post(`${API_BASE}/api/join`, { name });
+  join: async (name, email) => {
+    const { data } = await axios.post(`${API_BASE}/api/join`, { name, email });
     return data;
   },
 
-  // Find existing investor by name
-  findInvestor: async (name) => {
-    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { name });
+  // Find existing investor by email
+  findInvestor: async (email) => {
+    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { email });
     return data;
   },
 

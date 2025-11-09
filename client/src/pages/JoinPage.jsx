@@ -5,15 +5,21 @@ import { GAME_CONFIG } from '../config';
 
 export default function JoinPage() {
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleJoin = async (e) => {
     e.preventDefault();
-    
+
     if (!name.trim()) {
       setError('Please enter your name');
+      return;
+    }
+
+    if (!email.trim()) {
+      setError('Please enter your email');
       return;
     }
 
@@ -21,12 +27,12 @@ export default function JoinPage() {
     setError('');
 
     try {
-      const { investor, rejoined } = await api.join(name.trim());
-      
+      const { investor, rejoined } = await api.join(name.trim(), email.trim());
+
       if (rejoined) {
         setError('');
       }
-      
+
       navigate(`/game/${investor.id}`);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to join game');
@@ -183,6 +189,27 @@ export default function JoinPage() {
               />
             </div>
 
+            {/* Email Input */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
+                Enter Your Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john.smith@example.com"
+                className="input text-lg"
+                disabled={loading}
+                maxLength={100}
+                autoComplete="email"
+              />
+              <p className="mt-2 text-xs text-slate-500">
+                Use the same email to rejoin and access your account
+              </p>
+            </div>
+
             {error && (
               <div className="bg-rose-500/10 border-2 border-rose-500/30 backdrop-blur-xl text-rose-300 px-6 py-4 rounded-xl text-sm font-medium animate-fade-in shadow-lg">
                 <div className="flex items-center gap-3">
@@ -197,7 +224,7 @@ export default function JoinPage() {
             {/* Elite Submit Button */}
             <button
               type="submit"
-              disabled={loading || !name.trim()}
+              disabled={loading || !name.trim() || !email.trim()}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed text-xl py-6 font-bold relative overflow-hidden group"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">

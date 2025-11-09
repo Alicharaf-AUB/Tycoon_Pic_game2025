@@ -22,6 +22,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS investors (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    email TEXT UNIQUE,
     starting_credit INTEGER NOT NULL DEFAULT 500,
     submitted INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -93,6 +94,14 @@ db.exec(`
 try {
   db.exec(`ALTER TABLE investors ADD COLUMN submitted INTEGER DEFAULT 0`);
   console.log('Added submitted column to investors table');
+} catch (err) {
+  // Column already exists, ignore error
+}
+
+// Migration: Add email column if it doesn't exist
+try {
+  db.exec(`ALTER TABLE investors ADD COLUMN email TEXT UNIQUE`);
+  console.log('Added email column to investors table');
 } catch (err) {
   // Column already exists, ignore error
 }

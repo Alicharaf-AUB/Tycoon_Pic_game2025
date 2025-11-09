@@ -84,12 +84,20 @@ if (process.env.NODE_ENV === 'production') {
 // Basic Auth Middleware for Admin
 const adminAuth = (req, res, next) => {
   const credentials = basicAuth(req);
-  
+
+  console.log('=== ADMIN AUTH CHECK ===');
+  console.log('Request path:', req.method, req.path);
+  console.log('Credentials provided:', credentials ? `Yes (user: ${credentials.name})` : 'No');
+
   if (!credentials || credentials.name !== ADMIN_USERNAME || credentials.pass !== ADMIN_PASSWORD) {
+    console.log('AUTH FAILED - Invalid credentials');
+    console.log('Expected username:', ADMIN_USERNAME);
+    console.log('Provided username:', credentials?.name || 'none');
     res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
     return res.status(401).json({ error: 'Authentication required' });
   }
-  
+
+  console.log('AUTH SUCCESS');
   next();
 };
 
@@ -160,68 +168,87 @@ const getGameState = () => {
 
 // Join as investor
 app.post('/api/join', (req, res) => {
-  const { name } = req.body;
-  
+  const { name, email } = req.body;
+
   if (!name || name.trim() === '') {
     return res.status(400).json({ error: 'Name is required' });
   }
-  
+
+  if (!email || email.trim() === '') {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
   const trimmedName = name.trim();
-  
+  const trimmedEmail = email.trim().toLowerCase();
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(trimmedEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+
   try {
-    // Check if investor already exists
-    const existing = db.prepare('SELECT * FROM investors WHERE LOWER(name) = LOWER(?)').get(trimmedName);
-    
+    // Check if investor already exists by email (unique identifier)
+    const existing = db.prepare('SELECT * FROM investors WHERE LOWER(email) = LOWER(?)').get(trimmedEmail);
+
     if (existing) {
       // Allow rejoin - return existing investor
+      console.log(`Investor rejoining: ${existing.name} (${existing.email})`);
       return res.json({ investor: existing, rejoined: true });
     }
-    
+
     // Create new investor
     const id = uuidv4();
-    const stmt = db.prepare('INSERT INTO investors (id, name) VALUES (?, ?)');
-    stmt.run(id, trimmedName);
-    
+    const stmt = db.prepare('INSERT INTO investors (id, name, email) VALUES (?, ?, ?)');
+    stmt.run(id, trimmedName, trimmedEmail);
+
     const investor = db.prepare('SELECT * FROM investors WHERE id = ?').get(id);
-    
+
+    console.log(`New investor created: ${investor.name} (${investor.email})`);
+
     broadcastGameState();
-    
+
     res.json({ investor, rejoined: false });
   } catch (error) {
     console.error('Error creating investor:', error);
+    if (error.message && error.message.includes('UNIQUE constraint failed')) {
+      return res.status(400).json({ error: 'An account with this email already exists' });
+    }
     res.status(500).json({ error: 'Failed to join game' });
   }
 });
 
-// Find investor by name (for returning users)
+// Find investor by email (for returning users)
 app.post('/api/find-investor', (req, res) => {
-  const { name } = req.body;
-  
-  if (!name || name.trim() === '') {
-    return res.status(400).json({ error: 'Name is required' });
+  const { email } = req.body;
+
+  if (!email || email.trim() === '') {
+    return res.status(400).json({ error: 'Email is required' });
   }
-  
+
   try {
-    // Find investor by exact name match (case-insensitive)
+    // Find investor by email (case-insensitive)
     const investor = db.prepare(`
-      SELECT 
+      SELECT
         i.id,
         i.name,
+        i.email,
         i.starting_credit,
         COALESCE(SUM(inv.amount), 0) as invested,
         i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      WHERE LOWER(i.name) = LOWER(?)
+      WHERE LOWER(i.email) = LOWER(?)
       GROUP BY i.id
-      ORDER BY i.created_at DESC
       LIMIT 1
-    `).get(name.trim());
-    
+    `).get(email.trim());
+
     if (!investor) {
-      return res.status(404).json({ error: 'No account found with that name' });
+      return res.status(404).json({ error: 'No account found with that email address' });
     }
-    
+
+    console.log(`Investor found: ${investor.name} (${investor.email})`);
+
     res.json({ investor });
   } catch (error) {
     console.error('Error finding investor:', error);
@@ -486,16 +513,42 @@ app.put('/api/admin/investors/:id/credit', adminAuth, (req, res) => {
 // Delete investor (admin)
 app.delete('/api/admin/investors/:id', adminAuth, (req, res) => {
   const { id } = req.params;
-  
+
+  console.log('=== DELETE INVESTOR REQUEST ===');
+  console.log('Investor ID:', id);
+  console.log('Request Headers:', req.headers);
+
   try {
-    db.prepare('DELETE FROM investors WHERE id = ?').run(id);
-    
+    // First check if investor exists
+    const investor = db.prepare('SELECT * FROM investors WHERE id = ?').get(id);
+
+    if (!investor) {
+      console.log('ERROR: Investor not found with ID:', id);
+      return res.status(404).json({ error: 'Investor not found' });
+    }
+
+    console.log('Found investor to delete:', investor);
+
+    // Delete the investor (CASCADE will handle related records)
+    const result = db.prepare('DELETE FROM investors WHERE id = ?').run(id);
+
+    console.log('Delete result:', result);
+    console.log('Rows affected:', result.changes);
+
+    if (result.changes === 0) {
+      console.log('WARNING: No rows were deleted');
+      return res.status(500).json({ error: 'Failed to delete investor - no rows affected' });
+    }
+
+    console.log('Successfully deleted investor:', investor.name);
+
     broadcastGameState();
-    
-    res.json({ success: true });
+
+    res.json({ success: true, deleted: investor.name });
   } catch (error) {
-    console.error('Error deleting investor:', error);
-    res.status(500).json({ error: 'Failed to delete investor' });
+    console.error('ERROR deleting investor:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to delete investor: ' + error.message });
   }
 });
 

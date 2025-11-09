@@ -4,7 +4,7 @@ import { api, formatCurrency } from '../utils/api';
 import { GAME_CONFIG } from '../config';
 
 export default function LoginPage() {
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -34,8 +34,8 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!name.trim()) {
-      setError('Please enter your full name');
+    if (!email.trim()) {
+      setError('Please enter your email address');
       return;
     }
 
@@ -43,7 +43,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { investor, rejoined } = await api.join(name.trim());
+      const { investor } = await api.findInvestor(email.trim());
 
       // Store investor info in localStorage for session management
       localStorage.setItem('investor', JSON.stringify(investor));
@@ -186,25 +186,25 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Name Input */}
+            {/* Email Input */}
             <div>
-              <label htmlFor="name" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
-                Account Holder Name
+              <label htmlFor="email" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
+                Account Email Address
               </label>
               <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
                 className="input-executive text-lg"
                 disabled={loading}
                 maxLength={100}
-                autoComplete="name"
+                autoComplete="email"
                 autoFocus
               />
               <p className="mt-2 text-xs text-slate-500">
-                Use your registered full name to access your account
+                Use the email address you registered with to access your account
               </p>
             </div>
 
@@ -242,7 +242,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || !name.trim()}
+              disabled={loading || !email.trim()}
               className="btn-executive w-full disabled:opacity-50 disabled:cursor-not-allowed text-xl py-6 font-bold relative overflow-hidden group"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">
