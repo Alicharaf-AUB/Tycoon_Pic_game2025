@@ -218,7 +218,7 @@ app.post('/api/join', (req, res) => {
   }
 });
 
-// Find investor by email AND name (for returning users)
+// Find investor by email AND name (for returning users) - auto-creates if not exists
 app.post('/api/find-investor', (req, res) => {
   const { email, name } = req.body;
 
@@ -230,9 +230,18 @@ app.post('/api/find-investor', (req, res) => {
     return res.status(400).json({ error: 'Name is required' });
   }
 
+  const trimmedEmail = email.trim();
+  const trimmedName = name.trim();
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(trimmedEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+
   try {
-    // Find investor by email (case-sensitive) AND name (case-insensitive) for security
-    const investor = db.prepare(`
+    // Find investor by email (case-sensitive) AND name (case-insensitive)
+    let investor = db.prepare(`
       SELECT
         i.id,
         i.name,
@@ -245,18 +254,45 @@ app.post('/api/find-investor', (req, res) => {
       WHERE i.email = ? AND LOWER(i.name) = LOWER(?)
       GROUP BY i.id
       LIMIT 1
-    `).get(email.trim(), name.trim());
+    `).get(trimmedEmail, trimmedName);
 
     if (!investor) {
-      return res.status(404).json({ error: 'No account found with that name and email combination' });
+      // Account doesn't exist - create it automatically
+      console.log(`Creating new account for: ${trimmedName} (${trimmedEmail})`);
+
+      const id = uuidv4();
+      db.prepare('INSERT INTO investors (id, name, email) VALUES (?, ?, ?)')
+        .run(id, trimmedName, trimmedEmail);
+
+      // Fetch the newly created investor with calculated fields
+      investor = db.prepare(`
+        SELECT
+          i.id,
+          i.name,
+          i.email,
+          i.starting_credit,
+          COALESCE(SUM(inv.amount), 0) as invested,
+          i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
+        FROM investors i
+        LEFT JOIN investments inv ON i.id = inv.investor_id
+        WHERE i.id = ?
+        GROUP BY i.id
+      `).get(id);
+
+      console.log(`New investor created: ${investor.name} (${investor.email})`);
+      broadcastGameState();
+
+      return res.json({ investor, newAccount: true });
     }
 
     console.log(`Investor found: ${investor.name} (${investor.email})`);
-
-    res.json({ investor });
+    res.json({ investor, newAccount: false });
   } catch (error) {
-    console.error('Error finding investor:', error);
-    res.status(500).json({ error: 'Failed to find investor' });
+    console.error('Error finding/creating investor:', error);
+    if (error.message && error.message.includes('UNIQUE constraint failed')) {
+      return res.status(400).json({ error: 'An account with this email already exists with a different name' });
+    }
+    res.status(500).json({ error: 'Failed to find or create investor' });
   }
 });
 
