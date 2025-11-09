@@ -8,9 +8,9 @@
   body {
     background: radial-gradient(
       circle at 50% -20%,
-      #2A3558 0%,   /* soft top glow (navy tone) */
-      #10172A 55%,  /* deep sapphire mid tone */
-      #050816 100%  /* dark anchor */
+      #2A3558 0%,
+      #10172A 55%,
+      #050816 100%
     );
     @apply text-slate-100 antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;

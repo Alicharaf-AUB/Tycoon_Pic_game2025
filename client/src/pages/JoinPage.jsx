@@ -72,28 +72,65 @@ export default function JoinPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 blur-3xl rounded-full"></div>
             <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/30 rounded-3xl p-10 shadow-2xl shadow-amber-500/20">
               <svg className="w-24 h-24 md:w-32 md:h-32 animate-float" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Crown Shape */}
-                <path d="M100 40 L115 75 L150 70 L125 95 L140 130 L100 110 L60 130 L75 95 L50 70 L85 75 Z" fill="url(#crownGradient)" stroke="url(#crownStroke)" strokeWidth="2"/>
-                {/* Center Gem */}
-                <circle cx="100" cy="95" r="12" fill="url(#gemGradient)" stroke="#FBBF24" strokeWidth="1.5"/>
-                {/* Side Gems */}
-                <circle cx="75" cy="85" r="6" fill="url(#gemGradient)" opacity="0.8"/>
-                <circle cx="125" cy="85" r="6" fill="url(#gemGradient)" opacity="0.8"/>
-                {/* Bottom Accent */}
-                <path d="M85 130 L100 145 L115 130" stroke="url(#crownStroke)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Angel Wings */}
+                {/* Left Wing */}
+                <path d="M100 100 Q70 80, 40 70 Q30 65, 25 75 Q20 85, 30 90 Q50 95, 70 100 Q80 105, 90 110 Z" 
+                      fill="url(#wingGradient)" stroke="url(#wingStroke)" strokeWidth="1.5" opacity="0.9"/>
+                <path d="M90 110 Q65 95, 45 90 Q35 88, 32 95 Q30 102, 40 105 Q55 108, 75 115 Z" 
+                      fill="url(#wingGradient)" stroke="url(#wingStroke)" strokeWidth="1" opacity="0.8"/>
+                
+                {/* Right Wing */}
+                <path d="M100 100 Q130 80, 160 70 Q170 65, 175 75 Q180 85, 170 90 Q150 95, 130 100 Q120 105, 110 110 Z" 
+                      fill="url(#wingGradient)" stroke="url(#wingStroke)" strokeWidth="1.5" opacity="0.9"/>
+                <path d="M110 110 Q135 95, 155 90 Q165 88, 168 95 Q170 102, 160 105 Q145 108, 125 115 Z" 
+                      fill="url(#wingGradient)" stroke="url(#wingStroke)" strokeWidth="1" opacity="0.8"/>
+                
+                {/* Angel Halo */}
+                <ellipse cx="100" cy="45" rx="25" ry="8" fill="none" stroke="url(#haloGradient)" strokeWidth="3" opacity="0.9"/>
+                <ellipse cx="100" cy="45" rx="25" ry="8" fill="url(#haloGlow)" opacity="0.3"/>
+                
+                {/* Center Body - Simple elegant circle */}
+                <circle cx="100" cy="100" r="20" fill="url(#bodyGradient)" stroke="url(#wingStroke)" strokeWidth="2"/>
+                <circle cx="100" cy="100" r="12" fill="url(#innerGlow)" opacity="0.6"/>
+                
+                {/* Decorative sparkles */}
+                <circle cx="70" cy="60" r="2" fill="#FCD34D" opacity="0.8">
+                  <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="130" cy="60" r="2" fill="#FCD34D" opacity="0.8">
+                  <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="100" cy="140" r="1.5" fill="#FBBF24" opacity="0.7">
+                  <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+                
                 <defs>
-                  <linearGradient id="crownGradient" x1="50" y1="40" x2="150" y2="145">
-                    <stop offset="0%" stopColor="#FCD34D"/>
-                    <stop offset="50%" stopColor="#F59E0B"/>
-                    <stop offset="100%" stopColor="#D97706"/>
+                  <linearGradient id="wingGradient" x1="0" y1="50" x2="200" y2="120">
+                    <stop offset="0%" stopColor="#FEF3C7"/>
+                    <stop offset="50%" stopColor="#FCD34D"/>
+                    <stop offset="100%" stopColor="#F59E0B"/>
                   </linearGradient>
-                  <linearGradient id="crownStroke" x1="50" y1="40" x2="150" y2="145">
+                  <linearGradient id="wingStroke" x1="0" y1="50" x2="200" y2="120">
                     <stop offset="0%" stopColor="#FBBF24"/>
                     <stop offset="100%" stopColor="#F59E0B"/>
                   </linearGradient>
-                  <radialGradient id="gemGradient" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#FEF3C7"/>
+                  <linearGradient id="haloGradient" x1="75" y1="45" x2="125" y2="45">
+                    <stop offset="0%" stopColor="#FCD34D"/>
+                    <stop offset="50%" stopColor="#FBBF24"/>
                     <stop offset="100%" stopColor="#FCD34D"/>
+                  </linearGradient>
+                  <radialGradient id="haloGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#FEF3C7"/>
+                    <stop offset="100%" stopColor="transparent"/>
+                  </radialGradient>
+                  <radialGradient id="bodyGradient" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#FEF3C7"/>
+                    <stop offset="50%" stopColor="#FCD34D"/>
+                    <stop offset="100%" stopColor="#F59E0B"/>
+                  </radialGradient>
+                  <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#FFFBEB"/>
+                    <stop offset="100%" stopColor="transparent"/>
                   </radialGradient>
                 </defs>
               </svg>
