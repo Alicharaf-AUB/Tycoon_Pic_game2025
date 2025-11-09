@@ -50,7 +50,20 @@ export default function JoinPage() {
           {/* Decorative Line */}
           <div className="flex items-center justify-center mb-8">
             <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
-            <div className="mx-4 text-4xl animate-pulse-glow">💎</div>
+            <svg className="mx-4 w-12 h-12 animate-pulse-glow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="url(#goldGradient)" stroke="url(#goldStroke)" strokeWidth="0.5"/>
+              <defs>
+                <linearGradient id="goldGradient" x1="2" y1="2" x2="22" y2="21">
+                  <stop offset="0%" stopColor="#FCD34D"/>
+                  <stop offset="50%" stopColor="#F59E0B"/>
+                  <stop offset="100%" stopColor="#D97706"/>
+                </linearGradient>
+                <linearGradient id="goldStroke" x1="2" y1="2" x2="22" y2="21">
+                  <stop offset="0%" stopColor="#FBBF24"/>
+                  <stop offset="100%" stopColor="#F59E0B"/>
+                </linearGradient>
+              </defs>
+            </svg>
             <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
           </div>
           
@@ -58,7 +71,32 @@ export default function JoinPage() {
           <div className="mb-8 relative inline-block">
             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 blur-3xl rounded-full"></div>
             <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/30 rounded-3xl p-10 shadow-2xl shadow-amber-500/20">
-              <span className="text-7xl md:text-8xl animate-float" style={{display: 'inline-block'}}>{GAME_CONFIG.logoEmoji}</span>
+              <svg className="w-24 h-24 md:w-32 md:h-32 animate-float" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Crown Shape */}
+                <path d="M100 40 L115 75 L150 70 L125 95 L140 130 L100 110 L60 130 L75 95 L50 70 L85 75 Z" fill="url(#crownGradient)" stroke="url(#crownStroke)" strokeWidth="2"/>
+                {/* Center Gem */}
+                <circle cx="100" cy="95" r="12" fill="url(#gemGradient)" stroke="#FBBF24" strokeWidth="1.5"/>
+                {/* Side Gems */}
+                <circle cx="75" cy="85" r="6" fill="url(#gemGradient)" opacity="0.8"/>
+                <circle cx="125" cy="85" r="6" fill="url(#gemGradient)" opacity="0.8"/>
+                {/* Bottom Accent */}
+                <path d="M85 130 L100 145 L115 130" stroke="url(#crownStroke)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <defs>
+                  <linearGradient id="crownGradient" x1="50" y1="40" x2="150" y2="145">
+                    <stop offset="0%" stopColor="#FCD34D"/>
+                    <stop offset="50%" stopColor="#F59E0B"/>
+                    <stop offset="100%" stopColor="#D97706"/>
+                  </linearGradient>
+                  <linearGradient id="crownStroke" x1="50" y1="40" x2="150" y2="145">
+                    <stop offset="0%" stopColor="#FBBF24"/>
+                    <stop offset="100%" stopColor="#F59E0B"/>
+                  </linearGradient>
+                  <radialGradient id="gemGradient" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#FEF3C7"/>
+                    <stop offset="100%" stopColor="#FCD34D"/>
+                  </radialGradient>
+                </defs>
+              </svg>
             </div>
           </div>
           
@@ -131,7 +169,9 @@ export default function JoinPage() {
             {error && (
               <div className="bg-rose-500/10 border-2 border-rose-500/30 backdrop-blur-xl text-rose-300 px-6 py-4 rounded-xl text-sm font-medium animate-fade-in shadow-lg">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">⚠</span>
+                  <svg className="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
                   <span>{error}</span>
                 </div>
               </div>

@@ -80,7 +80,7 @@ export default function JoinPage() {
             {/* Starting Capital Display */}
             <div className="glass-card bg-emerald-950/20 border-emerald-500/30 p-8 text-center shadow-lg">
               <p className="text-sm font-bold text-emerald-300 uppercase tracking-wider mb-3 flex items-center justify-center gap-2">
-                <span className="text-xl">💰</span> Your Starting Capital
+                <span className="text-xl"></span> Your Starting Capital
               </p>
               <p className="text-4xl sm:text-5xl md:text-6xl font-bold text-gradient-gold font-display">
                 {formatCurrency(GAME_CONFIG.defaultStartingCredit)}
