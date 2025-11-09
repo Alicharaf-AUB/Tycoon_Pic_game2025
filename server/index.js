@@ -179,7 +179,7 @@ app.post('/api/join', (req, res) => {
   }
 
   const trimmedName = name.trim();
-  const trimmedEmail = email.trim().toLowerCase();
+  const trimmedEmail = email.trim();
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -188,8 +188,8 @@ app.post('/api/join', (req, res) => {
   }
 
   try {
-    // Check if investor already exists by email (unique identifier)
-    const existing = db.prepare('SELECT * FROM investors WHERE LOWER(email) = LOWER(?)').get(trimmedEmail);
+    // Check if investor already exists by email (exact match, case-sensitive)
+    const existing = db.prepare('SELECT * FROM investors WHERE email = ?').get(trimmedEmail);
 
     if (existing) {
       // Allow rejoin - return existing investor
@@ -231,7 +231,7 @@ app.post('/api/find-investor', (req, res) => {
   }
 
   try {
-    // Find investor by BOTH email AND name (both case-insensitive) for security
+    // Find investor by email (case-sensitive) AND name (case-insensitive) for security
     const investor = db.prepare(`
       SELECT
         i.id,
@@ -242,7 +242,7 @@ app.post('/api/find-investor', (req, res) => {
         i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      WHERE LOWER(i.email) = LOWER(?) AND LOWER(i.name) = LOWER(?)
+      WHERE i.email = ? AND LOWER(i.name) = LOWER(?)
       GROUP BY i.id
       LIMIT 1
     `).get(email.trim(), name.trim());
