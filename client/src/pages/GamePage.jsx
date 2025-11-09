@@ -140,10 +140,10 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#252943]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-slate-800 border-t-slate-400 mx-auto mb-3"></div>
-          <p className="text-slate-500 text-sm font-medium">Loading portfolio...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#33A4FA]/20 border-t-[#33A4FA] mx-auto mb-3"></div>
+          <p className="text-[#DEE0ED]/60 text-sm font-medium">Loading portfolio...</p>
         </div>
       </div>
     );
@@ -171,14 +171,14 @@ export default function GamePage() {
   const startups = currentGameState?.startups || [];
 
   return (
-    <div className="min-h-screen p-4 pb-24">
+    <div className="min-h-screen p-4 pb-24 bg-[#252943]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="fintech-card p-6 md:p-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-100 mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
                   {investor.name}
                 </h1>
                 <div className="flex items-center gap-2">
@@ -194,21 +194,21 @@ export default function GamePage() {
 
             {/* Financial Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="border border-slate-800 rounded-lg p-4 bg-slate-900/30">
-                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-medium">Starting Capital</p>
-                <p className="text-2xl font-bold text-slate-200">
+              <div className="border border-[#DEE0ED]/10 rounded-xl p-5 bg-[#DEE0ED]/5">
+                <p className="text-xs text-[#93AEFB] mb-2 uppercase tracking-wider font-medium">Starting Capital</p>
+                <p className="text-2xl font-bold text-white">
                   {formatCurrency(investor.starting_credit)}
                 </p>
               </div>
-              <div className="border border-slate-800 rounded-lg p-4 bg-slate-900/30">
-                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-medium">Invested</p>
-                <p className="text-2xl font-bold text-slate-200">
+              <div className="border border-[#DEE0ED]/10 rounded-xl p-5 bg-[#DEE0ED]/5">
+                <p className="text-xs text-[#93AEFB] mb-2 uppercase tracking-wider font-medium">Invested</p>
+                <p className="text-2xl font-bold text-white">
                   {formatCurrency(investor.invested)}
                 </p>
               </div>
-              <div className="border border-emerald-900/30 rounded-lg p-4 bg-emerald-950/20">
-                <p className="text-xs text-emerald-400 mb-2 uppercase tracking-wider font-medium">Available</p>
-                <p className="text-2xl font-bold text-emerald-300">
+              <div className="border border-[#E3FF3B]/30 rounded-xl p-5 bg-[#E3FF3B]/5">
+                <p className="text-xs text-[#E3FF3B] mb-2 uppercase tracking-wider font-medium">Available</p>
+                <p className="text-2xl font-bold text-[#E3FF3B]">
                   {formatCurrency(investor.remaining)}
                 </p>
               </div>
@@ -216,7 +216,7 @@ export default function GamePage() {
 
             {/* Status Messages */}
             {isLocked && (
-              <div className="mt-6 border border-amber-900/30 rounded-lg p-4 bg-amber-950/20 text-amber-300 text-sm font-medium">
+              <div className="mt-6 border border-amber-500/30 rounded-xl p-4 bg-amber-500/10 text-amber-300 text-sm font-medium">
                 <span className="mr-2">🔒</span>
                 Game locked - No more changes allowed
               </div>
@@ -246,7 +246,7 @@ export default function GamePage() {
             )}
 
             {investor.submitted && (
-              <div className="mt-6 border border-emerald-900/30 rounded-lg p-4 bg-emerald-950/20 text-emerald-300 text-sm font-medium text-center">
+              <div className="mt-6 border border-[#E3FF3B]/30 rounded-xl p-4 bg-[#E3FF3B]/10 text-[#252943] text-sm font-semibold text-center">
                 <span className="mr-2">✅</span>
                 Your investments have been submitted
               </div>
@@ -255,8 +255,8 @@ export default function GamePage() {
         </div>
 
         {/* Startups Section */}
-        <h2 className="text-xl font-semibold mb-6 text-slate-300 flex items-center gap-2">
-          <span className="text-xl">🚀</span> Investment Opportunities
+        <h2 className="text-2xl font-semibold mb-6 text-white flex items-center gap-3">
+          <span className="text-2xl">🚀</span> Investment Opportunities
         </h2>
         
         {startups.length === 0 ? (

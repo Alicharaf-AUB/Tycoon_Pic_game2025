@@ -36,24 +36,24 @@ export default function JoinPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-[#252943] via-[#252943] to-[#1a1d33]">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gold-500/10 border border-gold-500/20 mb-6">
-            <span className="text-4xl">{GAME_CONFIG.logoEmoji}</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-[#33A4FA]/10 border border-[#33A4FA]/30 mb-6">
+            <span className="text-5xl">{GAME_CONFIG.logoEmoji}</span>
           </div>
           
-          <h1 className="text-4xl font-bold mb-3 text-slate-50 tracking-tight">
+          <h1 className="text-5xl font-bold mb-4 text-white tracking-tight">
             {GAME_CONFIG.gameName}
           </h1>
-          <p className="text-lg text-slate-400 font-medium">
+          <p className="text-xl text-[#DEE0ED] font-medium">
             {GAME_CONFIG.gameTagline}
           </p>
           
           {GAME_CONFIG.eventInfo.enabled && (
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
-              <span className="text-sm text-slate-300 font-medium">
+            <div className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#33A4FA]/10 border border-[#33A4FA]/30">
+              <span className="text-sm text-[#93AEFB] font-medium">
                 {GAME_CONFIG.eventInfo.eventName} • {GAME_CONFIG.eventInfo.eventDate}
               </span>
             </div>
@@ -64,17 +64,17 @@ export default function JoinPage() {
         <div className="fintech-card p-8">
           <form onSubmit={handleJoin} className="space-y-6">
             {/* Starting Capital Display */}
-            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-6 text-center">
-              <p className="text-xs text-emerald-400 uppercase tracking-wider mb-2 font-semibold">
+            <div className="bg-[#E3FF3B]/5 border border-[#E3FF3B]/30 rounded-xl p-6 text-center">
+              <p className="text-xs text-[#E3FF3B] uppercase tracking-wider mb-2 font-semibold">
                 Starting Capital
               </p>
-              <p className="text-3xl font-bold text-slate-50">
+              <p className="text-4xl font-bold text-white">
                 {formatCurrency(GAME_CONFIG.defaultStartingCredit)}
               </p>
             </div>
 
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-slate-300 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-[#DEE0ED] mb-3">
                 Your Name
               </label>
               <input
@@ -91,7 +91,7 @@ export default function JoinPage() {
             </div>
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm font-medium">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm font-medium">
                 {error}
               </div>
             )}
@@ -103,7 +103,7 @@ export default function JoinPage() {
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <div className="spinner border-slate-900 border-t-slate-900"></div>
+                  <div className="spinner border-white border-t-white"></div>
                   <span>Joining...</span>
                 </span>
               ) : (
@@ -114,17 +114,17 @@ export default function JoinPage() {
           
           {/* Info Grid */}
           <div className="mt-8 grid grid-cols-3 gap-3">
-            <div className="text-center p-3 rounded-lg bg-slate-800/50">
-              <div className="text-xl mb-1">⚡</div>
-              <div className="text-xs text-slate-400 font-medium">Real-Time</div>
+            <div className="text-center p-4 rounded-xl bg-[#33A4FA]/5 border border-[#33A4FA]/10">
+              <div className="text-2xl mb-1">⚡</div>
+              <div className="text-xs text-[#93AEFB] font-medium">Real-Time</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-slate-800/50">
-              <div className="text-xl mb-1">👥</div>
-              <div className="text-xs text-slate-400 font-medium">Live Board</div>
+            <div className="text-center p-4 rounded-xl bg-[#33A4FA]/5 border border-[#33A4FA]/10">
+              <div className="text-2xl mb-1">👥</div>
+              <div className="text-xs text-[#93AEFB] font-medium">Live Board</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-slate-800/50">
-              <div className="text-xl mb-1">📱</div>
-              <div className="text-xs text-slate-400 font-medium">Mobile Ready</div>
+            <div className="text-center p-4 rounded-xl bg-[#33A4FA]/5 border border-[#33A4FA]/10">
+              <div className="text-2xl mb-1">📱</div>
+              <div className="text-xs text-[#93AEFB] font-medium">Mobile Ready</div>
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function JoinPage() {
         <div className="text-center mt-6">
           <a
             href="/admin"
-            className="text-sm text-slate-500 hover:text-slate-400 transition-colors font-medium"
+            className="text-sm text-[#93AEFB] hover:text-[#33A4FA] transition-colors font-medium"
           >
             Admin Access
           </a>
@@ -141,9 +141,9 @@ export default function JoinPage() {
 
         {/* Organization Footer */}
         {GAME_CONFIG.organizationInfo.enabled && (
-          <div className="text-center mt-8 py-4 border-t border-slate-800">
-            <p className="text-xs text-slate-500 mb-1">Powered by</p>
-            <p className="text-sm text-slate-400 font-semibold">{GAME_CONFIG.organizationInfo.name}</p>
+          <div className="text-center mt-8 py-4 border-t border-[#DEE0ED]/10">
+            <p className="text-xs text-[#DEE0ED]/40 mb-1">Powered by</p>
+            <p className="text-sm text-[#DEE0ED] font-semibold">{GAME_CONFIG.organizationInfo.name}</p>
           </div>
         )}
       </div>
