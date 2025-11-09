@@ -231,7 +231,7 @@ app.post('/api/find-investor', (req, res) => {
   }
 
   try {
-    // Find investor by BOTH email (case-insensitive) AND name (case-sensitive) for security
+    // Find investor by BOTH email AND name (both case-insensitive) for security
     const investor = db.prepare(`
       SELECT
         i.id,
@@ -242,7 +242,7 @@ app.post('/api/find-investor', (req, res) => {
         i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      WHERE LOWER(i.email) = LOWER(?) AND i.name = ?
+      WHERE LOWER(i.email) = LOWER(?) AND LOWER(i.name) = LOWER(?)
       GROUP BY i.id
       LIMIT 1
     `).get(email.trim(), name.trim());
