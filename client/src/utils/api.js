@@ -69,6 +69,22 @@ export const api = {
     });
     return data;
   },
+
+  // Submit funds request
+  submitFundsRequest: async (investorId, requestedAmount, justification) => {
+    const { data } = await axios.post(`${API_BASE}/api/funds-request`, {
+      investorId,
+      requestedAmount,
+      justification,
+    });
+    return data;
+  },
+
+  // Get investor's funds requests
+  getFundsRequests: async (investorId) => {
+    const { data } = await axios.get(`${API_BASE}/api/investors/${investorId}/funds-requests`);
+    return data;
+  },
 };
 
 // Admin API
@@ -165,13 +181,43 @@ export const adminApi = {
   uploadFile: async (username, password, file) => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const { data } = await axios.post(`${API_BASE}/api/admin/upload`, formData, {
       headers: {
         ...adminApi.getAuthHeader(username, password),
         'Content-Type': 'multipart/form-data',
       },
     });
+    return data;
+  },
+
+  // Get all funds requests
+  getFundsRequests: async (username, password, status = null) => {
+    const params = status ? { status } : {};
+    const { data } = await axios.get(`${API_BASE}/api/admin/funds-requests`, {
+      headers: adminApi.getAuthHeader(username, password),
+      params,
+    });
+    return data;
+  },
+
+  // Approve funds request
+  approveFundsRequest: async (username, password, requestId, adminResponse, reviewedBy) => {
+    const { data } = await axios.post(
+      `${API_BASE}/api/admin/funds-requests/${requestId}/approve`,
+      { adminResponse, reviewedBy },
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
+    return data;
+  },
+
+  // Reject funds request
+  rejectFundsRequest: async (username, password, requestId, adminResponse, reviewedBy) => {
+    const { data } = await axios.post(
+      `${API_BASE}/api/admin/funds-requests/${requestId}/reject`,
+      { adminResponse, reviewedBy },
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
     return data;
   },
 };

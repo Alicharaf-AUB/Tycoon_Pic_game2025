@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatCurrency } from '../utils/api';
+import { formatCurrency, api } from '../utils/api';
 
 export default function FundsRequestModal({ investor, onClose }) {
   const [requestAmount, setRequestAmount] = useState('');
@@ -23,11 +23,16 @@ export default function FundsRequestModal({ investor, onClose }) {
 
     setLoading(true);
 
-    // Simulate submission delay
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await api.submitFundsRequest(investor.id, amount, justification);
       setSubmitted(true);
-    }, 1500);
+    } catch (error) {
+      console.error('Error submitting funds request:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to submit request';
+      alert(`Failed to submit request: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {

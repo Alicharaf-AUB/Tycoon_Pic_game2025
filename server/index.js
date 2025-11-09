@@ -340,21 +340,75 @@ app.post('/api/invest', (req, res) => {
 // Submit investments (finalize choices)
 app.post('/api/submit', (req, res) => {
   const { investorId } = req.body;
-  
+
   if (!investorId) {
     return res.status(400).json({ error: 'Investor ID is required' });
   }
-  
+
   try {
     // Mark investor as submitted
     db.prepare('UPDATE investors SET submitted = 1 WHERE id = ?').run(investorId);
-    
+
     broadcastGameState();
-    
+
     res.json({ success: true, message: 'Investments submitted successfully!' });
   } catch (error) {
     console.error('Error submitting investments:', error);
     res.status(500).json({ error: 'Failed to submit investments' });
+  }
+});
+
+// ===== FUNDS REQUESTS =====
+
+// Submit funds request (investor)
+app.post('/api/funds-request', (req, res) => {
+  const { investorId, requestedAmount, justification } = req.body;
+
+  if (!investorId || !requestedAmount || !justification) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (requestedAmount <= 0) {
+    return res.status(400).json({ error: 'Requested amount must be positive' });
+  }
+
+  try {
+    const investor = db.prepare('SELECT * FROM investors WHERE id = ?').get(investorId);
+
+    if (!investor) {
+      return res.status(404).json({ error: 'Investor not found' });
+    }
+
+    const id = uuidv4();
+    db.prepare(`
+      INSERT INTO funds_requests (
+        id, investor_id, investor_name, current_credit,
+        requested_amount, justification, status
+      ) VALUES (?, ?, ?, ?, ?, ?, 'pending')
+    `).run(id, investorId, investor.name, investor.starting_credit, requestedAmount, justification);
+
+    res.json({ success: true, requestId: id });
+  } catch (error) {
+    console.error('Error creating funds request:', error);
+    res.status(500).json({ error: 'Failed to create request' });
+  }
+});
+
+// Get investor's funds requests
+app.get('/api/investors/:id/funds-requests', (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const requests = db.prepare(`
+      SELECT * FROM funds_requests
+      WHERE investor_id = ?
+      ORDER BY created_at DESC
+    `).all(id);
+
+    res.json({ requests });
+  } catch (error) {
+    console.error('Error fetching funds requests:', error);
+    res.status(500).json({ error: 'Failed to fetch requests' });
   }
 });
 
@@ -628,11 +682,110 @@ app.get('/api/admin/stats', adminAuth, (req, res) => {
       totalInvested: db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM investments').get().total,
       totalInvestments: db.prepare('SELECT COUNT(*) as count FROM investments').get().count
     };
-    
+
     res.json({ stats });
   } catch (error) {
     console.error('Error getting stats:', error);
     res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+// Get all funds requests (admin)
+app.get('/api/admin/funds-requests', adminAuth, (req, res) => {
+  try {
+    const { status } = req.query;
+
+    let query = 'SELECT * FROM funds_requests';
+    let params = [];
+
+    if (status) {
+      query += ' WHERE status = ?';
+      params.push(status);
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const requests = db.prepare(query).all(...params);
+
+    res.json({ requests });
+  } catch (error) {
+    console.error('Error fetching funds requests:', error);
+    res.status(500).json({ error: 'Failed to fetch funds requests' });
+  }
+});
+
+// Approve funds request (admin)
+app.post('/api/admin/funds-requests/:id/approve', adminAuth, (req, res) => {
+  const { id } = req.params;
+  const { adminResponse, reviewedBy } = req.body;
+
+  try {
+    // Get the request
+    const request = db.prepare('SELECT * FROM funds_requests WHERE id = ?').get(id);
+
+    if (!request) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).json({ error: 'Request has already been reviewed' });
+    }
+
+    // Update investor's starting credit
+    const newCredit = request.current_credit + request.requested_amount;
+    db.prepare('UPDATE investors SET starting_credit = ? WHERE id = ?')
+      .run(newCredit, request.investor_id);
+
+    // Update request status
+    db.prepare(`
+      UPDATE funds_requests
+      SET status = 'approved',
+          admin_response = ?,
+          reviewed_at = CURRENT_TIMESTAMP,
+          reviewed_by = ?
+      WHERE id = ?
+    `).run(adminResponse || 'Approved', reviewedBy || 'admin', id);
+
+    broadcastGameState();
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error approving funds request:', error);
+    res.status(500).json({ error: 'Failed to approve request' });
+  }
+});
+
+// Reject funds request (admin)
+app.post('/api/admin/funds-requests/:id/reject', adminAuth, (req, res) => {
+  const { id } = req.params;
+  const { adminResponse, reviewedBy } = req.body;
+
+  try {
+    // Get the request
+    const request = db.prepare('SELECT * FROM funds_requests WHERE id = ?').get(id);
+
+    if (!request) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).json({ error: 'Request has already been reviewed' });
+    }
+
+    // Update request status
+    db.prepare(`
+      UPDATE funds_requests
+      SET status = 'rejected',
+          admin_response = ?,
+          reviewed_at = CURRENT_TIMESTAMP,
+          reviewed_by = ?
+      WHERE id = ?
+    `).run(adminResponse || 'Rejected', reviewedBy || 'admin', id);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error rejecting funds request:', error);
+    res.status(500).json({ error: 'Failed to reject request' });
   }
 });
 

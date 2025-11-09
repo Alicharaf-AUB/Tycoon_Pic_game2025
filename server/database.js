@@ -69,6 +69,24 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_investments_investor ON investments(investor_id);
   CREATE INDEX IF NOT EXISTS idx_investments_startup ON investments(startup_id);
+
+  CREATE TABLE IF NOT EXISTS funds_requests (
+    id TEXT PRIMARY KEY,
+    investor_id TEXT NOT NULL,
+    investor_name TEXT NOT NULL,
+    current_credit INTEGER NOT NULL,
+    requested_amount INTEGER NOT NULL,
+    justification TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    admin_response TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at DATETIME,
+    reviewed_by TEXT,
+    FOREIGN KEY (investor_id) REFERENCES investors(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_funds_requests_investor ON funds_requests(investor_id);
+  CREATE INDEX IF NOT EXISTS idx_funds_requests_status ON funds_requests(status);
 `);
 
 // Migration: Add submitted column if it doesn't exist
