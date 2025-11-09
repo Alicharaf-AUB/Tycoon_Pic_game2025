@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { adminApi, api, formatCurrency, getFileUrl } from '../utils/api';
+import ActivityFeed from '../components/admin/ActivityFeed';
+import InvestmentCharts from '../components/admin/InvestmentCharts';
+import AuditTrail from '../components/admin/AuditTrail';
+import { exportInvestorsToCSV, exportStartupsToCSV, exportInvestmentsToCSV, exportAllDataToCSV } from '../utils/adminExport';
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -136,6 +140,9 @@ export default function AdminPage() {
     { id: 'startups', name: '🚀 Startups', emoji: '🚀' },
     { id: 'investments', name: '💰 Investments', emoji: '💰' },
     { id: 'submissions', name: '✅ Submissions', emoji: '✅' },
+    { id: 'analytics', name: '📈 Analytics', emoji: '📈' },
+    { id: 'activity', name: '⚡ Activity Feed', emoji: '⚡' },
+    { id: 'audit', name: '📋 Audit Trail', emoji: '📋' },
   ];
 
   return (
@@ -196,6 +203,15 @@ export default function AdminPage() {
         )}
         {activeTab === 'submissions' && (
           <SubmissionsTab gameState={gameState} />
+        )}
+        {activeTab === 'analytics' && (
+          <AnalyticsTab gameState={gameState} />
+        )}
+        {activeTab === 'activity' && (
+          <ActivityTab gameState={gameState} />
+        )}
+        {activeTab === 'audit' && (
+          <AuditTab />
         )}
       </div>
     </div>
@@ -1292,6 +1308,87 @@ function SubmissionsTab({ gameState }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Analytics Tab - Investment Charts & Visualizations
+function AnalyticsTab({ gameState }) {
+  const investors = gameState?.investors || [];
+  const startups = gameState?.startups || [];
+  const investments = gameState?.investments || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Export Buttons */}
+      <div className="card-executive">
+        <h3 className="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
+          <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Data Export
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button
+            onClick={() => exportInvestorsToCSV(investors)}
+            className="btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+            </svg>
+            Export Investors
+          </button>
+          <button
+            onClick={() => exportStartupsToCSV(startups)}
+            className="btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+            </svg>
+            Export Startups
+          </button>
+          <button
+            onClick={() => exportInvestmentsToCSV(investments, investors, startups)}
+            className="btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+            </svg>
+            Export Investments
+          </button>
+          <button
+            onClick={() => exportAllDataToCSV(investors, startups, investments)}
+            className="btn-primary text-sm py-2 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export All Data
+          </button>
+        </div>
+      </div>
+
+      {/* Investment Charts */}
+      <InvestmentCharts />
+    </div>
+  );
+}
+
+// Activity Tab - Real-time Activity Feed
+function ActivityTab({ gameState }) {
+  return (
+    <div>
+      <ActivityFeed />
+    </div>
+  );
+}
+
+// Audit Tab - Audit Trail & Compliance
+function AuditTab() {
+  return (
+    <div>
+      <AuditTrail />
     </div>
   );
 }
