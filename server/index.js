@@ -218,16 +218,20 @@ app.post('/api/join', (req, res) => {
   }
 });
 
-// Find investor by email (for returning users)
+// Find investor by email AND name (for returning users)
 app.post('/api/find-investor', (req, res) => {
-  const { email } = req.body;
+  const { email, name } = req.body;
 
   if (!email || email.trim() === '') {
     return res.status(400).json({ error: 'Email is required' });
   }
 
+  if (!name || name.trim() === '') {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+
   try {
-    // Find investor by email (case-insensitive)
+    // Find investor by BOTH email AND name (case-insensitive) for security
     const investor = db.prepare(`
       SELECT
         i.id,
@@ -238,13 +242,13 @@ app.post('/api/find-investor', (req, res) => {
         i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      WHERE LOWER(i.email) = LOWER(?)
+      WHERE LOWER(i.email) = LOWER(?) AND LOWER(i.name) = LOWER(?)
       GROUP BY i.id
       LIMIT 1
-    `).get(email.trim());
+    `).get(email.trim(), name.trim());
 
     if (!investor) {
-      return res.status(404).json({ error: 'No account found with that email address' });
+      return res.status(404).json({ error: 'No account found with that name and email combination' });
     }
 
     console.log(`Investor found: ${investor.name} (${investor.email})`);

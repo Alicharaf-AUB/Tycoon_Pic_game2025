@@ -4,6 +4,7 @@ import { api, formatCurrency } from '../utils/api';
 import { GAME_CONFIG } from '../config';
 
 export default function LoginPage() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -34,6 +35,11 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    if (!name.trim()) {
+      setError('Please enter your name');
+      return;
+    }
+
     if (!email.trim()) {
       setError('Please enter your email address');
       return;
@@ -43,7 +49,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { investor } = await api.findInvestor(email.trim());
+      const { investor } = await api.findInvestor(email.trim(), name.trim());
 
       // Store investor info in localStorage for session management
       localStorage.setItem('investor', JSON.stringify(investor));
@@ -186,10 +192,29 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* Name Input */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
+                Your Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your full name"
+                className="input-executive text-lg"
+                disabled={loading}
+                maxLength={100}
+                autoComplete="name"
+                autoFocus
+              />
+            </div>
+
             {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
-                Account Email Address
+                Your Email Address
               </label>
               <input
                 type="email"
@@ -201,10 +226,9 @@ export default function LoginPage() {
                 disabled={loading}
                 maxLength={100}
                 autoComplete="email"
-                autoFocus
               />
               <p className="mt-2 text-xs text-slate-500">
-                Use the email address you registered with to access your account
+                Both name and email must match your registered account
               </p>
             </div>
 
@@ -242,7 +266,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || !email.trim()}
+              disabled={loading || !name.trim() || !email.trim()}
               className="btn-executive w-full disabled:opacity-50 disabled:cursor-not-allowed text-xl py-6 font-bold relative overflow-hidden group"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">

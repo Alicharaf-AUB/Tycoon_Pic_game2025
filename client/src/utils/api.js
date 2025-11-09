@@ -34,9 +34,9 @@ export const api = {
     return data;
   },
 
-  // Find existing investor by email
-  findInvestor: async (email) => {
-    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { email });
+  // Find existing investor by email and name
+  findInvestor: async (email, name) => {
+    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { email, name });
     return data;
   },
 
