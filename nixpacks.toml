@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ['nodejs_18', 'python3']
+nixPkgs = ['nodejs_18', 'python3', 'gcc', 'gnumake']
 
 [phases.install]
-cmds = ['npm ci --only=production --legacy-peer-deps']
+cmds = ['npm install --omit=dev --legacy-peer-deps']
 
 [phases.build]
-cmds = ['cd client && npm ci && npm run build']
+cmds = ['cd client && npm install && npm run build']
 
 [start]
 cmd = 'NODE_ENV=production npm start'
