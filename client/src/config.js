@@ -56,6 +56,14 @@ export const GAME_CONFIG = {
     eventName: 'AIM Demo Day 2025',
     eventDate: 'November 2025',
     eventLocation: 'American University of Beirut',
+  },
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🏢 ORGANIZATION INFO
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  organizationInfo: {
+    enabled: true,
+    name: 'AUB Innovation & Entrepreneurship',
   }
 };
 
