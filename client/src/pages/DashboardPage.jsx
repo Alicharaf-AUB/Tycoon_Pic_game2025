@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
+import { useTheme } from '../context/ThemeContext';
 import { api, formatCurrency, formatPercentage, getFileUrl } from '../utils/api';
+import { generateInvestmentReport } from '../utils/pdfExport';
 import InvestmentConfirmationModal from '../components/InvestmentConfirmationModal';
 import FundsRequestModal from '../components/FundsRequestModal';
 import TransactionHistory from '../components/TransactionHistory';
@@ -12,6 +14,7 @@ export default function DashboardPage() {
   const { investorId } = useParams();
   const navigate = useNavigate();
   const { gameState, isConnected } = useSocket();
+  const { theme, toggleTheme, isDark } = useTheme();
   const [investor, setInvestor] = useState(null);
   const [selectedStartup, setSelectedStartup] = useState(null);
   const [viewingStartup, setViewingStartup] = useState(null);
@@ -157,7 +160,14 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('investor');
+    // Clear Remember Me data on explicit logout
+    localStorage.removeItem('rememberedInvestorId');
+    localStorage.removeItem('rememberedName');
     navigate('/');
+  };
+
+  const handleExportPDF = () => {
+    generateInvestmentReport(investor, myInvestments, startups, currentGameState);
   };
 
   if (loading) {
@@ -264,6 +274,21 @@ export default function DashboardPage() {
                 </div>
               </div>
               <button
+                onClick={toggleTheme}
+                className="text-slate-400 hover:text-slate-200 transition-colors p-2 hover:bg-slate-800/50 rounded-lg"
+                title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {isDark ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+              <button
                 onClick={handleLogout}
                 className="text-slate-400 hover:text-slate-200 transition-colors p-2 hover:bg-slate-800/50 rounded-lg"
                 title="Logout"
@@ -349,6 +374,22 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* PDF Export Button */}
+          {investor.invested > 0 && (
+            <div className="mt-6">
+              <button
+                onClick={handleExportPDF}
+                className="w-full btn-secondary text-sm py-4 font-semibold flex items-center justify-center gap-3 group hover:border-blue-500/50"
+              >
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Download Investment Report (PDF)</span>
+                <span className="text-xs text-slate-500 ml-1">• Professional Portfolio Summary</span>
+              </button>
+            </div>
+          )}
 
           {/* Status Banners */}
           {isLocked && (

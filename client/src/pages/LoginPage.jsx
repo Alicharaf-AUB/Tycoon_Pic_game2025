@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, formatCurrency } from '../utils/api';
 import { GAME_CONFIG } from '../config';
@@ -7,7 +7,29 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+
+  // Auto-login if remembered
+  useEffect(() => {
+    const rememberedInvestorId = localStorage.getItem('rememberedInvestorId');
+    const rememberedName = localStorage.getItem('rememberedName');
+
+    if (rememberedInvestorId && rememberedName) {
+      // Automatically redirect to dashboard
+      setLoading(true);
+      api.getInvestor(rememberedInvestorId)
+        .then(({ investor }) => {
+          navigate(`/dashboard/${investor.id}`);
+        })
+        .catch(() => {
+          // If investor no longer exists, clear remembered data
+          localStorage.removeItem('rememberedInvestorId');
+          localStorage.removeItem('rememberedName');
+          setLoading(false);
+        });
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,6 +47,15 @@ export default function LoginPage() {
 
       // Store investor info in localStorage for session management
       localStorage.setItem('investor', JSON.stringify(investor));
+
+      // Remember me functionality
+      if (rememberMe) {
+        localStorage.setItem('rememberedInvestorId', investor.id);
+        localStorage.setItem('rememberedName', investor.name);
+      } else {
+        localStorage.removeItem('rememberedInvestorId');
+        localStorage.removeItem('rememberedName');
+      }
 
       navigate(`/dashboard/${investor.id}`);
     } catch (err) {
@@ -175,6 +206,21 @@ export default function LoginPage() {
               <p className="mt-2 text-xs text-slate-500">
                 Use your registered full name to access your account
               </p>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900/70 checked:bg-blue-500 checked:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 cursor-pointer transition-all"
+              />
+              <label htmlFor="rememberMe" className="text-sm text-slate-300 cursor-pointer select-none flex items-center gap-2">
+                <span>Remember me on this device</span>
+                <span className="text-xs text-slate-500">(Auto-login next time)</span>
+              </label>
             </div>
 
             {error && (

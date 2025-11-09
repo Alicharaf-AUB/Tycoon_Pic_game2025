@@ -491,3 +491,105 @@
     display: none !important;
   }
 }
+
+/* Light Theme Overrides */
+:root.light-theme {
+  --color-executive-navy: #f8fafc;
+  --color-executive-blue: #3b82f6;
+  --shadow-premium: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-executive: 0 10px 40px rgba(59, 130, 246, 0.2);
+}
+
+.light-theme body {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
+  color: #0f172a;
+}
+
+.light-theme .card-executive,
+.light-theme .card-premium,
+.light-theme .card-hover {
+  background: linear-gradient(to bottom right, #ffffff, #f1f5f9);
+  border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .btn-executive {
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.light-theme .btn-secondary {
+  background: rgba(241, 245, 249, 0.8);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #334155;
+}
+
+.light-theme .input-executive,
+.light-theme .input {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #0f172a;
+}
+
+.light-theme .input-executive::placeholder,
+.light-theme .input::placeholder {
+  color: #94a3b8;
+}
+
+.light-theme .stat-card {
+  background: linear-gradient(to bottom right, #ffffff, #f1f5f9);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.light-theme .text-slate-100,
+.light-theme .text-slate-200 {
+  color: #1e293b !important;
+}
+
+.light-theme .text-slate-300 {
+  color: #334155 !important;
+}
+
+.light-theme .text-slate-400,
+.light-theme .text-slate-500 {
+  color: #64748b !important;
+}
+
+.light-theme .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+.light-theme .bg-slate-800,
+.light-theme .bg-slate-900 {
+  background-color: #f1f5f9 !important;
+}
+
+.light-theme .bg-slate-800\/50,
+.light-theme .bg-slate-900\/70 {
+  background-color: rgba(241, 245, 249, 0.6) !important;
+}
+
+.light-theme .border-slate-700 {
+  border-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+.light-theme .border-slate-800 {
+  border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+.light-theme nav {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom-color: rgba(203, 213, 225, 0.5) !important;
+}
+
+.light-theme .modal-overlay {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+}
+
+.light-theme ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+}
+
