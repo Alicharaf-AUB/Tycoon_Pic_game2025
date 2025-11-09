@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap');
+#!/usr/bin/env python3
+
+css_content = """@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -76,7 +78,7 @@
   }
 
   .btn-gold {
-    @apply relative inline-flex items-center justify-center gap-2 px-8 py-4
+    @apply relative inline-flex items-centers justify-center gap-2 px-8 py-4
            bg-gradient-to-r from-amber-600 to-amber-500
            hover:from-amber-500 hover:to-amber-400
            text-slate-900 font-bold rounded-xl
@@ -335,13 +337,13 @@
     background: radial-gradient(circle, var(--tw-gradient-stops));
   }
   
-  .from-amber-500\/5 {
+  .from-amber-500\\/5 {
     --tw-gradient-from: rgba(245, 158, 11, 0.05);
     --tw-gradient-to: rgba(245, 158, 11, 0);
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   }
   
-  .from-blue-500\/5 {
+  .from-blue-500\\/5 {
     --tw-gradient-from: rgba(59, 130, 246, 0.05);
     --tw-gradient-to: rgba(59, 130, 246, 0);
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
@@ -491,3 +493,11 @@
     display: none !important;
   }
 }
+"""
+
+# Write the CSS file
+with open('client/src/index.css', 'w') as f:
+    f.write(css_content)
+
+print("Executive theme CSS created successfully!")
+print(f"File size: {len(css_content)} characters")
