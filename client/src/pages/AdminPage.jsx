@@ -385,8 +385,7 @@ function InvestorsTab({ username, password, gameState }) {
 
     try {
       await adminApi.deleteInvestor(username, password, investorId);
-      // Reload data after successful deletion
-      await loadData();
+      // Data will automatically refresh via WebSocket
     } catch (err) {
       alert('Failed to delete investor');
     }
@@ -585,8 +584,7 @@ function StartupsTab({ username, password, gameState }) {
 
     try {
       await adminApi.deleteStartup(username, password, startupId);
-      // Reload data after successful deletion
-      await loadData();
+      // Data will automatically refresh via WebSocket
     } catch (err) {
       alert('Failed to delete startup');
     }
