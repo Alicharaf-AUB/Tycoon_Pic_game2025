@@ -171,12 +171,12 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="mb-8">
-          <div className="flex gap-3 overflow-x-auto pb-2">
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-3 font-medium transition-all whitespace-nowrap rounded-lg text-sm min-h-[44px] border ${
+                className={`px-3 sm:px-5 py-2.5 sm:py-3 font-medium transition-all whitespace-nowrap rounded-lg text-xs sm:text-sm min-h-[44px] border flex-shrink-0 ${
                   activeTab === tab.id
                     ? 'bg-slate-800 border-slate-700 text-slate-200'
                     : 'bg-slate-900/30 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
@@ -392,105 +392,209 @@ function InvestorsTab({ username, password, gameState }) {
   };
 
   return (
-    <div className="card overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b-2 border-gold-300 bg-gradient-to-r from-gold-50 to-amber-50">
-            <th className="text-left py-4 px-4 text-sm font-bold text-gray-800 uppercase">Name</th>
-            <th className="text-center py-4 px-4 text-sm font-bold text-gray-800 uppercase">Status</th>
-            <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Starting Credit</th>
-            <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Invested</th>
-            <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Remaining</th>
-            <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {investors.map((investor) => (
-            <tr key={investor.id} className="border-b border-gray-200 hover:bg-gold-50 transition-colors">
-              <td className="py-4 px-4">
-                <p className="font-bold text-gray-900">{investor.name}</p>
-              </td>
-              <td className="py-4 px-4 text-center">
-                {investor.submitted ? (
-                  <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
-                    ✅ Submitted
-                  </span>
-                ) : (
-                  <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">
-                    ⏳ Pending
-                  </span>
-                )}
-              </td>
-              <td className="py-4 px-4 text-right">
+    <div className="space-y-4">
+      {/* Desktop Table View */}
+      <div className="hidden md:block card overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b-2 border-gold-300 bg-gradient-to-r from-gold-50 to-amber-50">
+              <th className="text-left py-4 px-4 text-sm font-bold text-gray-800 uppercase">Name</th>
+              <th className="text-center py-4 px-4 text-sm font-bold text-gray-800 uppercase">Status</th>
+              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Starting Credit</th>
+              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Invested</th>
+              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Remaining</th>
+              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {investors.map((investor) => (
+              <tr key={investor.id} className="border-b border-gray-200 hover:bg-gold-50 transition-colors">
+                <td className="py-4 px-4">
+                  <p className="font-bold text-gray-900">{investor.name}</p>
+                </td>
+                <td className="py-4 px-4 text-center">
+                  {investor.submitted ? (
+                    <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
+                      ✅ Submitted
+                    </span>
+                  ) : (
+                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">
+                      ⏳ Pending
+                    </span>
+                  )}
+                </td>
+                <td className="py-4 px-4 text-right">
+                  {editingCredit === investor.id ? (
+                    <input
+                      type="number"
+                      value={newCredit}
+                      onChange={(e) => setNewCredit(e.target.value)}
+                      className="input text-right w-32 py-1 text-sm"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="text-gray-700 font-semibold">{formatCurrency(investor.starting_credit)}</span>
+                  )}
+                </td>
+                <td className="py-4 px-4 text-right text-gold-700 font-bold">
+                  {formatCurrency(investor.invested)}
+                </td>
+                <td className="py-4 px-4 text-right text-green-700 font-bold">
+                  {formatCurrency(investor.remaining)}
+                </td>
+                <td className="py-4 px-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    {editingCredit === investor.id ? (
+                      <>
+                        <button
+                          onClick={() => handleUpdateCredit(investor.id)}
+                          className="text-sm text-green-600 hover:text-green-700 font-bold min-h-[44px] px-3"
+                        >
+                          ✓ Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingCredit(null);
+                            setNewCredit('');
+                          }}
+                          className="text-sm text-gray-500 hover:text-gray-700 font-bold min-h-[44px] px-3"
+                        >
+                          ✗ Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingCredit(investor.id);
+                            setNewCredit(investor.starting_credit.toString());
+                          }}
+                          className="text-sm text-gold-600 hover:text-gold-700 font-bold min-h-[44px] px-3"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(investor.id, investor.name)}
+                          className="text-sm text-red-600 hover:text-red-700 font-bold min-h-[44px] px-3"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {investors.length === 0 && (
+          <div className="text-center py-8 text-gray-500 font-medium">
+            No investors yet
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {investors.map((investor) => (
+          <div key={investor.id} className="card bg-gradient-to-br from-white to-gold-50 border-2 border-gold-200 shadow-lg">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">{investor.name}</h3>
+                <div className="mt-1">
+                  {investor.submitted ? (
+                    <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
+                      ✅ Submitted
+                    </span>
+                  ) : (
+                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">
+                      ⏳ Pending
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Starting Credit</p>
                 {editingCredit === investor.id ? (
                   <input
                     type="number"
                     value={newCredit}
                     onChange={(e) => setNewCredit(e.target.value)}
-                    className="input text-right w-32 py-1 text-sm"
+                    className="input w-full py-2 text-sm"
                     autoFocus
                   />
                 ) : (
-                  <span className="text-gray-700 font-semibold">{formatCurrency(investor.starting_credit)}</span>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(investor.starting_credit)}</p>
                 )}
-              </td>
-              <td className="py-4 px-4 text-right text-gold-700 font-bold">
-                {formatCurrency(investor.invested)}
-              </td>
-              <td className="py-4 px-4 text-right text-green-700 font-bold">
-                {formatCurrency(investor.remaining)}
-              </td>
-              <td className="py-4 px-4 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  {editingCredit === investor.id ? (
-                    <>
-                      <button
-                        onClick={() => handleUpdateCredit(investor.id)}
-                        className="text-sm text-green-600 hover:text-green-700 font-bold"
-                      >
-                        ✓ Save
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingCredit(null);
-                          setNewCredit('');
-                        }}
-                        className="text-sm text-gray-500 hover:text-gray-700 font-bold"
-                      >
-                        ✗ Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => {
-                          setEditingCredit(investor.id);
-                          setNewCredit(investor.starting_credit.toString());
-                        }}
-                        className="text-sm text-gold-600 hover:text-gold-700 font-bold"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(investor.id, investor.name)}
-                        className="text-sm text-red-600 hover:text-red-700 font-bold"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Invested</p>
+                <p className="text-lg font-bold text-gold-700">{formatCurrency(investor.invested)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Remaining</p>
+                <p className="text-lg font-bold text-green-700">{formatCurrency(investor.remaining)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Allocation</p>
+                <p className="text-lg font-bold text-blue-700">
+                  {investor.starting_credit > 0 ? Math.round((investor.invested / investor.starting_credit) * 100) : 0}%
+                </p>
+              </div>
+            </div>
 
-      {investors.length === 0 && (
-        <div className="text-center py-8 text-gray-500 font-medium">
-          No investors yet
-        </div>
-      )}
+            <div className="flex gap-2 pt-3 border-t border-gold-200">
+              {editingCredit === investor.id ? (
+                <>
+                  <button
+                    onClick={() => handleUpdateCredit(investor.id)}
+                    className="btn-primary flex-1 text-sm min-h-[44px]"
+                  >
+                    ✓ Save Changes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingCredit(null);
+                      setNewCredit('');
+                    }}
+                    className="btn-secondary flex-1 text-sm min-h-[44px]"
+                  >
+                    ✗ Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setEditingCredit(investor.id);
+                      setNewCredit(investor.starting_credit.toString());
+                    }}
+                    className="btn-secondary flex-1 text-sm min-h-[44px]"
+                  >
+                    ✏️ Edit Credit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(investor.id, investor.name)}
+                    className="btn-danger flex-1 text-sm min-h-[44px]"
+                  >
+                    🗑️ Delete
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {investors.length === 0 && (
+          <div className="text-center py-8 text-gray-500 font-medium card">
+            No investors yet
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1326,43 +1430,43 @@ function AnalyticsTab({ gameState }) {
           </svg>
           Data Export
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <button
             onClick={() => exportInvestorsToCSV(investors)}
-            className="btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+            className="btn-secondary text-sm py-3 min-h-[44px] flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
             </svg>
-            Export Investors
+            <span>Export Investors</span>
           </button>
           <button
             onClick={() => exportStartupsToCSV(startups)}
-            className="btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+            className="btn-secondary text-sm py-3 min-h-[44px] flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
             </svg>
-            Export Startups
+            <span>Export Startups</span>
           </button>
           <button
             onClick={() => exportInvestmentsToCSV(investments, investors, startups)}
-            className="btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+            className="btn-secondary text-sm py-3 min-h-[44px] flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
             </svg>
-            Export Investments
+            <span>Export Investments</span>
           </button>
           <button
             onClick={() => exportAllDataToCSV(investors, startups, investments)}
-            className="btn-primary text-sm py-2 flex items-center justify-center gap-2"
+            className="btn-primary text-sm py-3 min-h-[44px] flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Export All Data
+            <span>Export All Data</span>
           </button>
         </div>
       </div>

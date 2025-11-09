@@ -302,6 +302,16 @@
     @apply bg-blue-600/50 rounded-lg hover:bg-blue-600/70;
   }
 
+  /* Hide scrollbar for mobile navigation */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .page-header-executive {
     @apply relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
            border-b-2 border-blue-500/20 p-8 mb-8;
