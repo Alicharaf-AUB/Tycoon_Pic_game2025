@@ -47,26 +47,6 @@ export default function JoinPage() {
       <div className="w-full max-w-3xl relative z-10 animate-fade-in">
         {/* Elegant Logo Section */}
         <div className="text-center mb-12">
-          {/* Decorative Line */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
-            <svg className="mx-4 w-12 h-12 animate-pulse-glow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="url(#goldGradient)" stroke="url(#goldStroke)" strokeWidth="0.5"/>
-              <defs>
-                <linearGradient id="goldGradient" x1="2" y1="2" x2="22" y2="21">
-                  <stop offset="0%" stopColor="#FCD34D"/>
-                  <stop offset="50%" stopColor="#F59E0B"/>
-                  <stop offset="100%" stopColor="#D97706"/>
-                </linearGradient>
-                <linearGradient id="goldStroke" x1="2" y1="2" x2="22" y2="21">
-                  <stop offset="0%" stopColor="#FBBF24"/>
-                  <stop offset="100%" stopColor="#F59E0B"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
-          </div>
-          
           {/* Main Logo */}
           <div className="mb-8 relative inline-block">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 blur-3xl rounded-full"></div>
