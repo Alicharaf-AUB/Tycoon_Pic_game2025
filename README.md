@@ -23,15 +23,24 @@ npm run dev
 
 ## 🚀 Deploy to Production (10 Minutes)
 
-See **[QUICKSTART.md](QUICKSTART.md)** for Railway deployment.
+### ⚠️ IMPORTANT: Data Persistence Required
 
-Or use one-click deploy:
+Railway deployments reset data by default. **You MUST set up persistent storage** to keep your data between deployments!
+
+**📖 Complete Guide:** [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md)
+
+### Quick Railway Setup
+
 1. Push to GitHub
 2. Deploy on [Railway](https://railway.app)
-3. Add environment variables
-4. Done! ✅
+3. **Add a Volume** (Settings → Volumes → Add → Mount to `/data`)
+4. **Set Environment Variables**:
+   - `DATA_DIR=/data` (CRITICAL for persistence)
+   - `ADMIN_PASSWORD=your_secure_password`
+   - `NODE_ENV=production`
+5. Redeploy
 
-**Full guide:** [PRODUCTION_DEPLOY.md](PRODUCTION_DEPLOY.md)
+✅ Your data will now survive deployments!
 
 ## 🎨 What's Included
 
@@ -252,21 +261,24 @@ npm start
 # (Configure your web server to serve client/dist)
 ```
 
-### Option 2: Platform-as-a-Service
+### Option 2: Platform-as-a-Service (Recommended)
 
 Deploy to platforms like:
-- **Railway**: One-click deploy with automatic builds
+- **Railway**: ⭐ Recommended - One-click deploy with persistent volumes
 - **Fly.io**: Global edge deployment
 - **Render**: Free tier available
 - **Heroku**: Classic PaaS option
 
+**For Railway:** See [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for complete setup with persistent storage.
+
 ### Environment Setup for Production
 
 1. Set environment variables in your platform
-2. Ensure SQLite persistence (or migrate to PostgreSQL)
-3. Configure CORS for your domain
-4. Use HTTPS for production
-5. Set strong admin credentials
+2. **CRITICAL**: Configure persistent storage (Railway Volumes or similar)
+3. Set `DATA_DIR` to point to persistent volume
+4. Configure CORS for your domain
+5. Use HTTPS for production (auto-enabled on Railway)
+6. Set strong admin credentials
 
 ## 🐛 Troubleshooting
 

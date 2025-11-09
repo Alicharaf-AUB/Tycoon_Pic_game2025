@@ -39,16 +39,20 @@ if (process.env.NODE_ENV === 'production' && ADMIN_PASSWORD === 'demo123') {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Use persistent storage for uploads (same as database)
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
+const uploadDir = path.join(dataDir, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log(`Created uploads directory: ${uploadDir}`);
+}
+
 // Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadDir));
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
