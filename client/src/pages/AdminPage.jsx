@@ -56,48 +56,55 @@ export default function AdminPage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="mb-4">
-              <div className="inline-block p-4 bg-gradient-to-br from-gold-400 to-primary-500 rounded-2xl shadow-gold-lg">
-                <span className="text-5xl">🔐</span>
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-20 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gold-600/5 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="text-center mb-10">
+            <div className="mb-6">
+              <div className="inline-block p-6 glass-card shadow-gold-glow">
+                <span className="text-6xl">🔐</span>
               </div>
             </div>
-            <h1 className="text-4xl font-bold mb-2 text-gradient-gold font-display">Admin Access</h1>
-            <p className="text-gray-600 font-medium">AUB Angel Investor Control Panel</p>
+            <h1 className="text-5xl md:text-6xl font-bold mb-3 text-gradient-gold font-display">Admin Access</h1>
+            <p className="text-slate-300 text-lg font-semibold">Control Panel</p>
           </div>
 
-          <div className="card-premium">
-            <form onSubmit={handleLogin} className="space-y-4">
+          <div className="glass-card shadow-gold-lg shimmer">
+            <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                <label className="block text-base font-bold text-slate-200 mb-3 uppercase tracking-wider">
                   Username
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="input"
+                  className="input-gold"
                   autoComplete="username"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                <label className="block text-base font-bold text-slate-200 mb-3 uppercase tracking-wider">
                   Password
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input"
+                  className="input-gold"
                   autoComplete="current-password"
                 />
               </div>
 
               {error && (
-                <div className="bg-red-50 border-2 border-red-300 text-red-800 px-4 py-3 rounded-lg text-sm font-bold">
+                <div className="glass-card bg-red-950/30 border-red-500/50 text-red-300 px-6 py-4 text-base font-semibold">
+                  <span className="text-xl mr-2">⚠️</span>
                   {error}
                 </div>
               )}
@@ -105,16 +112,27 @@ export default function AdminPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full"
+                className="btn-primary w-full py-4 text-lg"
               >
-                {loading ? 'Logging in...' : '🔓 Login'}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="spinner w-5 h-5"></div>
+                    Logging in...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="text-xl">🔓</span>
+                    Login
+                  </span>
+                )}
               </button>
             </form>
           </div>
 
-          <div className="text-center mt-6">
-            <a href="/" className="text-sm text-gray-500 hover:text-gold-600 font-medium">
-              ← Back to Join
+          <div className="text-center mt-8">
+            <a href="/" className="text-base text-slate-400 hover:text-gold-400 font-semibold transition-colors inline-flex items-center gap-2 group">
+              <span className="group-hover:-translate-x-1 transition-transform">←</span>
+              Back to Join
             </a>
           </div>
         </div>
@@ -123,30 +141,36 @@ export default function AdminPage() {
   }
 
   const tabs = [
-    { id: 'overview', name: 'Overview' },
-    { id: 'investors', name: 'Investors' },
-    { id: 'startups', name: 'Startups' },
-    { id: 'investments', name: 'Investments' },
-    { id: 'submissions', name: 'Submissions' },
+    { id: 'overview', name: '📊 Overview', emoji: '📊' },
+    { id: 'investors', name: '👥 Investors', emoji: '👥' },
+    { id: 'startups', name: '🚀 Startups', emoji: '🚀' },
+    { id: 'investments', name: '💰 Investments', emoji: '💰' },
+    { id: 'submissions', name: '✅ Submissions', emoji: '✅' },
   ];
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-4 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 right-10 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-40 left-10 w-80 h-80 bg-gold-600/5 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="card-premium mb-6">
-          <div className="flex items-center justify-between">
+        <div className="glass-card mb-8 shadow-gold-lg shimmer">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gradient-gold font-display mb-1">
+              <h1 className="text-4xl md:text-5xl font-bold text-gradient-gold font-display mb-2">
                 🎯 Admin Dashboard
               </h1>
-              <p className="text-sm text-gray-600 font-medium">AUB Angel Investor Control Panel</p>
+              <p className="text-base text-slate-300 font-semibold">Control Panel</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <GameLockButton username={username} password={password} />
               <button
                 onClick={handleLogout}
-                className="btn-secondary text-sm"
+                className="btn-secondary text-base py-3 px-6"
               >
                 🚪 Logout
               </button>
@@ -155,16 +179,16 @@ export default function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b-2 border-gold-200 mb-6 bg-white rounded-t-xl px-2 pt-2">
-          <div className="flex gap-2 overflow-x-auto">
+        <div className="mb-8">
+          <div className="flex gap-3 overflow-x-auto pb-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 font-bold transition-all whitespace-nowrap rounded-t-lg ${
+                className={`px-6 py-4 font-bold transition-all duration-300 whitespace-nowrap rounded-xl text-base min-h-[44px] ${
                   activeTab === tab.id
-                    ? 'text-gold-700 bg-gradient-to-b from-gold-100 to-white border-b-4 border-gold-500'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'glass-card bg-gold-950/30 border-gold-500/50 text-gold-300 shadow-gold scale-105'
+                    : 'glass-card text-slate-400 hover:text-slate-200 hover:border-gold-500/30'
                 }`}
               >
                 {tab.name}
@@ -216,13 +240,25 @@ function GameLockButton({ username, password }) {
     <button
       onClick={handleToggleLock}
       disabled={loading}
-      className={`px-6 py-2 rounded-lg font-bold transition-all shadow-md text-white ${
+      className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg text-white min-h-[44px] transform hover:scale-105 active:scale-95 ${
         isLocked
-          ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600'
-          : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+          ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 animate-pulse-slow'
+          : 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600'
       }`}
     >
-      {loading ? '...' : isLocked ? '🔒 Locked' : '🔓 Unlocked'}
+      {loading ? (
+        <span className="flex items-center gap-2">
+          <div className="spinner w-4 h-4 border-white border-t-white"></div>
+        </span>
+      ) : isLocked ? (
+        <span className="flex items-center gap-2">
+          <span className="text-xl">🔒</span> Locked
+        </span>
+      ) : (
+        <span className="flex items-center gap-2">
+          <span className="text-xl">🔓</span> Unlocked
+        </span>
+      )}
     </button>
   );
 }
@@ -244,7 +280,12 @@ function OverviewTab({ username, password, gameState }) {
   }, [username, password, gameState]);
 
   if (!stats) {
-    return <div className="text-center text-gray-500 font-medium">Loading...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="spinner mb-4"></div>
+        <p className="text-slate-400 font-semibold text-lg">Loading statistics...</p>
+      </div>
+    );
   }
 
   const topStartups = (gameState?.startups || [])
@@ -253,61 +294,63 @@ function OverviewTab({ username, password, gameState }) {
     .slice(0, 5);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card-premium">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600 font-bold uppercase">Total Investors</p>
-            <span className="text-2xl">👥</span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="glass-card bg-blue-950/20 border-blue-500/30 hover:scale-105 transition-transform duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-blue-300 font-bold uppercase tracking-wider">Total Investors</p>
+            <span className="text-3xl">👥</span>
           </div>
-          <p className="text-4xl font-bold text-gradient-gold">{stats.totalInvestors}</p>
+          <p className="text-4xl md:text-5xl font-bold text-gradient-gold font-display">{stats.totalInvestors}</p>
         </div>
-        <div className="card-premium">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600 font-bold uppercase">Active Startups</p>
-            <span className="text-2xl">🚀</span>
+        <div className="glass-card bg-purple-950/20 border-purple-500/30 hover:scale-105 transition-transform duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-purple-300 font-bold uppercase tracking-wider">Active Startups</p>
+            <span className="text-3xl">🚀</span>
           </div>
-          <p className="text-4xl font-bold text-gradient-gold">{stats.totalStartups}</p>
+          <p className="text-4xl md:text-5xl font-bold text-gradient-gold font-display">{stats.totalStartups}</p>
         </div>
-        <div className="card-premium">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600 font-bold uppercase">Total Invested</p>
-            <span className="text-2xl">💰</span>
+        <div className="glass-card bg-gold-950/20 border-gold-500/30 hover:scale-105 transition-transform duration-300 animate-glow">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-gold-300 font-bold uppercase tracking-wider">Total Invested</p>
+            <span className="text-3xl">💰</span>
           </div>
-          <p className="text-3xl font-bold text-gradient-gold">
+          <p className="text-3xl md:text-4xl font-bold text-gradient-gold font-display">
             {formatCurrency(stats.totalInvested)}
           </p>
         </div>
-        <div className="card-premium">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600 font-bold uppercase">Investments</p>
-            <span className="text-2xl">📊</span>
+        <div className="glass-card bg-emerald-950/20 border-emerald-500/30 hover:scale-105 transition-transform duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-emerald-300 font-bold uppercase tracking-wider">Investments</p>
+            <span className="text-3xl">📊</span>
           </div>
-          <p className="text-4xl font-bold text-gradient-gold">{stats.totalInvestments}</p>
+          <p className="text-4xl md:text-5xl font-bold text-gradient-gold font-display">{stats.totalInvestments}</p>
         </div>
       </div>
 
       {/* Top Startups */}
       {topStartups.length > 0 && (
-        <div className="card-premium">
-          <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-            <span>🏆</span> Top Startups by Investment
+        <div className="glass-card shadow-gold-lg">
+          <h3 className="text-2xl md:text-3xl font-bold mb-6 text-slate-100 font-display flex items-center gap-3">
+            <span className="text-4xl">🏆</span> Top Startups by Investment
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {topStartups.map((startup, index) => (
-              <div key={startup.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-gold-50 to-amber-50 rounded-lg border-2 border-gold-200">
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl font-bold text-gold-600">
-                    #{index + 1}
-                  </span>
-                  <div>
-                    <p className="font-bold text-gray-900 text-lg">{startup.name}</p>
+              <div key={startup.id} className="glass-card bg-gold-950/20 border-gold-500/30 hover:bg-gold-950/30 transition-all duration-300 group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 md:gap-6">
+                    <span className="text-4xl md:text-5xl font-bold text-gold-400 font-display group-hover:scale-110 transition-transform">
+                      #{index + 1}
+                    </span>
+                    <div>
+                      <p className="font-bold text-slate-100 text-lg md:text-xl">{startup.name}</p>
+                    </div>
                   </div>
+                  <p className="text-2xl md:text-3xl font-bold text-gradient-gold font-display">
+                    {formatCurrency(startup.total_raised)}
+                  </p>
                 </div>
-                <p className="text-xl font-bold text-gradient-gold">
-                  {formatCurrency(startup.total_raised)}
-                </p>
               </div>
             ))}
           </div>
