@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,12 +6,14 @@
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-slate-900 via-charcoal-900 to-slate-950 text-slate-100 antialiased;
+    @apply bg-slate-950 text-slate-100 antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    letter-spacing: -0.02em;
   }
 
   /* Smooth scrolling */
@@ -21,25 +23,24 @@
 
   /* Mobile optimization */
   input, select, textarea, button {
-    font-size: 16px; /* Prevents iOS zoom */
+    font-size: 16px;
     touch-action: manipulation;
   }
 }
 
 @layer components {
-  /* Glass Morphism Card */
-  .glass-card {
-    @apply bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-glass;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
+  /* Premium Card System */
+  .fintech-card {
+    @apply bg-slate-900/90 backdrop-blur-sm border border-slate-800 rounded-xl shadow-sm;
   }
 
-  .glass-card-hover {
-    @apply glass-card hover:bg-slate-800/60 hover:border-gold-500/30 hover:shadow-gold transition-all duration-300 cursor-pointer transform hover:scale-[1.02];
+  .fintech-card-hover {
+    @apply fintech-card hover:bg-slate-900 hover:border-slate-700 transition-all duration-200 cursor-pointer;
   }
 
-  /* Premium Buttons - 44px minimum touch target */
+  /* Button System */
   .btn-primary {
-    @apply bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-slate-900 font-semibold py-3 px-8 rounded-xl shadow-gold transition-all duration-300 hover:shadow-gold-lg transform hover:scale-105 active:scale-95;
+    @apply bg-gold-500 hover:bg-gold-600 text-slate-950 font-semibold py-3 px-8 rounded-lg transition-all duration-200;
     min-height: 44px;
     min-width: 44px;
     -webkit-tap-highlight-color: transparent;
@@ -47,101 +48,91 @@
   }
   
   .btn-secondary {
-    @apply glass-card hover:bg-slate-700/60 text-slate-100 font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:border-gold-500/50;
+    @apply bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold py-3 px-6 rounded-lg border border-slate-700 hover:border-slate-600 transition-all duration-200;
     min-height: 44px;
     min-width: 44px;
   }
   
   .btn-danger {
-    @apply bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 active:scale-95;
+    @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
     min-height: 44px;
     min-width: 44px;
   }
 
   .btn-success {
-    @apply bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 active:scale-95;
+    @apply bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
     min-height: 44px;
     min-width: 44px;
   }
   
-  /* Premium Input Fields */
+  /* Input Fields */
   .input {
-    @apply w-full glass-card text-slate-100 placeholder-slate-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500/50 transition-all;
+    @apply w-full bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all;
     -webkit-appearance: none;
     appearance: none;
     font-size: 16px;
   }
 
   .input-gold {
-    @apply input border-gold-500/30 focus:border-gold-500;
+    @apply input border-gold-500/50 focus:border-gold-500;
   }
   
-  /* Status Badges with Animations */
+  /* Status Badges */
   .badge {
-    @apply inline-flex items-center px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg;
+    @apply inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wide;
     min-height: 32px;
   }
   
   .badge-success {
-    @apply badge bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 text-emerald-300 border border-emerald-500/50 backdrop-blur-sm;
-    animation: pulse-slow 3s infinite;
+    @apply badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
   }
   
   .badge-warning {
-    @apply badge bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-300 border border-amber-500/50 backdrop-blur-sm;
-    animation: pulse-slow 3s infinite;
+    @apply badge bg-amber-500/10 text-amber-400 border border-amber-500/20;
   }
   
   .badge-danger {
-    @apply badge bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-300 border border-red-500/50 backdrop-blur-sm;
+    @apply badge bg-red-500/10 text-red-400 border border-red-500/20;
   }
 
   .badge-gold {
-    @apply badge bg-gradient-to-r from-gold-500/20 to-gold-600/20 text-gold-300 border border-gold-500/50 backdrop-blur-sm;
-    animation: shimmer 2s infinite, glow 2s infinite alternate;
+    @apply badge bg-gold-500/10 text-gold-400 border border-gold-500/20;
   }
 
   .badge-info {
-    @apply badge bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-300 border border-blue-500/50 backdrop-blur-sm;
+    @apply badge bg-blue-500/10 text-blue-400 border border-blue-500/20;
   }
 
-  /* Text Gradients */
+  /* Text Styles */
   .text-gradient-gold {
-    @apply bg-gradient-to-r from-gold-400 via-gold-300 to-gold-500 bg-clip-text text-transparent;
-    animation: shimmer 3s linear infinite;
-    background-size: 200% auto;
+    @apply bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent;
   }
 
   .text-gradient-silver {
-    @apply bg-gradient-to-r from-slate-300 via-slate-100 to-slate-300 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-slate-300 to-slate-500 bg-clip-text text-transparent;
   }
 
-  /* Page Header */
+  /* Legacy Support - map old classes to new */
+  .glass-card {
+    @apply fintech-card;
+  }
+
+  .glass-card-hover {
+    @apply fintech-card-hover;
+  }
+
+  .card-premium {
+    @apply fintech-card;
+  }
+
   .page-header {
-    @apply glass-card border-b-2 border-gold-500/30 shadow-gold-lg;
-  }
-
-  /* Shimmer Effect */
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .shimmer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(234, 179, 8, 0.2), transparent);
-    animation: shimmer 2s infinite;
+    @apply fintech-card border-b-2 border-slate-800;
   }
 }
 
-/* Premium Scrollbar - Dark Theme */
+/* Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -149,57 +140,17 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #eab308, #ca8a04);
-  border-radius: 6px;
-  border: 2px solid #0f172a;
+  background: #475569;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #fbbf24, #eab308);
-}
-
-/* Animation Keyframes */
-@keyframes shimmer {
-  0% { 
-    background-position: -200% center;
-    transform: translateX(-100%);
-  }
-  100% { 
-    background-position: 200% center;
-    transform: translateX(100%);
-  }
-}
-
-@keyframes float {
-  0%, 100% { 
-    transform: translateY(0px);
-  }
-  50% { 
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes glow {
-  0% { 
-    box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
-  }
-  100% { 
-    box-shadow: 0 0 40px rgba(234, 179, 8, 0.6), 0 0 60px rgba(234, 179, 8, 0.3);
-  }
-}
-
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
+  background: #64748b;
 }
 
 /* Selection styles */
 ::selection {
-  background-color: rgba(234, 179, 8, 0.3);
+  background-color: rgba(234, 179, 8, 0.2);
   color: #fef3c7;
 }
 
@@ -211,20 +162,15 @@
 
 /* Loading spinner */
 .spinner {
-  border: 3px solid rgba(234, 179, 8, 0.2);
+  border: 3px solid rgba(234, 179, 8, 0.15);
   border-top: 3px solid #eab308;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
+  width: 24px;
+  height: 24px;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-/* Gold glow effect */
-.glow-gold {
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.4), 0 0 40px rgba(234, 179, 8, 0.2);
 }
