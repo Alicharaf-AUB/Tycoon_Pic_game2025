@@ -56,55 +56,48 @@ export default function AdminPage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Background effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gold-600/5 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
-        </div>
-
-        <div className="w-full max-w-md relative z-10">
-          <div className="text-center mb-10">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
             <div className="mb-6">
-              <div className="inline-block p-6 glass-card shadow-gold-glow">
-                <span className="text-6xl">🔐</span>
+              <div className="inline-flex w-16 h-16 rounded-xl bg-slate-800/50 items-center justify-center border border-slate-700 mx-auto">
+                <span className="text-3xl">🔐</span>
               </div>
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-3 text-gradient-gold font-display">Admin Access</h1>
-            <p className="text-slate-300 text-lg font-semibold">Control Panel</p>
+            <h1 className="text-3xl font-bold mb-2 text-slate-100">Admin Access</h1>
+            <p className="text-slate-500 text-sm">Control Panel</p>
           </div>
 
-          <div className="glass-card shadow-gold-lg shimmer">
-            <form onSubmit={handleLogin} className="space-y-6">
+          <div className="fintech-card">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <label className="block text-base font-bold text-slate-200 mb-3 uppercase tracking-wider">
+                <label className="block text-sm font-medium text-slate-400 mb-2 uppercase tracking-wider">
                   Username
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="input-gold"
+                  className="input"
                   autoComplete="username"
                 />
               </div>
 
               <div>
-                <label className="block text-base font-bold text-slate-200 mb-3 uppercase tracking-wider">
+                <label className="block text-sm font-medium text-slate-400 mb-2 uppercase tracking-wider">
                   Password
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-gold"
+                  className="input"
                   autoComplete="current-password"
                 />
               </div>
 
               {error && (
-                <div className="glass-card bg-red-950/30 border-red-500/50 text-red-300 px-6 py-4 text-base font-semibold">
-                  <span className="text-xl mr-2">⚠️</span>
+                <div className="border border-red-900/30 rounded-lg p-4 bg-red-950/20 text-red-400 text-sm">
                   {error}
                 </div>
               )}
@@ -112,25 +105,22 @@ export default function AdminPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full py-4 text-lg"
+                className="btn-primary w-full py-3 text-sm"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <div className="spinner w-5 h-5"></div>
+                    <div className="spinner w-4 h-4"></div>
                     Logging in...
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="text-xl">🔓</span>
-                    Login
-                  </span>
+                  'Login'
                 )}
               </button>
             </form>
           </div>
 
-          <div className="text-center mt-8">
-            <a href="/" className="text-base text-slate-400 hover:text-gold-400 font-semibold transition-colors inline-flex items-center gap-2 group">
+          <div className="text-center mt-6">
+            <a href="/" className="text-sm text-slate-500 hover:text-slate-300 font-medium transition-colors inline-flex items-center gap-2 group">
               <span className="group-hover:-translate-x-1 transition-transform">←</span>
               Back to Join
             </a>
@@ -149,30 +139,24 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen p-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-40 right-10 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-40 left-10 w-80 h-80 bg-gold-600/5 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
+    <div className="min-h-screen p-4">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="glass-card mb-8 shadow-gold-lg shimmer">
+        <div className="fintech-card mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-gradient-gold font-display mb-2">
-                🎯 Admin Dashboard
+              <h1 className="text-3xl font-bold text-slate-100 mb-1">
+                Admin Dashboard
               </h1>
-              <p className="text-base text-slate-300 font-semibold">Control Panel</p>
+              <p className="text-sm text-slate-500">Control Panel</p>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <GameLockButton username={username} password={password} />
               <button
                 onClick={handleLogout}
-                className="btn-secondary text-base py-3 px-6"
+                className="btn-secondary text-sm py-2.5 px-5"
               >
-                🚪 Logout
+                Logout
               </button>
             </div>
           </div>
@@ -185,10 +169,10 @@ export default function AdminPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-4 font-bold transition-all duration-300 whitespace-nowrap rounded-xl text-base min-h-[44px] ${
+                className={`px-5 py-3 font-medium transition-all whitespace-nowrap rounded-lg text-sm min-h-[44px] border ${
                   activeTab === tab.id
-                    ? 'glass-card bg-gold-950/30 border-gold-500/50 text-gold-300 shadow-gold scale-105'
-                    : 'glass-card text-slate-400 hover:text-slate-200 hover:border-gold-500/30'
+                    ? 'bg-slate-800 border-slate-700 text-slate-200'
+                    : 'bg-slate-900/30 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
                 }`}
               >
                 {tab.name}
@@ -240,10 +224,10 @@ function GameLockButton({ username, password }) {
     <button
       onClick={handleToggleLock}
       disabled={loading}
-      className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 shadow-lg text-white min-h-[44px] transform hover:scale-105 active:scale-95 ${
+      className={`px-5 py-2.5 rounded-lg font-semibold transition-all text-white text-sm min-h-[44px] ${
         isLocked
-          ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 animate-pulse-slow'
-          : 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600'
+          ? 'bg-amber-600 hover:bg-amber-700'
+          : 'bg-emerald-600 hover:bg-emerald-700'
       }`}
     >
       {loading ? (
@@ -252,11 +236,11 @@ function GameLockButton({ username, password }) {
         </span>
       ) : isLocked ? (
         <span className="flex items-center gap-2">
-          <span className="text-xl">🔒</span> Locked
+          <span>🔒</span> Locked
         </span>
       ) : (
         <span className="flex items-center gap-2">
-          <span className="text-xl">🔓</span> Unlocked
+          <span>🔓</span> Unlocked
         </span>
       )}
     </button>
@@ -283,7 +267,7 @@ function OverviewTab({ username, password, gameState }) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="spinner mb-4"></div>
-        <p className="text-slate-400 font-semibold text-lg">Loading statistics...</p>
+        <p className="text-slate-500 text-sm">Loading statistics...</p>
       </div>
     );
   }
@@ -296,58 +280,58 @@ function OverviewTab({ username, password, gameState }) {
   return (
     <div className="space-y-8">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <div className="glass-card bg-blue-950/20 border-blue-500/30 hover:scale-105 transition-transform duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-blue-300 font-bold uppercase tracking-wider">Total Investors</p>
-            <span className="text-3xl">👥</span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="border border-slate-800 rounded-lg p-5 bg-slate-900/30">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Total Investors</p>
+            <span className="text-2xl opacity-30">👥</span>
           </div>
-          <p className="text-4xl md:text-5xl font-bold text-gradient-gold font-display">{stats.totalInvestors}</p>
+          <p className="text-3xl font-bold text-slate-200">{stats.totalInvestors}</p>
         </div>
-        <div className="glass-card bg-purple-950/20 border-purple-500/30 hover:scale-105 transition-transform duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-purple-300 font-bold uppercase tracking-wider">Active Startups</p>
-            <span className="text-3xl">🚀</span>
+        <div className="border border-slate-800 rounded-lg p-5 bg-slate-900/30">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Active Startups</p>
+            <span className="text-2xl opacity-30">🚀</span>
           </div>
-          <p className="text-4xl md:text-5xl font-bold text-gradient-gold font-display">{stats.totalStartups}</p>
+          <p className="text-3xl font-bold text-slate-200">{stats.totalStartups}</p>
         </div>
-        <div className="glass-card bg-gold-950/20 border-gold-500/30 hover:scale-105 transition-transform duration-300 animate-glow">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-gold-300 font-bold uppercase tracking-wider">Total Invested</p>
-            <span className="text-3xl">💰</span>
+        <div className="border border-slate-800 rounded-lg p-5 bg-slate-900/30">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Total Invested</p>
+            <span className="text-2xl opacity-30">💰</span>
           </div>
-          <p className="text-3xl md:text-4xl font-bold text-gradient-gold font-display">
+          <p className="text-2xl font-bold text-slate-200">
             {formatCurrency(stats.totalInvested)}
           </p>
         </div>
-        <div className="glass-card bg-emerald-950/20 border-emerald-500/30 hover:scale-105 transition-transform duration-300">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-emerald-300 font-bold uppercase tracking-wider">Investments</p>
-            <span className="text-3xl">📊</span>
+        <div className="border border-slate-800 rounded-lg p-5 bg-slate-900/30">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Investments</p>
+            <span className="text-2xl opacity-30">📊</span>
           </div>
-          <p className="text-4xl md:text-5xl font-bold text-gradient-gold font-display">{stats.totalInvestments}</p>
+          <p className="text-3xl font-bold text-slate-200">{stats.totalInvestments}</p>
         </div>
       </div>
 
       {/* Top Startups */}
       {topStartups.length > 0 && (
-        <div className="glass-card shadow-gold-lg">
-          <h3 className="text-2xl md:text-3xl font-bold mb-6 text-slate-100 font-display flex items-center gap-3">
-            <span className="text-4xl">🏆</span> Top Startups by Investment
+        <div className="fintech-card">
+          <h3 className="text-xl font-semibold mb-6 text-slate-200 flex items-center gap-2">
+            <span className="text-2xl">🏆</span> Top Startups by Investment
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {topStartups.map((startup, index) => (
-              <div key={startup.id} className="glass-card bg-gold-950/20 border-gold-500/30 hover:bg-gold-950/30 transition-all duration-300 group">
+              <div key={startup.id} className="border border-slate-800 rounded-lg p-4 bg-slate-900/30 hover:bg-slate-800/50 transition-colors">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 md:gap-6">
-                    <span className="text-4xl md:text-5xl font-bold text-gold-400 font-display group-hover:scale-110 transition-transform">
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl font-bold text-slate-500">
                       #{index + 1}
                     </span>
                     <div>
-                      <p className="font-bold text-slate-100 text-lg md:text-xl">{startup.name}</p>
+                      <p className="font-semibold text-slate-200 text-base">{startup.name}</p>
                     </div>
                   </div>
-                  <p className="text-2xl md:text-3xl font-bold text-gradient-gold font-display">
+                  <p className="text-xl font-bold text-slate-200">
                     {formatCurrency(startup.total_raised)}
                   </p>
                 </div>
