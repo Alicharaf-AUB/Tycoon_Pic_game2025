@@ -1,0 +1,11 @@
+module.exports = {
+  apps: [{
+    name: "aub-investment-game",
+    script: "server/index.js",
+    instances: 1,
+    exec_mode: "cluster",
+    env: {
+      NODE_ENV: "production"
+    }
+  }]
+};
