@@ -1,5 +1,12 @@
 const { Pool } = require('pg');
 
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL environment variable is not set!');
+  console.error('💡 Please set DATABASE_URL in your .env file');
+  console.error('💡 Example: DATABASE_URL=postgresql://user:password@localhost:5432/investment_game');
+  process.exit(1);
+}
+
 // Create connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

@@ -228,7 +228,7 @@ app.post('/api/join', async (req, res) => {
 });
 
 // Find investor by email AND name (for returning users) - auto-creates if not exists
-app.post('/api/find-investor', (req, res) => {
+app.post('/api/find-investor', async (req, res) => {
   const { email, name } = req.body;
 
   if (!email || email.trim() === '') {
@@ -249,47 +249,17 @@ app.post('/api/find-investor', (req, res) => {
   }
 
   try {
-    // Find investor by email (case-sensitive) AND name (case-insensitive)
-    let investor = db.prepare(`
-      SELECT
-        i.id,
-        i.name,
-        i.email,
-        i.starting_credit,
-        COALESCE(SUM(inv.amount), 0) as invested,
-        i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
-      FROM investors i
-      LEFT JOIN investments inv ON i.id = inv.investor_id
-      WHERE i.email = ? AND LOWER(i.name) = LOWER(?)
-      GROUP BY i.id
-      LIMIT 1
-    `).get(trimmedEmail, trimmedName);
+    // Find investor by email AND name using helper function
+    let investor = await dbHelpers.getInvestorByEmailOrName(trimmedEmail, trimmedName);
 
     if (!investor) {
       // Account doesn't exist - create it automatically
       console.log(`Creating new account for: ${trimmedName} (${trimmedEmail})`);
 
-      const id = uuidv4();
-      db.prepare('INSERT INTO investors (id, name, email) VALUES (?, ?, ?)')
-        .run(id, trimmedName, trimmedEmail);
-
-      // Fetch the newly created investor with calculated fields
-      investor = db.prepare(`
-        SELECT
-          i.id,
-          i.name,
-          i.email,
-          i.starting_credit,
-          COALESCE(SUM(inv.amount), 0) as invested,
-          i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
-        FROM investors i
-        LEFT JOIN investments inv ON i.id = inv.investor_id
-        WHERE i.id = ?
-        GROUP BY i.id
-      `).get(id);
+      investor = await dbHelpers.createInvestor(trimmedName, trimmedEmail);
 
       console.log(`New investor created: ${investor.name} (${investor.email})`);
-      broadcastGameState();
+      await broadcastGameState();
 
       return res.json({ investor, newAccount: true });
     }
@@ -298,7 +268,7 @@ app.post('/api/find-investor', (req, res) => {
     res.json({ investor, newAccount: false });
   } catch (error) {
     console.error('Error finding/creating investor:', error);
-    if (error.message && error.message.includes('UNIQUE constraint failed')) {
+    if (error.message && error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
       return res.status(400).json({ error: 'An account with this email already exists with a different name' });
     }
     res.status(500).json({ error: 'Failed to find or create investor' });
@@ -306,9 +276,9 @@ app.post('/api/find-investor', (req, res) => {
 });
 
 // Get game state (for all users)
-app.get('/api/game-state', (req, res) => {
+app.get('/api/game-state', async (req, res) => {
   try {
-    const gameState = getGameState();
+    const gameState = await getGameState();
     res.json(gameState);
   } catch (error) {
     console.error('Error getting game state:', error);
@@ -317,23 +287,11 @@ app.get('/api/game-state', (req, res) => {
 });
 
 // Get investor by ID
-app.get('/api/investors/:id', (req, res) => {
+app.get('/api/investors/:id', async (req, res) => {
   const { id } = req.params;
   
   try {
-    const investor = db.prepare(`
-      SELECT 
-        i.id,
-        i.name,
-        i.starting_credit,
-        i.submitted,
-        COALESCE(SUM(inv.amount), 0) as invested,
-        i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
-      FROM investors i
-      LEFT JOIN investments inv ON i.id = inv.investor_id
-      WHERE i.id = ?
-      GROUP BY i.id
-    `).get(id);
+    const investor = await dbHelpers.getInvestorById(id);
     
     if (!investor) {
       return res.status(404).json({ error: 'Investor not found' });
@@ -347,64 +305,54 @@ app.get('/api/investors/:id', (req, res) => {
 });
 
 // Make or update investment
-app.post('/api/invest', (req, res) => {
+app.post('/api/invest', async (req, res) => {
   const { investorId, startupId, amount } = req.body;
   
-  // Check if game is locked
-  const lockStatus = db.prepare('SELECT is_locked FROM game_state WHERE id = 1').get();
-  if (lockStatus.is_locked === 1) {
-    return res.status(403).json({ error: 'Game is locked. No more changes allowed.' });
-  }
-  
-  if (!investorId || !startupId || amount === undefined) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-  
-  if (amount < 0) {
-    return res.status(400).json({ error: 'Amount cannot be negative' });
-  }
-  
   try {
+    // Check if game is locked
+    const gameStateResult = await pool.query('SELECT is_locked FROM game_state WHERE id = 1');
+    if (gameStateResult.rows.length > 0 && gameStateResult.rows[0].is_locked) {
+      return res.status(403).json({ error: 'Game is locked. No more changes allowed.' });
+    }
+    
+    if (!investorId || !startupId || amount === undefined) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    if (amount < 0) {
+      return res.status(400).json({ error: 'Amount cannot be negative' });
+    }
+    
     // Get investor's starting credit and current investments
-    const investor = db.prepare(`
+    const investorQuery = await pool.query(`
       SELECT 
         i.starting_credit,
-        COALESCE(SUM(CASE WHEN inv.startup_id != ? THEN inv.amount ELSE 0 END), 0) as other_investments
+        COALESCE(SUM(CASE WHEN inv.startup_id != $1 THEN inv.amount ELSE 0 END), 0) as other_investments
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      WHERE i.id = ?
-      GROUP BY i.id
-    `).get(startupId, investorId);
+      WHERE i.id = $2
+      GROUP BY i.id, i.starting_credit
+    `, [startupId, investorId]);
     
-    if (!investor) {
+    if (investorQuery.rows.length === 0) {
       return res.status(404).json({ error: 'Investor not found' });
     }
     
+    const investor = investorQuery.rows[0];
+    
     // Check if total investments would exceed starting credit
-    const totalInvestments = investor.other_investments + amount;
+    const totalInvestments = parseFloat(investor.other_investments) + amount;
     if (totalInvestments > investor.starting_credit) {
       return res.status(400).json({ 
         error: 'Insufficient funds',
-        available: investor.starting_credit - investor.other_investments
+        available: investor.starting_credit - parseFloat(investor.other_investments)
       });
     }
     
-    // If amount is 0, delete the investment
-    if (amount === 0) {
-      db.prepare('DELETE FROM investments WHERE investor_id = ? AND startup_id = ?')
-        .run(investorId, startupId);
-    } else {
-      // Insert or update investment
-      const id = uuidv4();
-      db.prepare(`
-        INSERT INTO investments (id, investor_id, startup_id, amount)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(investor_id, startup_id) 
-        DO UPDATE SET amount = ?, updated_at = CURRENT_TIMESTAMP
-      `).run(id, investorId, startupId, amount, amount);
-    }
+    // Use helper to create or update investment
+    await dbHelpers.createOrUpdateInvestment(investorId, startupId, amount);
     
-    broadcastGameState();
+    await broadcastGameState();
     
     res.json({ success: true });
   } catch (error) {
@@ -414,7 +362,7 @@ app.post('/api/invest', (req, res) => {
 });
 
 // Submit investments (finalize choices)
-app.post('/api/submit', (req, res) => {
+app.post('/api/submit', async (req, res) => {
   const { investorId } = req.body;
 
   if (!investorId) {
@@ -422,10 +370,10 @@ app.post('/api/submit', (req, res) => {
   }
 
   try {
-    // Mark investor as submitted
-    db.prepare('UPDATE investors SET submitted = 1 WHERE id = ?').run(investorId);
+    // Mark investor as submitted using helper
+    await dbHelpers.submitInvestments(investorId);
 
-    broadcastGameState();
+    await broadcastGameState();
 
     res.json({ success: true, message: 'Investments submitted successfully!' });
   } catch (error) {
@@ -437,7 +385,7 @@ app.post('/api/submit', (req, res) => {
 // ===== FUNDS REQUESTS =====
 
 // Submit funds request (investor)
-app.post('/api/funds-request', (req, res) => {
+app.post('/api/funds-request', async (req, res) => {
   const { investorId, requestedAmount, justification } = req.body;
 
   if (!investorId || !requestedAmount || !justification) {
@@ -449,21 +397,21 @@ app.post('/api/funds-request', (req, res) => {
   }
 
   try {
-    const investor = db.prepare('SELECT * FROM investors WHERE id = ?').get(investorId);
+    const investor = await dbHelpers.getInvestorById(investorId);
 
     if (!investor) {
       return res.status(404).json({ error: 'Investor not found' });
     }
 
-    const id = uuidv4();
-    db.prepare(`
-      INSERT INTO funds_requests (
-        id, investor_id, investor_name, current_credit,
-        requested_amount, justification, status
-      ) VALUES (?, ?, ?, ?, ?, ?, 'pending')
-    `).run(id, investorId, investor.name, investor.starting_credit, requestedAmount, justification);
+    const requestId = await dbHelpers.createFundRequest(
+      investorId,
+      investor.name,
+      investor.starting_credit,
+      requestedAmount,
+      justification
+    );
 
-    res.json({ success: true, requestId: id });
+    res.json({ success: true, requestId });
   } catch (error) {
     console.error('Error creating funds request:', error);
     res.status(500).json({ error: 'Failed to create request' });
@@ -471,17 +419,17 @@ app.post('/api/funds-request', (req, res) => {
 });
 
 // Get investor's funds requests
-app.get('/api/investors/:id/funds-requests', (req, res) => {
+app.get('/api/investors/:id/funds-requests', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const requests = db.prepare(`
-      SELECT * FROM funds_requests
-      WHERE investor_id = ?
+    const result = await pool.query(`
+      SELECT * FROM fund_requests
+      WHERE investor_id = $1
       ORDER BY created_at DESC
-    `).all(id);
+    `, [id]);
 
-    res.json({ requests });
+    res.json({ requests: result.rows });
   } catch (error) {
     console.error('Error fetching funds requests:', error);
     res.status(500).json({ error: 'Failed to fetch requests' });
@@ -489,7 +437,6 @@ app.get('/api/investors/:id/funds-requests', (req, res) => {
 });
 
 // ===== FILE UPLOAD =====
-
 // Upload file endpoint (admin)
 app.post('/api/admin/upload', adminAuth, upload.single('file'), (req, res) => {
   try {
@@ -513,9 +460,9 @@ app.post('/api/admin/upload', adminAuth, upload.single('file'), (req, res) => {
 // ===== ADMIN API ROUTES =====
 
 // Get all investors (admin)
-app.get('/api/admin/investors', adminAuth, (req, res) => {
+app.get('/api/admin/investors', adminAuth, async (req, res) => {
   try {
-    const investors = db.prepare(`
+    const result = await pool.query(`
       SELECT 
         i.id,
         i.name,
@@ -526,11 +473,11 @@ app.get('/api/admin/investors', adminAuth, (req, res) => {
         i.created_at
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      GROUP BY i.id
+      GROUP BY i.id, i.name, i.starting_credit, i.submitted, i.created_at
       ORDER BY i.created_at DESC
-    `).all();
+    `);
     
-    res.json({ investors });
+    res.json({ investors: result.rows });
   } catch (error) {
     console.error('Error getting investors:', error);
     res.status(500).json({ error: 'Failed to get investors' });
@@ -538,7 +485,7 @@ app.get('/api/admin/investors', adminAuth, (req, res) => {
 });
 
 // Update investor credit (admin)
-app.put('/api/admin/investors/:id/credit', adminAuth, (req, res) => {
+app.put('/api/admin/investors/:id/credit', adminAuth, async (req, res) => {
   const { id } = req.params;
   const { startingCredit } = req.body;
   
@@ -547,10 +494,9 @@ app.put('/api/admin/investors/:id/credit', adminAuth, (req, res) => {
   }
   
   try {
-    db.prepare('UPDATE investors SET starting_credit = ? WHERE id = ?')
-      .run(startingCredit, id);
+    await dbHelpers.updateInvestorCredit(id, startingCredit);
     
-    broadcastGameState();
+    await broadcastGameState();
     
     res.json({ success: true });
   } catch (error) {
@@ -560,7 +506,7 @@ app.put('/api/admin/investors/:id/credit', adminAuth, (req, res) => {
 });
 
 // Delete investor (admin)
-app.delete('/api/admin/investors/:id', adminAuth, (req, res) => {
+app.delete('/api/admin/investors/:id', adminAuth, async (req, res) => {
   const { id } = req.params;
 
   console.log('=== DELETE INVESTOR REQUEST ===');
@@ -569,7 +515,7 @@ app.delete('/api/admin/investors/:id', adminAuth, (req, res) => {
 
   try {
     // First check if investor exists
-    const investor = db.prepare('SELECT * FROM investors WHERE id = ?').get(id);
+    const investor = await dbHelpers.getInvestorById(id);
 
     if (!investor) {
       console.log('ERROR: Investor not found with ID:', id);
@@ -578,20 +524,12 @@ app.delete('/api/admin/investors/:id', adminAuth, (req, res) => {
 
     console.log('Found investor to delete:', investor);
 
-    // Delete the investor (CASCADE will handle related records)
-    const result = db.prepare('DELETE FROM investors WHERE id = ?').run(id);
-
-    console.log('Delete result:', result);
-    console.log('Rows affected:', result.changes);
-
-    if (result.changes === 0) {
-      console.log('WARNING: No rows were deleted');
-      return res.status(500).json({ error: 'Failed to delete investor - no rows affected' });
-    }
+    // Delete the investor using helper (CASCADE will handle related records)
+    await dbHelpers.deleteInvestor(id);
 
     console.log('Successfully deleted investor:', investor.name);
 
-    broadcastGameState();
+    await broadcastGameState();
 
     res.json({ success: true, deleted: investor.name });
   } catch (error) {
@@ -602,9 +540,9 @@ app.delete('/api/admin/investors/:id', adminAuth, (req, res) => {
 });
 
 // Get all startups (admin)
-app.get('/api/admin/startups', adminAuth, (req, res) => {
+app.get('/api/admin/startups', adminAuth, async (req, res) => {
   try {
-    const startups = db.prepare(`
+    const result = await pool.query(`
       SELECT 
         s.id,
         s.name,
@@ -616,11 +554,11 @@ app.get('/api/admin/startups', adminAuth, (req, res) => {
         s.created_at
       FROM startups s
       LEFT JOIN investments i ON s.id = i.startup_id
-      GROUP BY s.id
+      GROUP BY s.id, s.name, s.slug, s.description, s.is_active, s.created_at
       ORDER BY s.created_at DESC
-    `).all();
+    `);
     
-    res.json({ startups });
+    res.json({ startups: result.rows });
   } catch (error) {
     console.error('Error getting startups:', error);
     res.status(500).json({ error: 'Failed to get startups' });
@@ -628,21 +566,31 @@ app.get('/api/admin/startups', adminAuth, (req, res) => {
 });
 
 // Create startup (admin)
-app.post('/api/admin/startups', adminAuth, (req, res) => {
+app.post('/api/admin/startups', adminAuth, async (req, res) => {
   const { name, slug, description, logo, pitch_deck, cohort, support_program, industry, email, team, generating_revenue, ask, legal_entity } = req.body;
   
   if (!name || !slug) {
     return res.status(400).json({ error: 'Name and slug are required' });
   }
   
-  const id = uuidv4();
-  
   try {
-    db.prepare(`INSERT INTO startups (id, name, slug, description, logo, pitch_deck, cohort, support_program, industry, email, team, generating_revenue, ask, legal_entity) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(id, name, slug, description || '', logo || '', pitch_deck || '', cohort || '', support_program || '', industry || '', email || '', team || '', generating_revenue || '', ask || '', legal_entity || '');
+    const id = await dbHelpers.createStartup({
+      name,
+      slug,
+      description: description || '',
+      logo: logo || '',
+      pitch_deck: pitch_deck || '',
+      cohort: cohort || '',
+      support_program: support_program || '',
+      industry: industry || '',
+      email: email || '',
+      team: team || '',
+      generating_revenue: generating_revenue || '',
+      ask: ask || '',
+      legal_entity: legal_entity || ''
+    });
     
-    broadcastGameState();
+    await broadcastGameState();
     
     res.json({ success: true, id });
   } catch (error) {
@@ -655,85 +603,33 @@ app.post('/api/admin/startups', adminAuth, (req, res) => {
 });
 
 // Update startup (admin)
-app.put('/api/admin/startups/:id', adminAuth, (req, res) => {
+app.put('/api/admin/startups/:id', adminAuth, async (req, res) => {
   const { id } = req.params;
   const { name, slug, description, logo, pitch_deck, cohort, support_program, industry, email, team, generating_revenue, ask, legal_entity, isActive } = req.body;
   
   try {
-    const updates = [];
-    const values = [];
+    await dbHelpers.updateStartup(id, {
+      name,
+      slug,
+      description,
+      logo,
+      pitch_deck,
+      cohort,
+      support_program,
+      industry,
+      email,
+      team,
+      generating_revenue,
+      ask,
+      legal_entity,
+      is_active: isActive
+    });
     
-    if (name !== undefined) {
-      updates.push('name = ?');
-      values.push(name);
-    }
-    if (slug !== undefined) {
-      updates.push('slug = ?');
-      values.push(slug);
-    }
-    if (description !== undefined) {
-      updates.push('description = ?');
-      values.push(description);
-    }
-    if (logo !== undefined) {
-      updates.push('logo = ?');
-      values.push(logo);
-    }
-    if (pitch_deck !== undefined) {
-      updates.push('pitch_deck = ?');
-      values.push(pitch_deck);
-    }
-    if (cohort !== undefined) {
-      updates.push('cohort = ?');
-      values.push(cohort);
-    }
-    if (support_program !== undefined) {
-      updates.push('support_program = ?');
-      values.push(support_program);
-    }
-    if (industry !== undefined) {
-      updates.push('industry = ?');
-      values.push(industry);
-    }
-    if (email !== undefined) {
-      updates.push('email = ?');
-      values.push(email);
-    }
-    if (team !== undefined) {
-      updates.push('team = ?');
-      values.push(team);
-    }
-    if (generating_revenue !== undefined) {
-      updates.push('generating_revenue = ?');
-      values.push(generating_revenue);
-    }
-    if (ask !== undefined) {
-      updates.push('ask = ?');
-      values.push(ask);
-    }
-    if (legal_entity !== undefined) {
-      updates.push('legal_entity = ?');
-      values.push(legal_entity);
-    }
-    if (isActive !== undefined) {
-      updates.push('is_active = ?');
-      values.push(isActive ? 1 : 0);
-    }
-    
-    if (updates.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
-    }
-    
-    values.push(id);
-    
-    db.prepare(`UPDATE startups SET ${updates.join(', ')} WHERE id = ?`)
-      .run(...values);
-    
-    broadcastGameState();
+    await broadcastGameState();
     
     res.json({ success: true });
   } catch (error) {
-    if (error.message.includes('UNIQUE')) {
+    if (error.message && (error.message.includes('duplicate key') || error.message.includes('unique constraint'))) {
       return res.status(400).json({ error: 'Slug already exists' });
     }
     console.error('Error updating startup:', error);
@@ -742,13 +638,13 @@ app.put('/api/admin/startups/:id', adminAuth, (req, res) => {
 });
 
 // Delete startup (admin)
-app.delete('/api/admin/startups/:id', adminAuth, (req, res) => {
+app.delete('/api/admin/startups/:id', adminAuth, async (req, res) => {
   const { id } = req.params;
   
   try {
-    db.prepare('DELETE FROM startups WHERE id = ?').run(id);
+    await dbHelpers.deleteStartup(id);
     
-    broadcastGameState();
+    await broadcastGameState();
     
     res.json({ success: true });
   } catch (error) {
@@ -758,17 +654,13 @@ app.delete('/api/admin/startups/:id', adminAuth, (req, res) => {
 });
 
 // Toggle game lock (admin)
-app.post('/api/admin/toggle-lock', adminAuth, (req, res) => {
+app.post('/api/admin/toggle-lock', adminAuth, async (req, res) => {
   try {
-    const current = db.prepare('SELECT is_locked FROM game_state WHERE id = 1').get();
-    const newState = current.is_locked === 1 ? 0 : 1;
+    const isLocked = await dbHelpers.toggleGameLock();
     
-    db.prepare('UPDATE game_state SET is_locked = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1')
-      .run(newState);
+    await broadcastGameState();
     
-    broadcastGameState();
-    
-    res.json({ success: true, isLocked: newState === 1 });
+    res.json({ success: true, isLocked });
   } catch (error) {
     console.error('Error toggling lock:', error);
     res.status(500).json({ error: 'Failed to toggle lock' });
@@ -776,14 +668,9 @@ app.post('/api/admin/toggle-lock', adminAuth, (req, res) => {
 });
 
 // Get game statistics (admin)
-app.get('/api/admin/stats', adminAuth, (req, res) => {
+app.get('/api/admin/stats', adminAuth, async (req, res) => {
   try {
-    const stats = {
-      totalInvestors: db.prepare('SELECT COUNT(*) as count FROM investors').get().count,
-      totalStartups: db.prepare('SELECT COUNT(*) as count FROM startups WHERE is_active = 1').get().count,
-      totalInvested: db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM investments').get().total,
-      totalInvestments: db.prepare('SELECT COUNT(*) as count FROM investments').get().count
-    };
+    const stats = await dbHelpers.getAdminStats();
 
     res.json({ stats });
   } catch (error) {
@@ -793,21 +680,11 @@ app.get('/api/admin/stats', adminAuth, (req, res) => {
 });
 
 // Get all funds requests (admin)
-app.get('/api/admin/funds-requests', adminAuth, (req, res) => {
+app.get('/api/admin/funds-requests', adminAuth, async (req, res) => {
   try {
     const { status } = req.query;
 
-    let query = 'SELECT * FROM funds_requests';
-    let params = [];
-
-    if (status) {
-      query += ' WHERE status = ?';
-      params.push(status);
-    }
-
-    query += ' ORDER BY created_at DESC';
-
-    const requests = db.prepare(query).all(...params);
+    const requests = await dbHelpers.getAllFundRequests(status);
 
     res.json({ requests });
   } catch (error) {
@@ -817,17 +694,19 @@ app.get('/api/admin/funds-requests', adminAuth, (req, res) => {
 });
 
 // Approve funds request (admin)
-app.post('/api/admin/funds-requests/:id/approve', adminAuth, (req, res) => {
+app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) => {
   const { id } = req.params;
   const { adminResponse, reviewedBy } = req.body;
 
   try {
     // Get the request
-    const request = db.prepare('SELECT * FROM funds_requests WHERE id = ?').get(id);
+    const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
 
-    if (!request) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Request not found' });
     }
+
+    const request = result.rows[0];
 
     if (request.status !== 'pending') {
       return res.status(400).json({ error: 'Request has already been reviewed' });
@@ -835,20 +714,17 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, (req, res) => {
 
     // Update investor's starting credit
     const newCredit = request.current_credit + request.requested_amount;
-    db.prepare('UPDATE investors SET starting_credit = ? WHERE id = ?')
-      .run(newCredit, request.investor_id);
+    await dbHelpers.updateInvestorCredit(request.investor_id, newCredit);
 
     // Update request status
-    db.prepare(`
-      UPDATE funds_requests
-      SET status = 'approved',
-          admin_response = ?,
-          reviewed_at = CURRENT_TIMESTAMP,
-          reviewed_by = ?
-      WHERE id = ?
-    `).run(adminResponse || 'Approved', reviewedBy || 'admin', id);
+    await dbHelpers.updateFundRequestStatus(
+      id,
+      'approved',
+      adminResponse || 'Approved',
+      reviewedBy || 'admin'
+    );
 
-    broadcastGameState();
+    await broadcastGameState();
 
     res.json({ success: true });
   } catch (error) {
@@ -858,31 +734,31 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, (req, res) => {
 });
 
 // Reject funds request (admin)
-app.post('/api/admin/funds-requests/:id/reject', adminAuth, (req, res) => {
+app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => {
   const { id } = req.params;
   const { adminResponse, reviewedBy } = req.body;
 
   try {
     // Get the request
-    const request = db.prepare('SELECT * FROM funds_requests WHERE id = ?').get(id);
+    const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
 
-    if (!request) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Request not found' });
     }
+
+    const request = result.rows[0];
 
     if (request.status !== 'pending') {
       return res.status(400).json({ error: 'Request has already been reviewed' });
     }
 
     // Update request status
-    db.prepare(`
-      UPDATE funds_requests
-      SET status = 'rejected',
-          admin_response = ?,
-          reviewed_at = CURRENT_TIMESTAMP,
-          reviewed_by = ?
-      WHERE id = ?
-    `).run(adminResponse || 'Rejected', reviewedBy || 'admin', id);
+    await dbHelpers.updateFundRequestStatus(
+      id,
+      'rejected',
+      adminResponse || 'Rejected',
+      reviewedBy || 'admin'
+    );
 
     res.json({ success: true });
   } catch (error) {
@@ -893,11 +769,12 @@ app.post('/api/admin/funds-requests/:id/reject', adminAuth, (req, res) => {
 
 // ===== SOCKET.IO =====
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   console.log('Client connected:', socket.id);
   
   // Send current game state to newly connected client
-  socket.emit('gameStateUpdate', getGameState());
+  const gameState = await getGameState();
+  socket.emit('gameStateUpdate', gameState);
   
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
@@ -906,26 +783,21 @@ io.on('connection', (socket) => {
 
 // ===== START SERVER =====
 
-// Auto-seed database if empty (for production deployments)
-const checkAndSeedDatabase = () => {
-  console.log('🔍 Checking database status...');
+// Initialize and seed database on startup
+const initializeDatabase = async () => {
+  console.log('🔍 Initializing database...');
   try {
-    const startupCount = db.prepare('SELECT COUNT(*) as count FROM startups').get();
-    console.log(`📊 Current startup count: ${startupCount.count}`);
+    const { initializeDatabase: initDb, seedDatabase } = require('./schema');
     
-    if (startupCount.count === 0) {
-      console.log('📦 Database is empty, running seed script...');
-      const { seedDatabase } = require('./seed');
-      seedDatabase();
-      
-      // Verify seeding worked
-      const newCount = db.prepare('SELECT COUNT(*) as count FROM startups').get();
-      console.log(`✅ Database seeded successfully! Now has ${newCount.count} startups`);
-    } else {
-      console.log(`✅ Database already has ${startupCount.count} startups`);
-    }
+    // Initialize schema
+    await initDb();
+    
+    // Seed if needed (seedDatabase checks if empty)
+    await seedDatabase();
+    
+    console.log('✅ Database ready');
   } catch (error) {
-    console.error('❌ Error checking/seeding database:', error);
+    console.error('❌ Error initializing database:', error);
     console.error('Stack trace:', error.stack);
   }
 };
@@ -941,7 +813,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Admin credentials: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
   
@@ -950,6 +822,6 @@ server.listen(PORT, () => {
     console.log('Serving client from /client/dist');
   }
   
-  // Check and seed database after server starts
-  checkAndSeedDatabase();
+  // Initialize and seed database after server starts
+  await initializeDatabase();
 });
