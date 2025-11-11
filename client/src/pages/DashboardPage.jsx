@@ -113,7 +113,12 @@ export default function DashboardPage() {
       setInvestmentAmount('');
       setShowConfirmation(true);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to make investment');
+      const errorMsg = err.response?.data?.error || 'Failed to make investment';
+      setError(errorMsg);
+      // Show alert for startup limit errors
+      if (errorMsg.includes('Maximum startup limit')) {
+        alert(errorMsg);
+      }
     } finally {
       setSubmitting(false);
     }

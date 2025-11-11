@@ -43,6 +43,15 @@ const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'demo123';
 
+// Helper function to format currency
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount) + ' €';
+};
+
 // Warn if using default password in production
 if (process.env.NODE_ENV === 'production' && ADMIN_PASSWORD === 'demo123') {
   console.warn('⚠️  WARNING: Using default admin password in production! Please set ADMIN_PASSWORD environment variable.');
@@ -332,11 +341,12 @@ app.post('/api/invest', async (req, res) => {
       return res.status(400).json({ error: 'Amount cannot be negative' });
     }
     
-    // Get investor's starting credit and current investments
+    // Get investor's starting credit, current investments, and count of unique startups invested in
     const investorQuery = await pool.query(`
       SELECT 
         i.starting_credit,
-        COALESCE(SUM(CASE WHEN inv.startup_id != $1 THEN inv.amount ELSE 0 END), 0) as other_investments
+        COALESCE(SUM(CASE WHEN inv.startup_id != $1 THEN inv.amount ELSE 0 END), 0) as other_investments,
+        COUNT(DISTINCT CASE WHEN inv.startup_id != $1 AND inv.amount > 0 THEN inv.startup_id END) as unique_startups_count
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
       WHERE i.id = $2
@@ -348,14 +358,42 @@ app.post('/api/invest', async (req, res) => {
     }
     
     const investor = investorQuery.rows[0];
+    const startingCredit = parseFloat(investor.starting_credit);
+    const currentUniqueStartups = parseInt(investor.unique_startups_count);
     
     // Check if total investments would exceed starting credit
     const totalInvestments = parseFloat(investor.other_investments) + amount;
-    if (totalInvestments > investor.starting_credit) {
+    if (totalInvestments > startingCredit) {
       return res.status(400).json({ 
         error: 'Insufficient funds',
-        available: investor.starting_credit - parseFloat(investor.other_investments)
+        available: startingCredit - parseFloat(investor.other_investments)
       });
+    }
+    
+    // Business Rule: Check maximum startup investment limits based on account balance
+    // If trying to add a NEW investment (amount > 0) to a startup they haven't invested in yet
+    const existingInvestment = await dbHelpers.getExistingInvestment(startupId, investorId);
+    const isNewStartup = !existingInvestment || existingInvestment.amount === 0;
+    
+    if (amount > 0 && isNewStartup) {
+      let maxStartups;
+      
+      if (startingCredit < 10000) {
+        maxStartups = 2;
+      } else if (startingCredit >= 10000 && startingCredit < 15000) {
+        maxStartups = 3;
+      } else if (startingCredit >= 15000 && startingCredit < 20000) {
+        maxStartups = 4;
+      } else {
+        maxStartups = Infinity; // No limit for 20k+
+      }
+      
+      if (currentUniqueStartups >= maxStartups) {
+        return res.status(400).json({ 
+          error: `Maximum startup limit reached. With ${formatCurrency(startingCredit)} capital, you can invest in up to ${maxStartups} startup${maxStartups !== 1 ? 's' : ''}.`,
+          maxStartups
+        });
+      }
     }
     
     // Use helper to create or update investment

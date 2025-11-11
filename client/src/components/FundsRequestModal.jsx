@@ -157,7 +157,6 @@ export default function FundsRequestModal({ investor, onClose }) {
                 placeholder="Enter amount"
                 className="input-executive text-xl font-bold text-blue-400 pr-16"
                 min="1"
-                max="10000"
                 required
               />
               <span className="absolute right-6 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-bold">
@@ -165,7 +164,7 @@ export default function FundsRequestModal({ investor, onClose }) {
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Enter the additional capital amount you wish to request (max: €10,000)
+              Enter the additional capital amount you wish to request
             </p>
           </div>
 
