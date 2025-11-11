@@ -361,6 +361,16 @@ app.post('/api/invest', async (req, res) => {
     const startingCredit = parseFloat(investor.starting_credit);
     const currentUniqueStartups = parseInt(investor.unique_startups_count);
     
+    console.log('💰 Investment Check:', {
+      investorId,
+      startupId,
+      requestedAmount: amount,
+      startingCredit,
+      otherInvestments: parseFloat(investor.other_investments),
+      available: startingCredit - parseFloat(investor.other_investments),
+      uniqueStartups: currentUniqueStartups
+    });
+    
     // Check if total investments would exceed starting credit
     const totalInvestments = parseFloat(investor.other_investments) + amount;
     if (totalInvestments > startingCredit) {

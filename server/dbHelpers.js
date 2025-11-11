@@ -31,7 +31,7 @@ async function getInvestorById(id) {
 
 async function createInvestor(name, email) {
   const result = await pool.query(
-    'INSERT INTO investors (name, email, starting_credit, invested, remaining) VALUES ($1, $2, 500, 0, 500) RETURNING id',
+    'INSERT INTO investors (name, email, starting_credit) VALUES ($1, $2, 500) RETURNING id',
     [name, email]
   );
   const id = result.rows[0].id;
