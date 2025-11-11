@@ -1,14 +1,18 @@
 import axios from 'axios';
 
 // Use relative path in production (same domain), localhost in development
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
+// Check if we're in production by looking at the hostname
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const API_BASE = import.meta.env.VITE_API_URL || (isProduction ? window.location.origin : 'http://localhost:3001');
+
+console.log('🔗 API_BASE:', API_BASE);
+console.log('🌍 Is Production:', isProduction);
 
 // Helper to get full URL for uploaded files
 export const getFileUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path; // Already a full URL
-  const base = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
-  return `${base}${path}`;
+  return `${API_BASE}${path}`;
 };
 
 // Helper to format currency

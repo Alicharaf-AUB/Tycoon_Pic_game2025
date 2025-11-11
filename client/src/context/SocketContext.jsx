@@ -18,11 +18,14 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Use relative path in production (same domain), localhost in development
-    const socketUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? window.location.origin : 'http://localhost:3001');
+    // Check if we're in production by looking at the hostname
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    const socketUrl = import.meta.env.VITE_API_URL || (isProduction ? window.location.origin : 'http://localhost:3001');
     
     console.log('🔌 Connecting to socket:', socketUrl);
-    console.log('🌍 Environment:', import.meta.env.PROD ? 'PRODUCTION' : 'DEVELOPMENT');
+    console.log('🌍 Environment:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
     console.log('🌐 Window location:', window.location.origin);
+    console.log('🏠 Hostname:', window.location.hostname);
     
     const socketInstance = io(socketUrl, {
       path: '/socket.io/',
