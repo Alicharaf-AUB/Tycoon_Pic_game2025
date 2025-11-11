@@ -281,6 +281,7 @@ async function getAllFundRequests() {
 
 async function updateFundRequestStatus(id, status, adminNotes, reviewedBy) {
   try {
+    // Try with all columns first
     const result = await pool.query(`
       UPDATE fund_requests
       SET status = $2, 
@@ -295,17 +296,17 @@ async function updateFundRequestStatus(id, status, adminNotes, reviewedBy) {
     console.error('Error updating fund request status:', error);
     console.error('Parameters:', { id, status, adminNotes, reviewedBy });
     
-    // If reviewed_at column doesn't exist, try without it
-    if (error.message && error.message.includes('reviewed_at')) {
-      console.log('Trying without reviewed_at column...');
+    // If reviewed_by or reviewed_at column doesn't exist, try without them
+    if (error.message && (error.message.includes('reviewed_by') || error.message.includes('reviewed_at'))) {
+      console.log('⚠️  Column missing, trying minimal update...');
       const result = await pool.query(`
         UPDATE fund_requests
         SET status = $2, 
-            admin_notes = $3, 
-            reviewed_by = $4
+            admin_notes = $3
         WHERE id = $1
         RETURNING *
-      `, [id, status, adminNotes, reviewedBy]);
+      `, [id, status, adminNotes]);
+      console.log('✅ Updated without reviewed_by/reviewed_at columns');
       return result.rows[0];
     }
     throw error;

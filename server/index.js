@@ -984,20 +984,37 @@ const initializeDatabaseOnStartup = async () => {
     console.log('🔄 Checking database schema...');
     
     // Check if reviewed_at column exists in fund_requests
-    const columnCheck = await pool.query(`
+    const reviewedAtCheck = await pool.query(`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'fund_requests' 
       AND column_name = 'reviewed_at'
     `);
     
-    if (columnCheck.rows.length === 0) {
+    if (reviewedAtCheck.rows.length === 0) {
       console.log('⚠️  Adding missing reviewed_at column to fund_requests...');
       await pool.query(`
         ALTER TABLE fund_requests 
         ADD COLUMN reviewed_at TIMESTAMP
       `);
       console.log('✅ Added reviewed_at column');
+    }
+    
+    // Check if reviewed_by column exists in fund_requests
+    const reviewedByCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'fund_requests' 
+      AND column_name = 'reviewed_by'
+    `);
+    
+    if (reviewedByCheck.rows.length === 0) {
+      console.log('⚠️  Adding missing reviewed_by column to fund_requests...');
+      await pool.query(`
+        ALTER TABLE fund_requests 
+        ADD COLUMN reviewed_by VARCHAR(255)
+      `);
+      console.log('✅ Added reviewed_by column');
     }
     
     // Initialize schema (this also seeds if needed)
