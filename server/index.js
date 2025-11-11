@@ -460,15 +460,13 @@ app.post('/api/funds-request', async (req, res) => {
       return res.status(404).json({ error: 'Investor not found' });
     }
 
-    const requestId = await dbHelpers.createFundRequest(
+    const request = await dbHelpers.createFundRequest(
       investorId,
-      investor.name,
-      investor.starting_credit,
       requestedAmount,
       justification
     );
 
-    res.json({ success: true, requestId });
+    res.json({ success: true, requestId: request.id });
   } catch (error) {
     console.error('Error creating funds request:', error);
     res.status(500).json({ error: 'Failed to create request' });
