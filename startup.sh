@@ -4,6 +4,10 @@
 
 echo "Starting AUB Investment Game..."
 
+# Install server dependencies
+echo "Installing server dependencies..."
+npm install
+
 # Build client if not already built
 if [ ! -d "client/dist" ]; then
   echo "Building client..."
