@@ -173,10 +173,22 @@ export const adminApi = {
     return data;
   },
 
-  // Get stats
+    // Get admin statistics
   getStats: async (username, password) => {
     const { data } = await axios.get(`${API_BASE}/api/admin/stats`, {
       headers: adminApi.getAuthHeader(username, password),
+    });
+    return data;
+  },
+
+  // Get admin logs
+  getLogs: async (username, password, limit = 100, action = null) => {
+    const params = { limit };
+    if (action) params.action = action;
+    
+    const { data } = await axios.get(`${API_BASE}/api/admin/logs`, {
+      headers: adminApi.getAuthHeader(username, password),
+      params,
     });
     return data;
   },

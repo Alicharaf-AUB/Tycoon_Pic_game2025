@@ -1367,11 +1367,17 @@ function FundRequestsTab({ username, password }) {
       // Reload to get fresh data from server
       await loadRequests();
 
-      const newCreditDisplay = result?.newCredit ? formatCurrency(result.newCredit) : 'Updated';
-      alert(`✅ Fund request approved!\n\nInvestor: ${investorName}\nAmount Added: ${formatCurrency(requestedAmount)}\nNew Total Credit: ${newCreditDisplay}`);
+      // Show success message
+      const message = result.message || 
+        `✅ Fund request approved!\n\nInvestor: ${investorName}\nAmount Added: ${formatCurrency(requestedAmount)}\nNew Total Credit: ${result.newCredit ? formatCurrency(result.newCredit) : 'Updated'}`;
+      
+      alert(message);
+      
+      console.log('✅ Fund request approved successfully');
     } catch (err) {
       console.error('Approval error:', err);
-      alert('Failed to approve request: ' + (err.response?.data?.error || err.message));
+      const errorMsg = err.response?.data?.details || err.response?.data?.error || err.message;
+      alert('Failed to approve request: ' + errorMsg);
       // Reload in case of error to show correct state
       await loadRequests();
     } finally {
@@ -1385,7 +1391,7 @@ function FundRequestsTab({ username, password }) {
 
     setProcessingId(requestId);
     try {
-      await adminApi.rejectFundsRequest(
+      const result = await adminApi.rejectFundsRequest(
         username,
         password,
         requestId,
@@ -1396,9 +1402,14 @@ function FundRequestsTab({ username, password }) {
       // Reload to get fresh data from server
       await loadRequests();
 
-      alert(`❌ Fund request rejected`);
+      const message = result.message || `❌ Fund request rejected`;
+      alert(message);
+      
+      console.log('✅ Fund request rejected successfully');
     } catch (err) {
-      alert('Failed to reject request: ' + (err.response?.data?.error || err.message));
+      console.error('Rejection error:', err);
+      const errorMsg = err.response?.data?.details || err.response?.data?.error || err.message;
+      alert('Failed to reject request: ' + errorMsg);
       // Reload in case of error to show correct state
       await loadRequests();
     } finally {

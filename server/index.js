@@ -734,6 +734,31 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
   }
 });
 
+// Get admin logs (admin)
+app.get('/api/admin/logs', adminAuth, async (req, res) => {
+  try {
+    const { limit = 100, action } = req.query;
+    
+    let query = 'SELECT * FROM admin_logs';
+    const params = [];
+    
+    if (action) {
+      query += ' WHERE action = $1';
+      params.push(action);
+    }
+    
+    query += ' ORDER BY timestamp DESC LIMIT $' + (params.length + 1);
+    params.push(parseInt(limit));
+    
+    const result = await pool.query(query, params);
+    
+    res.json({ logs: result.rows });
+  } catch (error) {
+    console.error('Error fetching admin logs:', error);
+    res.status(500).json({ error: 'Failed to fetch logs' });
+  }
+});
+
 // Get all funds requests (admin)
 app.get('/api/admin/funds-requests', adminAuth, async (req, res) => {
   try {
@@ -811,9 +836,28 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) =>
     );
     console.log('✅ Fund request status updated');
 
+    // Log the admin action for audit trail
+    await dbHelpers.createAdminLog('FUND_REQUEST_APPROVED', {
+      requestId: id,
+      investorId: request.investor_id,
+      investorName: investor.name,
+      investorEmail: investor.email,
+      previousCredit: investor.starting_credit,
+      amountAdded: request.amount,
+      newCredit: newCredit,
+      reviewedBy: reviewedBy || 'admin',
+      adminResponse: adminResponse || 'Approved',
+      timestamp: new Date().toISOString()
+    });
+    console.log('📝 Admin action logged');
+
     await broadcastGameState();
 
-    res.json({ success: true, newCredit });
+    res.json({ 
+      success: true, 
+      newCredit,
+      message: `Successfully added ${request.amount} to ${investor.name}'s account. New total: ${newCredit}`
+    });
   } catch (error) {
     console.error('Error approving funds request:', error);
     console.error('Error details:', error.message);
@@ -845,6 +889,9 @@ app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => 
       return res.status(400).json({ error: 'Request has already been reviewed' });
     }
 
+    // Get investor info for logging
+    const investor = await dbHelpers.getInvestorById(request.investor_id);
+
     // Update request status
     await dbHelpers.updateFundRequestStatus(
       id,
@@ -853,7 +900,22 @@ app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => 
       reviewedBy || 'admin'
     );
 
-    res.json({ success: true });
+    // Log the admin action for audit trail
+    await dbHelpers.createAdminLog('FUND_REQUEST_REJECTED', {
+      requestId: id,
+      investorId: request.investor_id,
+      investorName: investor?.name,
+      investorEmail: investor?.email,
+      requestedAmount: request.amount,
+      reviewedBy: reviewedBy || 'admin',
+      adminResponse: adminResponse || 'Rejected',
+      timestamp: new Date().toISOString()
+    });
+    console.log('📝 Rejection logged');
+
+    await broadcastGameState();
+
+    res.json({ success: true, message: `Fund request rejected for ${investor?.name}` });
   } catch (error) {
     console.error('Error rejecting funds request:', error);
     console.error('Error details:', error.message);
