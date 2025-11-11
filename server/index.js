@@ -27,12 +27,17 @@ const corsOptions = {
 };
 
 const io = socketIo(server, {
+  path: '/socket.io/',
   cors: corsOptions,
-  transports: ['websocket', 'polling'], // Support both transports
-  allowEIO3: true, // Backward compatibility
+  transports: ['polling', 'websocket'], // Match client order
+  allowEIO3: true,
   pingTimeout: 60000,
   pingInterval: 25000
 });
+
+console.log('🔌 Socket.IO server initialized');
+console.log('📡 Path: /socket.io/');
+console.log('🚦 Transports: polling, websocket');
 
 const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';

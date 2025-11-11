@@ -22,8 +22,10 @@ export const SocketProvider = ({ children }) => {
     
     console.log('🔌 Connecting to socket:', socketUrl);
     console.log('🌍 Environment:', import.meta.env.PROD ? 'PRODUCTION' : 'DEVELOPMENT');
+    console.log('🌐 Window location:', window.location.origin);
     
     const socketInstance = io(socketUrl, {
+      path: '/socket.io/',
       transports: ['polling', 'websocket'], // Try polling first for Railway
       reconnection: true,
       reconnectionAttempts: 10,
