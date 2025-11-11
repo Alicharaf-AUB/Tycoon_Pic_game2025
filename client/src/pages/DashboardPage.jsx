@@ -87,6 +87,28 @@ export default function DashboardPage() {
     );
   };
 
+  // Calculate actual remaining amount based on current investments
+  const getActualRemaining = () => {
+    const state = gameState || fallbackGameState;
+    if (!state?.investments || !investor) return investor?.remaining || 0;
+    
+    const myInvestments = state.investments.filter(
+      inv => inv.investor_id === parseInt(investorId)
+    );
+    
+    const totalInvested = myInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+    const remaining = parseFloat(investor.starting_credit || 0) - totalInvested;
+    
+    console.log('💰 Calculated remaining:', {
+      starting_credit: investor.starting_credit,
+      totalInvested,
+      remaining,
+      investmentCount: myInvestments.length
+    });
+    
+    return remaining;
+  };
+
   const handleInvest = async () => {
     if (!selectedStartup || !investmentAmount) return;
 
@@ -353,7 +375,7 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <p className="text-3xl font-display font-bold text-emerald-300">
-                  {formatCurrency(investor.remaining)}
+                  {formatCurrency(getActualRemaining())}
                 </p>
                 <button
                   onClick={() => setShowFundsRequest(true)}
@@ -543,7 +565,7 @@ export default function DashboardPage() {
                   placeholder="0"
                   className="input-executive pr-24 text-xl font-bold text-blue-400"
                   min="0"
-                  max={investor.remaining + (getInvestmentForStartup(selectedStartup.id)?.amount || 0)}
+                  max={getActualRemaining() + (getInvestmentForStartup(selectedStartup.id)?.amount || 0)}
                   autoFocus
                 />
                 <span className="absolute right-6 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-bold">
@@ -552,11 +574,11 @@ export default function DashboardPage() {
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <p className="text-xs text-slate-500 font-medium">
-                  Available: <span className="text-slate-300 font-bold">{formatCurrency(investor.remaining + (getInvestmentForStartup(selectedStartup.id)?.amount || 0))}</span>
+                  Available: <span className="text-slate-300 font-bold">{formatCurrency(getActualRemaining() + (getInvestmentForStartup(selectedStartup.id)?.amount || 0))}</span>
                 </p>
                 <button
                   type="button"
-                  onClick={() => setInvestmentAmount((investor.remaining + (getInvestmentForStartup(selectedStartup.id)?.amount || 0)).toString())}
+                  onClick={() => setInvestmentAmount((getActualRemaining() + (getInvestmentForStartup(selectedStartup.id)?.amount || 0)).toString())}
                   className="text-xs text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors"
                 >
                   Max Amount
