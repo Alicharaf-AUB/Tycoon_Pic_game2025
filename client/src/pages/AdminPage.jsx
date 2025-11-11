@@ -1332,12 +1332,14 @@ function FundRequestsTab({ username, password }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [processingId, setProcessingId] = useState(null);
+  const { gameState } = useSocket();
 
   const loadRequests = async () => {
     setLoading(true);
     try {
       const { requests: data } = await adminApi.getFundsRequests(username, password);
       setRequests(data);
+      console.log('📋 Loaded fund requests:', data.length);
     } catch (err) {
       console.error('Failed to load fund requests:', err);
     } finally {
@@ -1349,12 +1351,20 @@ function FundRequestsTab({ username, password }) {
     loadRequests();
   }, [username, password]);
 
+  // Auto-refresh when game state changes (after approval/rejection)
+  useEffect(() => {
+    if (gameState) {
+      console.log('🔄 Game state updated, reloading fund requests...');
+      loadRequests();
+    }
+  }, [gameState]);
+
   const handleApprove = async (requestId, investorName, requestedAmount) => {
     if (!confirm(`Approve fund request from ${investorName} for ${formatCurrency(requestedAmount)}?`)) return;
 
     setProcessingId(requestId);
     try {
-      console.log('Approving request:', requestId);
+      console.log('🔄 Approving request:', requestId);
       const result = await adminApi.approveFundsRequest(
         username,
         password,
@@ -1362,10 +1372,12 @@ function FundRequestsTab({ username, password }) {
         'Approved',
         username
       );
-      console.log('Approval result:', result);
+      console.log('✅ Approval result:', result);
 
       // Reload to get fresh data from server
+      console.log('🔄 Reloading fund requests...');
       await loadRequests();
+      console.log('✅ Fund requests reloaded');
 
       // Show success message
       const message = result.message || 
@@ -1375,10 +1387,11 @@ function FundRequestsTab({ username, password }) {
       
       console.log('✅ Fund request approved successfully');
     } catch (err) {
-      console.error('Approval error:', err);
+      console.error('❌ Approval error:', err);
       const errorMsg = err.response?.data?.details || err.response?.data?.error || err.message;
       alert('Failed to approve request: ' + errorMsg);
       // Reload in case of error to show correct state
+      console.log('🔄 Reloading after error...');
       await loadRequests();
     } finally {
       setProcessingId(null);
