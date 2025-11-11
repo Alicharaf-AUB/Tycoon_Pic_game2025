@@ -1354,16 +1354,29 @@ function FundRequestsTab({ username, password }) {
 
     setProcessingId(requestId);
     try {
-      await adminApi.approveFundsRequest(
+      const result = await adminApi.approveFundsRequest(
         username,
         password,
         requestId,
         'Approved',
         username
       );
-      await loadRequests();
+      
+      // Update local state immediately
+      setRequests(prev => prev.map(req => 
+        req.id === requestId 
+          ? { ...req, status: 'approved', admin_notes: 'Approved', reviewed_by: username }
+          : req
+      ));
+      
+      // Reload to get fresh data from server
+      setTimeout(() => loadRequests(), 500);
+      
+      alert(`✅ Fund request approved! New credit: ${formatCurrency(result.newCredit)}`);
     } catch (err) {
       alert('Failed to approve request: ' + (err.response?.data?.error || err.message));
+      // Reload in case of error to show correct state
+      loadRequests();
     } finally {
       setProcessingId(null);
     }
@@ -1382,9 +1395,22 @@ function FundRequestsTab({ username, password }) {
         reason,
         username
       );
-      await loadRequests();
+      
+      // Update local state immediately
+      setRequests(prev => prev.map(req => 
+        req.id === requestId 
+          ? { ...req, status: 'rejected', admin_notes: reason, reviewed_by: username }
+          : req
+      ));
+      
+      // Reload to get fresh data from server
+      setTimeout(() => loadRequests(), 500);
+      
+      alert(`❌ Fund request rejected`);
     } catch (err) {
       alert('Failed to reject request: ' + (err.response?.data?.error || err.message));
+      // Reload in case of error to show correct state
+      loadRequests();
     } finally {
       setProcessingId(null);
     }
