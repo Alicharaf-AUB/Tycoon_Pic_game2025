@@ -758,12 +758,21 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) =>
     const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
 
     if (result.rows.length === 0) {
+      console.error('Fund request not found:', id);
       return res.status(404).json({ error: 'Request not found' });
     }
 
     const request = result.rows[0];
+    
+    console.log('📋 Fund request found:', {
+      id: request.id,
+      investorId: request.investor_id,
+      amount: request.amount,
+      status: request.status
+    });
 
     if (request.status !== 'pending') {
+      console.error('Request already reviewed:', request.status);
       return res.status(400).json({ error: 'Request has already been reviewed' });
     }
 
@@ -771,6 +780,7 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) =>
     const investor = await dbHelpers.getInvestorById(request.investor_id);
     
     if (!investor) {
+      console.error('Investor not found:', request.investor_id);
       return res.status(404).json({ error: 'Investor not found' });
     }
 
@@ -779,28 +789,40 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) =>
     
     console.log('💰 Approving fund request:', {
       investorId: request.investor_id,
+      investorName: investor.name,
       currentCredit: investor.starting_credit,
       requestedAmount: request.amount,
-      newCredit
+      newCredit,
+      reviewedBy
     });
     
     // Update investor's starting credit to the new total
+    console.log('🔄 Updating investor credit...');
     await dbHelpers.updateInvestorCredit(request.investor_id, newCredit);
+    console.log('✅ Investor credit updated');
 
     // Update request status
+    console.log('🔄 Updating fund request status...');
     await dbHelpers.updateFundRequestStatus(
       id,
       'approved',
       adminResponse || 'Approved',
       reviewedBy || 'admin'
     );
+    console.log('✅ Fund request status updated');
 
     await broadcastGameState();
 
     res.json({ success: true, newCredit });
   } catch (error) {
     console.error('Error approving funds request:', error);
-    res.status(500).json({ error: 'Failed to approve request' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to approve request', 
+      details: error.message,
+      requestId: id 
+    });
   }
 });
 
@@ -834,7 +856,13 @@ app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => 
     res.json({ success: true });
   } catch (error) {
     console.error('Error rejecting funds request:', error);
-    res.status(500).json({ error: 'Failed to reject request' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to reject request', 
+      details: error.message,
+      requestId: id 
+    });
   }
 });
 
