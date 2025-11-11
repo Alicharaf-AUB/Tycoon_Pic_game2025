@@ -799,12 +799,35 @@ const initializeDatabaseOnStartup = async () => {
 
 // Serve React app in production
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files from client build
-  app.use(express.static(path.join(__dirname, '../client/dist')));
+  const clientDistPath = path.join(__dirname, '../client/dist');
+  const indexPath = path.join(clientDistPath, 'index.html');
+  
+  // Check if client build exists
+  if (fs.existsSync(clientDistPath)) {
+    console.log('✅ Client build directory found:', clientDistPath);
+    app.use(express.static(clientDistPath));
+  } else {
+    console.error('❌ Client build directory NOT found:', clientDistPath);
+    console.error('💡 Make sure to run "npm run build" before deploying');
+  }
   
   // Serve React app for any non-API routes
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(503).send(`
+        <html>
+          <head><title>Deployment Issue</title></head>
+          <body style="font-family: Arial; padding: 40px; text-align: center;">
+            <h1>🚧 Application Building</h1>
+            <p>The client application is not yet built.</p>
+            <p>Client path: ${clientDistPath}</p>
+            <p>Please wait a few moments and refresh.</p>
+          </body>
+        </html>
+      `);
+    }
   });
 }
 
