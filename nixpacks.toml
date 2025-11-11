@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ['nodejs-18_x']
+
+[phases.install]
+cmds = ['npm ci --production']
+
+[phases.build]
+cmds = ['cd client && npm ci && npm run build']
+
+[start]
+cmd = 'node server/index.js'
