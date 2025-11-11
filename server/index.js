@@ -784,15 +784,14 @@ io.on('connection', async (socket) => {
 // ===== START SERVER =====
 
 // Initialize and seed database on startup
-const initializeDatabase = async () => {
+const initializeDatabaseOnStartup = async () => {
   console.log('🔍 Initializing database...');
   try {
-    const { initializeDatabase: initDb, seedDatabase } = require('./schema');
-    
     // Initialize schema
-    await initDb();
+    await initializeDatabase();
     
     // Seed if needed (seedDatabase checks if empty)
+    const { seedDatabase } = require('./schema');
     await seedDatabase();
     
     console.log('✅ Database ready');
@@ -823,5 +822,5 @@ server.listen(PORT, async () => {
   }
   
   // Initialize and seed database after server starts
-  await initializeDatabase();
+  await initializeDatabaseOnStartup();
 });
