@@ -20,14 +20,18 @@ const server = http.createServer(app);
 // Configure CORS based on environment
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? (process.env.CLIENT_URL || true) // In production, allow same origin
+    ? true // Allow all origins in production (Railway handles this)
     : "http://localhost:5173", // In development, allow local client
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 };
 
 const io = socketIo(server, {
-  cors: corsOptions
+  cors: corsOptions,
+  transports: ['websocket', 'polling'], // Support both transports
+  allowEIO3: true, // Backward compatibility
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 const PORT = process.env.PORT || 3001;
