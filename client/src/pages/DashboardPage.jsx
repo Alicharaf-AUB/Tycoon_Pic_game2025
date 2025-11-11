@@ -669,145 +669,219 @@ function OpportunitiesTab({
             .sort((a, b) => b.amount - a.amount);
 
           return (
-            <div key={startup.id} className="card-hover relative group animate-fade-in">
-              {/* Quick Action Button */}
-              <button
+            <div key={startup.id} className="card-hover relative group animate-fade-in overflow-hidden">
+              {/* Airtable-style Cover/Header with Logo */}
+              <div
+                className="relative h-40 bg-gradient-to-br from-slate-800 via-slate-800/90 to-slate-900 border-b border-slate-700/50 cursor-pointer overflow-hidden"
                 onClick={() => setViewingStartup(startup)}
-                className="absolute top-4 right-4 z-10 bg-slate-800/90 backdrop-blur-xl hover:bg-slate-700/90 text-slate-300 hover:text-blue-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 hover:border-blue-500/50 transition-all shadow-lg"
               >
-                <span className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Details</span>
-                </span>
-              </button>
-
-              {/* Logo */}
-              {startup.logo && (
-                <div className="mb-4 flex justify-center">
-                  <div className="w-20 h-20 bg-slate-800/50 rounded-2xl p-3 border border-slate-700/50">
-                    <img
-                      src={getFileUrl(startup.logo)}
-                      alt={`${startup.name} logo`}
-                      className="w-full h-full object-contain cursor-pointer"
-                      onClick={() => setViewingStartup(startup)}
-                    />
-                  </div>
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent"></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
                 </div>
-              )}
 
-              {/* Startup Info */}
-              <div className="mb-4">
-                <h3
-                  className="text-xl font-display font-bold text-slate-100 mb-2 cursor-pointer hover:text-blue-400 transition-colors"
-                  onClick={() => setViewingStartup(startup)}
-                >
-                  {startup.name}
-                </h3>
-                {startup.description && (
-                  <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
-                    {startup.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Industry Badge */}
-              {startup.industry && (
-                <div className="mb-4">
-                  <span className="inline-block bg-blue-500/10 text-blue-300 text-xs font-semibold px-3 py-1 rounded-full border border-blue-500/20">
-                    {startup.industry}
-                  </span>
-                </div>
-              )}
-
-              {/* Total Raised */}
-              <div className="mb-4 pb-4 border-b border-slate-700/50">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Raised</span>
-                  <span className="text-xs text-slate-500">{investors.length} investors</span>
-                </div>
-                <p className="text-3xl font-display font-bold text-gradient-executive bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600 mt-1">
-                  {formatCurrency(startup.total_raised)}
-                </p>
-              </div>
-
-              {/* My Investment */}
-              {myInvestment && (
-                <div className="mb-4 relative bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-2 border-blue-500/30 rounded-xl p-4 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-radial from-blue-500/5 to-transparent"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-blue-300 uppercase tracking-wider flex items-center gap-2">
-                        <span className="inline-block w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                        Your Position
-                      </span>
-                      {!isLocked && !investor.submitted && (
-                        <button
-                          onClick={() => handleRemoveInvestment(startup.id)}
-                          disabled={submitting}
-                          className="text-xs text-rose-400 hover:text-rose-300 font-bold transition-colors"
-                        >
-                          Remove
-                        </button>
-                      )}
+                {/* Logo - Large and Centered */}
+                {startup.logo ? (
+                  <div className="relative h-full flex items-center justify-center p-6">
+                    <div className="w-32 h-32 bg-white/95 rounded-2xl p-4 shadow-2xl border border-slate-300/20 backdrop-blur-sm">
+                      <img
+                        src={getFileUrl(startup.logo)}
+                        alt={`${startup.name} logo`}
+                        className="w-full h-full object-contain"
+                      />
                     </div>
-                    <p className="text-2xl font-display font-bold text-slate-100 mb-1">
-                      {formatCurrency(myInvestment.amount)}
-                    </p>
-                    <p className="text-xs text-slate-400 font-medium">
-                      {formatPercentage(myInvestment.amount, startup.total_raised)} of total
-                    </p>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="relative h-full flex items-center justify-center p-6">
+                    <div className="w-32 h-32 bg-slate-700/50 rounded-2xl flex items-center justify-center border border-slate-600/50">
+                      <svg className="w-16 h-16 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
 
-              {/* Investor List */}
-              {investors.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs text-slate-500 mb-2 font-bold uppercase tracking-wider flex items-center gap-2">
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                {/* Quick Details Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewingStartup(startup);
+                  }}
+                  className="absolute top-3 right-3 z-10 bg-slate-900/90 backdrop-blur-xl hover:bg-slate-800 text-slate-300 hover:text-blue-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 hover:border-blue-500/50 transition-all shadow-lg"
+                >
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Top Investors
-                  </p>
-                  <div className="space-y-1.5 max-h-32 overflow-y-auto scrollbar-thin">
-                    {investors.slice(0, 5).map((inv) => (
-                      <div
-                        key={inv.id}
-                        className="flex items-center justify-between text-xs bg-slate-800/30 backdrop-blur-xl px-3 py-2 rounded-lg border border-slate-700/30"
-                      >
-                        <span className={inv.investor_id === investorId ? 'text-blue-400 font-bold' : 'text-slate-400 font-medium'}>
-                          {inv.investor_name}
-                        </span>
-                        <span className="text-slate-500 font-semibold">
-                          {formatCurrency(inv.amount)}
-                        </span>
-                      </div>
-                    ))}
-                    {investors.length > 5 && (
-                      <p className="text-xs text-slate-500 italic text-center pt-1">
-                        +{investors.length - 5} more investors
-                      </p>
+                    Full Details
+                  </span>
+                </button>
+              </div>
+
+              {/* Card Content */}
+              <div className="p-5">
+                {/* Startup Name & Industry */}
+                <div className="mb-4">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3
+                      className="text-xl font-display font-bold text-slate-100 cursor-pointer hover:text-blue-400 transition-colors flex-1"
+                      onClick={() => setViewingStartup(startup)}
+                    >
+                      {startup.name}
+                    </h3>
+                    {startup.industry && (
+                      <span className="inline-block bg-blue-500/10 text-blue-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-500/20 whitespace-nowrap">
+                        {startup.industry}
+                      </span>
                     )}
                   </div>
+                  {startup.description && (
+                    <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
+                      {startup.description}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {/* Action Button */}
-              {!isLocked && !investor.submitted ? (
-                <button
-                  onClick={() => setSelectedStartup(startup)}
-                  disabled={submitting}
-                  className="btn-executive w-full text-sm py-3"
-                >
-                  {myInvestment ? '✏️ Modify Investment' : '💼 Make Investment'}
-                </button>
-              ) : investor.submitted && (
-                <div className="bg-emerald-500/10 border-2 border-emerald-500/30 text-emerald-300 text-xs font-bold text-center py-3 rounded-xl">
-                  ✓ Portfolio Finalized
+                {/* Key Info Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {/* Total Raised */}
+                  <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/50">
+                    <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">
+                      Total Raised
+                    </div>
+                    <div className="text-lg font-display font-bold text-gradient-executive bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+                      {formatCurrency(startup.total_raised)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {investors.length} investor{investors.length !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+
+                  {/* Funding Ask */}
+                  <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/50">
+                    <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">
+                      Funding Ask
+                    </div>
+                    <div className="text-lg font-display font-bold text-slate-200">
+                      {startup.ask ? formatCurrency(startup.ask) : 'N/A'}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {startup.generating_revenue === 'Yes' ? '✓ Revenue' : 'Pre-revenue'}
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                {/* Pitch Deck & Contact Info */}
+                <div className="flex gap-2 mb-4">
+                  {startup.pitch_deck && (
+                    <a
+                      href={getFileUrl(startup.pitch_deck)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 text-xs font-semibold px-3 py-2 rounded-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      Pitch Deck
+                    </a>
+                  )}
+                  {startup.email && (
+                    <a
+                      href={`mailto:${startup.email}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="bg-slate-800/60 hover:bg-slate-700/60 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg transition-all flex items-center justify-center"
+                      title={startup.email}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </a>
+                  )}
+                </div>
+
+                {/* My Investment */}
+                {myInvestment && (
+                  <div className="mb-4 relative bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-2 border-blue-500/30 rounded-xl p-3.5 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-radial from-blue-500/5 to-transparent"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-bold text-blue-300 uppercase tracking-wider flex items-center gap-2">
+                          <span className="inline-block w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                          Your Position
+                        </span>
+                        {!isLocked && !investor.submitted && (
+                          <button
+                            onClick={() => handleRemoveInvestment(startup.id)}
+                            disabled={submitting}
+                            className="text-xs text-rose-400 hover:text-rose-300 font-bold transition-colors"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-xl font-display font-bold text-slate-100">
+                          {formatCurrency(myInvestment.amount)}
+                        </p>
+                        <p className="text-xs text-slate-400 font-medium">
+                          {formatPercentage(myInvestment.amount, startup.total_raised)} of total
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Top Investors - Compact */}
+                {investors.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-slate-500 mb-2 font-bold uppercase tracking-wider flex items-center gap-2">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                      </svg>
+                      Top Investors
+                    </p>
+                    <div className="space-y-1.5 max-h-28 overflow-y-auto scrollbar-thin">
+                      {investors.slice(0, 3).map((inv) => (
+                        <div
+                          key={inv.id}
+                          className="flex items-center justify-between text-xs bg-slate-800/30 backdrop-blur-xl px-3 py-1.5 rounded-lg border border-slate-700/30"
+                        >
+                          <span className={inv.investor_id === investorId ? 'text-blue-400 font-bold' : 'text-slate-400 font-medium'}>
+                            {inv.investor_name}
+                          </span>
+                          <span className="text-slate-500 font-semibold">
+                            {formatCurrency(inv.amount)}
+                          </span>
+                        </div>
+                      ))}
+                      {investors.length > 3 && (
+                        <p className="text-xs text-slate-500 italic text-center pt-0.5">
+                          +{investors.length - 3} more
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Button */}
+                {!isLocked && !investor.submitted ? (
+                  <button
+                    onClick={() => setSelectedStartup(startup)}
+                    disabled={submitting}
+                    className="btn-executive w-full text-sm py-3"
+                  >
+                    {myInvestment ? '✏️ Modify Investment' : '💼 Make Investment'}
+                  </button>
+                ) : investor.submitted && (
+                  <div className="bg-emerald-500/10 border-2 border-emerald-500/30 text-emerald-300 text-xs font-bold text-center py-3 rounded-xl">
+                    ✓ Portfolio Finalized
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
