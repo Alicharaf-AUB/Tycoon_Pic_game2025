@@ -1354,6 +1354,7 @@ function FundRequestsTab({ username, password }) {
 
     setProcessingId(requestId);
     try {
+      console.log('Approving request:', requestId);
       const result = await adminApi.approveFundsRequest(
         username,
         password,
@@ -1361,12 +1362,15 @@ function FundRequestsTab({ username, password }) {
         'Approved',
         username
       );
+      console.log('Approval result:', result);
 
       // Reload to get fresh data from server
       await loadRequests();
 
-      alert(`✅ Fund request approved!\n\nInvestor: ${investorName}\nAmount Added: ${formatCurrency(requestedAmount)}\nNew Total Credit: ${formatCurrency(result.newCredit)}`);
+      const newCreditDisplay = result?.newCredit ? formatCurrency(result.newCredit) : 'Updated';
+      alert(`✅ Fund request approved!\n\nInvestor: ${investorName}\nAmount Added: ${formatCurrency(requestedAmount)}\nNew Total Credit: ${newCreditDisplay}`);
     } catch (err) {
+      console.error('Approval error:', err);
       alert('Failed to approve request: ' + (err.response?.data?.error || err.message));
       // Reload in case of error to show correct state
       await loadRequests();
