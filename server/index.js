@@ -918,11 +918,15 @@ app.get('*', (req, res) => {
 
 server.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Admin credentials: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
   
   if (process.env.NODE_ENV === 'production') {
     console.log('Running in PRODUCTION mode');
     console.log('Serving client from /client/dist');
+    if (ADMIN_PASSWORD === 'demo123') {
+      console.warn('⚠️  SECURITY WARNING: Change admin password immediately!');
+    }
+  } else {
+    console.log(`Admin credentials: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
   }
   
   // Initialize and seed database after server starts
