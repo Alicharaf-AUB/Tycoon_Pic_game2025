@@ -7,6 +7,17 @@ export function generateInvestmentReport(investor, investments, startups, gameSt
   const pageHeight = doc.internal.pageSize.getHeight();
   let yPos = 20;
 
+  // Recalculate totals from actual investments to ensure accuracy
+  const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+  const totalAvailable = parseFloat(investor.starting_credit || 0) - totalInvested;
+  
+  console.log('📊 PDF Generation - Investor data:', {
+    starting_credit: investor.starting_credit,
+    totalInvested,
+    totalAvailable,
+    investmentCount: investments.length
+  });
+
   // Helper function to add new page if needed
   const checkPageBreak = (neededSpace = 20) => {
     if (yPos + neededSpace > pageHeight - 20) {
@@ -104,7 +115,7 @@ export function generateInvestmentReport(investor, investments, startups, gameSt
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(16, 185, 129);
-  doc.text(formatCurrency(investor.invested), 35 + boxWidth, boxY + 20);
+  doc.text(formatCurrency(totalInvested), 35 + boxWidth, boxY + 20);
 
   // Available Box
   doc.setFillColor(254, 249, 195);
@@ -116,7 +127,7 @@ export function generateInvestmentReport(investor, investments, startups, gameSt
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(245, 158, 11);
-  doc.text(formatCurrency(investor.remaining), 45 + boxWidth * 2, boxY + 20);
+  doc.text(formatCurrency(totalAvailable), 45 + boxWidth * 2, boxY + 20);
 
   yPos += boxHeight + 15;
 
@@ -207,9 +218,9 @@ export function generateInvestmentReport(investor, investments, startups, gameSt
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
 
-  const allocationRate = ((investor.invested / investor.starting_credit) * 100).toFixed(1);
+  const allocationRate = ((totalInvested / investor.starting_credit) * 100).toFixed(1);
   const numInvestments = investments?.length || 0;
-  const avgInvestment = numInvestments > 0 ? (investor.invested / numInvestments) : 0;
+  const avgInvestment = numInvestments > 0 ? (totalInvested / numInvestments) : 0;
 
   // Get unique industries
   const industries = new Set();
