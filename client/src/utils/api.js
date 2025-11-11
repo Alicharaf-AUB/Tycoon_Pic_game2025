@@ -224,4 +224,13 @@ export const adminApi = {
     );
     return data;
   },
+
+  // Delete funds request
+  deleteFundsRequest: async (username, password, requestId) => {
+    const { data } = await axios.delete(
+      `${API_BASE}/api/admin/funds-requests/${requestId}`,
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
+    return data;
+  },
 };

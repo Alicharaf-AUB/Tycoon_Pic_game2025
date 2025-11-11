@@ -398,31 +398,31 @@ function InvestorsTab({ username, password, gameState }) {
   return (
     <div className="space-y-4">
       {/* Desktop Table View */}
-      <div className="hidden md:block card overflow-x-auto">
+      <div className="hidden lg:block fintech-card overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b-2 border-gold-300 bg-gradient-to-r from-gold-50 to-amber-50">
-              <th className="text-left py-4 px-4 text-sm font-bold text-gray-800 uppercase">Name</th>
-              <th className="text-center py-4 px-4 text-sm font-bold text-gray-800 uppercase">Status</th>
-              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Starting Credit</th>
-              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Invested</th>
-              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Remaining</th>
-              <th className="text-right py-4 px-4 text-sm font-bold text-gray-800 uppercase">Actions</th>
+            <tr className="border-b-2 border-slate-700">
+              <th className="text-left py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Name</th>
+              <th className="text-center py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+              <th className="text-right py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Starting Credit</th>
+              <th className="text-right py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Invested</th>
+              <th className="text-right py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Remaining</th>
+              <th className="text-right py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
             {investors.map((investor) => (
-              <tr key={investor.id} className="border-b border-gray-200 hover:bg-gold-50 transition-colors">
+              <tr key={investor.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
                 <td className="py-4 px-4">
-                  <p className="font-bold text-gray-900">{investor.name}</p>
+                  <p className="font-bold text-slate-100">{investor.name}</p>
                 </td>
                 <td className="py-4 px-4 text-center">
                   {investor.submitted ? (
-                    <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="inline-block bg-green-700 text-green-100 text-xs font-bold px-3 py-1 rounded-full">
                       ✅ Submitted
                     </span>
                   ) : (
-                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="inline-block bg-yellow-700 text-yellow-100 text-xs font-bold px-3 py-1 rounded-full">
                       ⏳ Pending
                     </span>
                   )}
@@ -437,13 +437,13 @@ function InvestorsTab({ username, password, gameState }) {
                       autoFocus
                     />
                   ) : (
-                    <span className="text-gray-700 font-semibold">{formatCurrency(investor.starting_credit)}</span>
+                    <span className="text-slate-200 font-semibold">{formatCurrency(investor.starting_credit)}</span>
                   )}
                 </td>
-                <td className="py-4 px-4 text-right text-gold-700 font-bold">
+                <td className="py-4 px-4 text-right text-blue-400 font-bold">
                   {formatCurrency(investor.invested)}
                 </td>
-                <td className="py-4 px-4 text-right text-green-700 font-bold">
+                <td className="py-4 px-4 text-right text-green-400 font-bold">
                   {formatCurrency(investor.remaining)}
                 </td>
                 <td className="py-4 px-4 text-right">
@@ -452,7 +452,7 @@ function InvestorsTab({ username, password, gameState }) {
                       <>
                         <button
                           onClick={() => handleUpdateCredit(investor.id)}
-                          className="text-sm text-green-600 hover:text-green-700 font-bold min-h-[44px] px-3"
+                          className="text-sm text-green-400 hover:text-green-300 font-bold min-h-[44px] px-3"
                         >
                           ✓ Save
                         </button>
@@ -461,7 +461,7 @@ function InvestorsTab({ username, password, gameState }) {
                             setEditingCredit(null);
                             setNewCredit('');
                           }}
-                          className="text-sm text-gray-500 hover:text-gray-700 font-bold min-h-[44px] px-3"
+                          className="text-sm text-slate-400 hover:text-slate-300 font-bold min-h-[44px] px-3"
                         >
                           ✗ Cancel
                         </button>
@@ -473,13 +473,13 @@ function InvestorsTab({ username, password, gameState }) {
                             setEditingCredit(investor.id);
                             setNewCredit(investor.starting_credit.toString());
                           }}
-                          className="text-sm text-gold-600 hover:text-gold-700 font-bold min-h-[44px] px-3"
+                          className="text-sm text-blue-400 hover:text-blue-300 font-bold min-h-[44px] px-3"
                         >
                           ✏️ Edit
                         </button>
                         <button
                           onClick={() => handleDelete(investor.id, investor.name)}
-                          className="text-sm text-red-600 hover:text-red-700 font-bold min-h-[44px] px-3"
+                          className="text-sm text-red-400 hover:text-red-300 font-bold min-h-[44px] px-3"
                         >
                           🗑️ Delete
                         </button>
@@ -493,26 +493,26 @@ function InvestorsTab({ username, password, gameState }) {
         </table>
 
         {investors.length === 0 && (
-          <div className="text-center py-8 text-gray-500 font-medium">
+          <div className="text-center py-8 text-slate-500 font-medium">
             No investors yet
           </div>
         )}
       </div>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-4">
+      {/* Mobile/Tablet Card View */}
+      <div className="lg:hidden space-y-4">
         {investors.map((investor) => (
-          <div key={investor.id} className="card bg-gradient-to-br from-white to-gold-50 border-2 border-gold-200 shadow-lg">
+          <div key={investor.id} className="fintech-card border-2 border-slate-700">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <h3 className="font-bold text-gray-900 text-lg">{investor.name}</h3>
+                <h3 className="font-bold text-slate-100 text-lg">{investor.name}</h3>
                 <div className="mt-1">
                   {investor.submitted ? (
-                    <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="inline-block bg-green-700 text-green-100 text-xs font-bold px-3 py-1 rounded-full">
                       ✅ Submitted
                     </span>
                   ) : (
-                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="inline-block bg-yellow-700 text-yellow-100 text-xs font-bold px-3 py-1 rounded-full">
                       ⏳ Pending
                     </span>
                   )}
@@ -522,7 +522,7 @@ function InvestorsTab({ username, password, gameState }) {
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Starting Credit</p>
+                <p className="text-xs text-slate-400 font-bold uppercase mb-1">Starting Credit</p>
                 {editingCredit === investor.id ? (
                   <input
                     type="number"
@@ -532,26 +532,26 @@ function InvestorsTab({ username, password, gameState }) {
                     autoFocus
                   />
                 ) : (
-                  <p className="text-lg font-bold text-gray-900">{formatCurrency(investor.starting_credit)}</p>
+                  <p className="text-lg font-bold text-slate-100">{formatCurrency(investor.starting_credit)}</p>
                 )}
               </div>
               <div>
-                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Invested</p>
-                <p className="text-lg font-bold text-gold-700">{formatCurrency(investor.invested)}</p>
+                <p className="text-xs text-slate-400 font-bold uppercase mb-1">Invested</p>
+                <p className="text-lg font-bold text-blue-400">{formatCurrency(investor.invested)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Remaining</p>
-                <p className="text-lg font-bold text-green-700">{formatCurrency(investor.remaining)}</p>
+                <p className="text-xs text-slate-400 font-bold uppercase mb-1">Remaining</p>
+                <p className="text-lg font-bold text-green-400">{formatCurrency(investor.remaining)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Allocation</p>
-                <p className="text-lg font-bold text-blue-700">
+                <p className="text-xs text-slate-400 font-bold uppercase mb-1">Allocation</p>
+                <p className="text-lg font-bold text-purple-400">
                   {investor.starting_credit > 0 ? Math.round((investor.invested / investor.starting_credit) * 100) : 0}%
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-3 border-t border-gold-200">
+            <div className="flex gap-2 pt-3 border-t border-slate-700">
               {editingCredit === investor.id ? (
                 <>
                   <button
@@ -583,7 +583,7 @@ function InvestorsTab({ username, password, gameState }) {
                   </button>
                   <button
                     onClick={() => handleDelete(investor.id, investor.name)}
-                    className="btn-danger flex-1 text-sm min-h-[44px]"
+                    className="bg-red-600 hover:bg-red-700 text-white flex-1 text-sm min-h-[44px] rounded-lg font-semibold transition-all"
                   >
                     🗑️ Delete
                   </button>
@@ -594,7 +594,7 @@ function InvestorsTab({ username, password, gameState }) {
         ))}
 
         {investors.length === 0 && (
-          <div className="text-center py-8 text-gray-500 font-medium card">
+          <div className="text-center py-8 text-slate-500 font-medium fintech-card">
             No investors yet
           </div>
         )}
@@ -1349,8 +1349,8 @@ function FundRequestsTab({ username, password }) {
     loadRequests();
   }, [username, password]);
 
-  const handleApprove = async (requestId, investorName) => {
-    if (!confirm(`Approve fund request from ${investorName}?`)) return;
+  const handleApprove = async (requestId, investorName, requestedAmount) => {
+    if (!confirm(`Approve fund request from ${investorName} for ${formatCurrency(requestedAmount)}?`)) return;
 
     setProcessingId(requestId);
     try {
@@ -1361,22 +1361,15 @@ function FundRequestsTab({ username, password }) {
         'Approved',
         username
       );
-      
-      // Update local state immediately
-      setRequests(prev => prev.map(req => 
-        req.id === requestId 
-          ? { ...req, status: 'approved', admin_notes: 'Approved', reviewed_by: username }
-          : req
-      ));
-      
+
       // Reload to get fresh data from server
-      setTimeout(() => loadRequests(), 500);
-      
-      alert(`✅ Fund request approved! New credit: ${formatCurrency(result.newCredit)}`);
+      await loadRequests();
+
+      alert(`✅ Fund request approved!\n\nInvestor: ${investorName}\nAmount Added: ${formatCurrency(requestedAmount)}\nNew Total Credit: ${formatCurrency(result.newCredit)}`);
     } catch (err) {
       alert('Failed to approve request: ' + (err.response?.data?.error || err.message));
       // Reload in case of error to show correct state
-      loadRequests();
+      await loadRequests();
     } finally {
       setProcessingId(null);
     }
@@ -1395,22 +1388,35 @@ function FundRequestsTab({ username, password }) {
         reason,
         username
       );
-      
-      // Update local state immediately
-      setRequests(prev => prev.map(req => 
-        req.id === requestId 
-          ? { ...req, status: 'rejected', admin_notes: reason, reviewed_by: username }
-          : req
-      ));
-      
+
       // Reload to get fresh data from server
-      setTimeout(() => loadRequests(), 500);
-      
+      await loadRequests();
+
       alert(`❌ Fund request rejected`);
     } catch (err) {
       alert('Failed to reject request: ' + (err.response?.data?.error || err.message));
       // Reload in case of error to show correct state
-      loadRequests();
+      await loadRequests();
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleDelete = async (requestId, investorName) => {
+    if (!confirm(`Permanently delete this fund request from ${investorName}?\n\nThis action cannot be undone.`)) return;
+
+    setProcessingId(requestId);
+    try {
+      await adminApi.deleteFundsRequest(username, password, requestId);
+
+      // Remove from local state immediately for instant feedback
+      setRequests(prev => prev.filter(req => req.id !== requestId));
+
+      alert(`🗑️ Fund request deleted successfully`);
+    } catch (err) {
+      alert('Failed to delete request: ' + (err.response?.data?.error || err.message));
+      // Reload in case of error to show correct state
+      await loadRequests();
     } finally {
       setProcessingId(null);
     }
@@ -1518,18 +1524,18 @@ function FundRequestsTab({ username, password }) {
                   : 'border-red-700/50 bg-red-900/10'
               }`}
             >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col gap-4">
                 {/* Request Info */}
                 <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                    <div className="flex-1">
                       <h3 className="text-lg font-bold text-slate-100 mb-1">
                         {request.investor_name}
                       </h3>
                       <p className="text-sm text-slate-400">{request.investor_email}</p>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase self-start ${
                         request.status === 'pending'
                           ? 'bg-yellow-700 text-yellow-100'
                           : request.status === 'approved'
@@ -1541,7 +1547,7 @@ function FundRequestsTab({ username, password }) {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     <div>
                       <p className="text-xs text-slate-500 uppercase font-bold mb-1">
                         Requested Amount
@@ -1558,7 +1564,7 @@ function FundRequestsTab({ username, password }) {
                         {formatCurrency(request.current_credit)}
                       </p>
                     </div>
-                    <div>
+                    <div className="sm:col-span-2 lg:col-span-1">
                       <p className="text-xs text-slate-500 uppercase font-bold mb-1">
                         Submitted
                       </p>
@@ -1596,36 +1602,71 @@ function FundRequestsTab({ username, password }) {
                 </div>
 
                 {/* Actions */}
-                {request.status === 'pending' && (
-                  <div className="flex md:flex-col gap-2 min-w-[160px]">
-                    <button
-                      onClick={() => handleApprove(request.id, request.investor_name)}
-                      disabled={processingId === request.id}
-                      className="btn-primary flex-1 md:flex-none py-2 px-4 text-sm disabled:opacity-50"
-                    >
-                      {processingId === request.id ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <div className="spinner w-4 h-4"></div>
-                        </span>
-                      ) : (
-                        '✅ Approve'
-                      )}
-                    </button>
-                    <button
-                      onClick={() => handleReject(request.id, request.investor_name)}
-                      disabled={processingId === request.id}
-                      className="bg-red-600 hover:bg-red-700 text-white flex-1 md:flex-none py-2 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50"
-                    >
-                      {processingId === request.id ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <div className="spinner w-4 h-4"></div>
-                        </span>
-                      ) : (
-                        '❌ Reject'
-                      )}
-                    </button>
-                  </div>
-                )}
+                <div className="pt-3 border-t border-slate-700">
+                  {request.status === 'pending' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <button
+                        onClick={() => handleApprove(request.id, request.investor_name, request.amount)}
+                        disabled={processingId === request.id}
+                        className="btn-primary py-2.5 px-4 text-sm disabled:opacity-50 min-h-[44px]"
+                      >
+                        {processingId === request.id ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="spinner w-4 h-4"></div>
+                            Processing...
+                          </span>
+                        ) : (
+                          '✅ Approve'
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleReject(request.id, request.investor_name)}
+                        disabled={processingId === request.id}
+                        className="bg-red-600 hover:bg-red-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[44px]"
+                      >
+                        {processingId === request.id ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="spinner w-4 h-4"></div>
+                            Processing...
+                          </span>
+                        ) : (
+                          '❌ Reject'
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(request.id, request.investor_name)}
+                        disabled={processingId === request.id}
+                        className="bg-slate-600 hover:bg-slate-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[44px]"
+                      >
+                        {processingId === request.id ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="spinner w-4 h-4"></div>
+                            Processing...
+                          </span>
+                        ) : (
+                          '🗑️ Delete'
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => handleDelete(request.id, request.investor_name)}
+                        disabled={processingId === request.id}
+                        className="bg-slate-600 hover:bg-slate-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[44px]"
+                      >
+                        {processingId === request.id ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="spinner w-4 h-4"></div>
+                            Deleting...
+                          </span>
+                        ) : (
+                          '🗑️ Delete'
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))

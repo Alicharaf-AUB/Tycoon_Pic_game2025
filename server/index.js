@@ -858,10 +858,42 @@ app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => 
     console.error('Error rejecting funds request:', error);
     console.error('Error details:', error.message);
     console.error('Error stack:', error.stack);
-    res.status(500).json({ 
-      error: 'Failed to reject request', 
+    res.status(500).json({
+      error: 'Failed to reject request',
       details: error.message,
-      requestId: id 
+      requestId: id
+    });
+  }
+});
+
+// Delete funds request
+app.delete('/api/admin/funds-requests/:id', adminAuth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Check if the request exists
+    const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    // Delete the request
+    await pool.query('DELETE FROM fund_requests WHERE id = $1', [id]);
+
+    // Broadcast the updated game state
+    const gameState = await getGameState();
+    io.emit('gameStateUpdate', gameState);
+
+    res.json({ success: true, message: 'Fund request deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting funds request:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({
+      error: 'Failed to delete request',
+      details: error.message,
+      requestId: id
     });
   }
 });
