@@ -28,9 +28,9 @@ export const SocketProvider = ({ children }) => {
       path: '/socket.io/',
       transports: ['polling', 'websocket'], // Try polling first for Railway
       reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
-      timeout: 20000,
+      reconnectionAttempts: 3, // Reduced from 10
+      reconnectionDelay: 2000,
+      timeout: 10000, // Reduced from 20000
       forceNew: true
     });
 
@@ -46,13 +46,15 @@ export const SocketProvider = ({ children }) => {
     });
     
     socketInstance.on('connect_error', (error) => {
-      console.error('❌ Socket.IO connection error:', error.message);
-      console.error('📊 Error details:', {
+      console.warn('⚠️ Socket.IO connection error:', error.message);
+      console.warn('📊 Error details:', {
         type: error.type,
         description: error.description,
         context: error.context
       });
+      console.warn('💡 App will continue to work, but real-time updates are disabled');
       setIsConnected(false);
+      // Don't throw - let the app work without real-time updates
     });
     
     socketInstance.on('reconnect_attempt', (attemptNumber) => {
