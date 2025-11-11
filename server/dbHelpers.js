@@ -280,16 +280,36 @@ async function getAllFundRequests() {
 }
 
 async function updateFundRequestStatus(id, status, adminNotes, reviewedBy) {
-  const result = await pool.query(`
-    UPDATE fund_requests
-    SET status = $2, 
-        admin_notes = $3, 
-        reviewed_by = $4,
-        reviewed_at = CURRENT_TIMESTAMP
-    WHERE id = $1
-    RETURNING *
-  `, [id, status, adminNotes, reviewedBy]);
-  return result.rows[0];
+  try {
+    const result = await pool.query(`
+      UPDATE fund_requests
+      SET status = $2, 
+          admin_notes = $3, 
+          reviewed_by = $4,
+          reviewed_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING *
+    `, [id, status, adminNotes, reviewedBy]);
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error updating fund request status:', error);
+    console.error('Parameters:', { id, status, adminNotes, reviewedBy });
+    
+    // If reviewed_at column doesn't exist, try without it
+    if (error.message && error.message.includes('reviewed_at')) {
+      console.log('Trying without reviewed_at column...');
+      const result = await pool.query(`
+        UPDATE fund_requests
+        SET status = $2, 
+            admin_notes = $3, 
+            reviewed_by = $4
+        WHERE id = $1
+        RETURNING *
+      `, [id, status, adminNotes, reviewedBy]);
+      return result.rows[0];
+    }
+    throw error;
+  }
 }
 
 // ===== GAME STATE FUNCTIONS =====
