@@ -7,6 +7,10 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+// Log DATABASE_URL for debugging (hide password)
+const sanitizedUrl = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':****@');
+console.log('🔗 Connecting to database:', sanitizedUrl);
+
 // Create connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -15,7 +19,7 @@ const pool = new Pool({
   } : false,
   max: 20, // maximum number of clients in the pool
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000, // Increased timeout for Railway
 });
 
 // Event handlers
