@@ -798,38 +798,52 @@ const initializeDatabaseOnStartup = async () => {
 };
 
 // Serve React app in production
-if (process.env.NODE_ENV === 'production') {
-  const clientDistPath = path.join(__dirname, '../client/dist');
-  const indexPath = path.join(clientDistPath, 'index.html');
-  
-  // Check if client build exists
-  if (fs.existsSync(clientDistPath)) {
-    console.log('✅ Client build directory found:', clientDistPath);
-    app.use(express.static(clientDistPath));
-  } else {
-    console.error('❌ Client build directory NOT found:', clientDistPath);
-    console.error('💡 Make sure to run "npm run build" before deploying');
-  }
-  
-  // Serve React app for any non-API routes
-  app.get('*', (req, res) => {
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(503).send(`
-        <html>
-          <head><title>Deployment Issue</title></head>
-          <body style="font-family: Arial; padding: 40px; text-align: center;">
-            <h1>🚧 Application Building</h1>
-            <p>The client application is not yet built.</p>
-            <p>Client path: ${clientDistPath}</p>
-            <p>Please wait a few moments and refresh.</p>
-          </body>
-        </html>
-      `);
-    }
-  });
+const isProduction = process.env.NODE_ENV === 'production';
+console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+console.log('📦 Production mode:', isProduction);
+
+const clientDistPath = path.join(__dirname, '../client/dist');
+const indexPath = path.join(clientDistPath, 'index.html');
+
+// Check if client build exists
+console.log('🔍 Checking for client build at:', clientDistPath);
+const clientExists = fs.existsSync(clientDistPath);
+const indexExists = fs.existsSync(indexPath);
+
+console.log('📁 Client dist exists:', clientExists);
+console.log('📄 index.html exists:', indexExists);
+
+if (clientExists) {
+  console.log('✅ Serving static files from:', clientDistPath);
+  app.use(express.static(clientDistPath));
+} else {
+  console.error('❌ Client build directory NOT found:', clientDistPath);
+  console.error('💡 Run "npm run build" to build the client');
 }
+
+// Serve React app for any non-API routes (catch-all must be last)
+app.get('*', (req, res) => {
+  console.log('🌐 Catch-all route hit:', req.path);
+  
+  if (indexExists) {
+    console.log('📤 Sending index.html');
+    res.sendFile(indexPath);
+  } else {
+    console.error('❌ index.html not found at:', indexPath);
+    res.status(503).send(`
+      <html>
+        <head><title>Build Required</title></head>
+        <body style="font-family: Arial; padding: 40px; text-align: center;">
+          <h1>🚧 Client Not Built</h1>
+          <p>The client application needs to be built.</p>
+          <p>Expected path: ${clientDistPath}</p>
+          <p>Index.html exists: ${indexExists}</p>
+          <p>NODE_ENV: ${process.env.NODE_ENV || 'not set'}</p>
+        </body>
+      </html>
+    `);
+  }
+});
 
 server.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
