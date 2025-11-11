@@ -139,8 +139,8 @@ export default function AdminPage() {
     { id: 'investors', name: '👥 Investors', emoji: '👥' },
     { id: 'startups', name: '🚀 Startups', emoji: '🚀' },
     { id: 'investments', name: '💰 Investments', emoji: '💰' },
+    { id: 'fund-requests', name: '💸 Fund Requests', emoji: '💸' },
     { id: 'submissions', name: '✅ Submissions', emoji: '✅' },
-    { id: 'funds-requests', name: '💳 Funds Requests', emoji: '💳' },
     { id: 'analytics', name: '📈 Analytics', emoji: '📈' },
     { id: 'activity', name: '⚡ Activity Feed', emoji: '⚡' },
     { id: 'audit', name: '📋 Audit Trail', emoji: '📋' },
@@ -202,11 +202,11 @@ export default function AdminPage() {
         {activeTab === 'investments' && (
           <InvestmentsTab gameState={gameState} />
         )}
+        {activeTab === 'fund-requests' && (
+          <FundRequestsTab username={username} password={password} />
+        )}
         {activeTab === 'submissions' && (
           <SubmissionsTab gameState={gameState} />
-        )}
-        {activeTab === 'funds-requests' && (
-          <FundsRequestsTab username={username} password={password} />
         )}
         {activeTab === 'analytics' && (
           <AnalyticsTab gameState={gameState} />
@@ -373,32 +373,25 @@ function InvestorsTab({ username, password, gameState }) {
 
   const handleUpdateCredit = async (investorId) => {
     const amount = parseInt(newCredit);
-    if (isNaN(amount) || amount < 0) {
-      alert('Please enter a valid positive amount');
-      return;
-    }
+    if (isNaN(amount) || amount < 0) return;
 
     try {
       await adminApi.updateCredit(username, password, investorId, amount);
       setEditingCredit(null);
       setNewCredit('');
     } catch (err) {
-      console.error('Error updating credit:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'Failed to update credit';
-      alert(`Failed to update credit: ${errorMessage}`);
+      alert('Failed to update credit');
     }
   };
 
   const handleDelete = async (investorId, name) => {
-    if (!confirm(`Delete investor "${name}"? This action cannot be undone.`)) return;
+    if (!confirm(`Delete investor "${name}"?`)) return;
 
     try {
       await adminApi.deleteInvestor(username, password, investorId);
       // Data will automatically refresh via WebSocket
     } catch (err) {
-      console.error('Error deleting investor:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'Failed to delete investor';
-      alert(`Failed to delete investor: ${errorMessage}`);
+      alert('Failed to delete investor');
     }
   };
 
@@ -695,15 +688,13 @@ function StartupsTab({ username, password, gameState }) {
   };
 
   const handleDelete = async (startupId, name) => {
-    if (!confirm(`Delete startup "${name}"? This will also delete all investments in this startup. This action cannot be undone.`)) return;
+    if (!confirm(`Delete startup "${name}"? This will also delete all investments in this startup.`)) return;
 
     try {
       await adminApi.deleteStartup(username, password, startupId);
       // Data will automatically refresh via WebSocket
     } catch (err) {
-      console.error('Error deleting startup:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'Failed to delete startup';
-      alert(`Failed to delete startup: ${errorMessage}`);
+      alert('Failed to delete startup');
     }
   };
 
@@ -1335,6 +1326,289 @@ function InvestmentsTab({ gameState }) {
   );
 }
 
+// Fund Requests Tab - View and manage fund requests
+function FundRequestsTab({ username, password }) {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
+  const [processingId, setProcessingId] = useState(null);
+
+  const loadRequests = async () => {
+    setLoading(true);
+    try {
+      const { requests: data } = await adminApi.getFundsRequests(username, password);
+      setRequests(data);
+    } catch (err) {
+      console.error('Failed to load fund requests:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRequests();
+  }, [username, password]);
+
+  const handleApprove = async (requestId, investorName) => {
+    if (!confirm(`Approve fund request from ${investorName}?`)) return;
+
+    setProcessingId(requestId);
+    try {
+      await adminApi.approveFundsRequest(
+        username,
+        password,
+        requestId,
+        'Approved',
+        username
+      );
+      await loadRequests();
+    } catch (err) {
+      alert('Failed to approve request: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (requestId, investorName) => {
+    const reason = prompt(`Reject fund request from ${investorName}?\n\nEnter rejection reason:`);
+    if (!reason) return;
+
+    setProcessingId(requestId);
+    try {
+      await adminApi.rejectFundsRequest(
+        username,
+        password,
+        requestId,
+        reason,
+        username
+      );
+      await loadRequests();
+    } catch (err) {
+      alert('Failed to reject request: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const filteredRequests = requests.filter(req => {
+    if (filter === 'all') return true;
+    return req.status === filter;
+  });
+
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const approvedCount = requests.filter(r => r.status === 'approved').length;
+  const rejectedCount = requests.filter(r => r.status === 'rejected').length;
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="spinner mb-4"></div>
+        <p className="text-slate-500 text-sm">Loading fund requests...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="card bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-slate-700">
+          <p className="text-sm font-bold text-slate-400 uppercase mb-2">📋 Total</p>
+          <p className="text-4xl font-bold text-slate-100">{requests.length}</p>
+        </div>
+        <div className="card bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border-2 border-yellow-700/50">
+          <p className="text-sm font-bold text-yellow-400 uppercase mb-2">⏳ Pending</p>
+          <p className="text-4xl font-bold text-yellow-300">{pendingCount}</p>
+        </div>
+        <div className="card bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-700/50">
+          <p className="text-sm font-bold text-green-400 uppercase mb-2">✅ Approved</p>
+          <p className="text-4xl font-bold text-green-300">{approvedCount}</p>
+        </div>
+        <div className="card bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-700/50">
+          <p className="text-sm font-bold text-red-400 uppercase mb-2">❌ Rejected</p>
+          <p className="text-4xl font-bold text-red-300">{rejectedCount}</p>
+        </div>
+      </div>
+
+      {/* Filter Buttons */}
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+            filter === 'all'
+              ? 'bg-slate-700 text-slate-100'
+              : 'bg-slate-800/50 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          All ({requests.length})
+        </button>
+        <button
+          onClick={() => setFilter('pending')}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+            filter === 'pending'
+              ? 'bg-yellow-700 text-yellow-100'
+              : 'bg-slate-800/50 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Pending ({pendingCount})
+        </button>
+        <button
+          onClick={() => setFilter('approved')}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+            filter === 'approved'
+              ? 'bg-green-700 text-green-100'
+              : 'bg-slate-800/50 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Approved ({approvedCount})
+        </button>
+        <button
+          onClick={() => setFilter('rejected')}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+            filter === 'rejected'
+              ? 'bg-red-700 text-red-100'
+              : 'bg-slate-800/50 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Rejected ({rejectedCount})
+        </button>
+      </div>
+
+      {/* Fund Requests List */}
+      <div className="space-y-4">
+        {filteredRequests.length === 0 ? (
+          <div className="card text-center py-12">
+            <p className="text-slate-500">No {filter !== 'all' ? filter : ''} fund requests</p>
+          </div>
+        ) : (
+          filteredRequests.map((request) => (
+            <div
+              key={request.id}
+              className={`card border-2 ${
+                request.status === 'pending'
+                  ? 'border-yellow-700/50 bg-yellow-900/10'
+                  : request.status === 'approved'
+                  ? 'border-green-700/50 bg-green-900/10'
+                  : 'border-red-700/50 bg-red-900/10'
+              }`}
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Request Info */}
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-100 mb-1">
+                        {request.investor_name}
+                      </h3>
+                      <p className="text-sm text-slate-400">{request.investor_email}</p>
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                        request.status === 'pending'
+                          ? 'bg-yellow-700 text-yellow-100'
+                          : request.status === 'approved'
+                          ? 'bg-green-700 text-green-100'
+                          : 'bg-red-700 text-red-100'
+                      }`}
+                    >
+                      {request.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase font-bold mb-1">
+                        Requested Amount
+                      </p>
+                      <p className="text-xl font-bold text-slate-100">
+                        {formatCurrency(request.amount)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase font-bold mb-1">
+                        Current Credit
+                      </p>
+                      <p className="text-xl font-bold text-slate-300">
+                        {formatCurrency(request.current_credit)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase font-bold mb-1">
+                        Submitted
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        {new Date(request.created_at).toLocaleDateString()} at{' '}
+                        {new Date(request.created_at).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <p className="text-xs text-slate-500 uppercase font-bold mb-2">
+                      Justification
+                    </p>
+                    <p className="text-sm text-slate-300 bg-slate-900/50 rounded-lg p-3 border border-slate-800">
+                      {request.reason}
+                    </p>
+                  </div>
+
+                  {request.admin_notes && (
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase font-bold mb-2">
+                        Admin Response
+                      </p>
+                      <p className="text-sm text-slate-300 bg-slate-900/50 rounded-lg p-3 border border-slate-800">
+                        {request.admin_notes}
+                        {request.reviewed_by && (
+                          <span className="text-xs text-slate-500 ml-2">
+                            - by {request.reviewed_by}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                {request.status === 'pending' && (
+                  <div className="flex md:flex-col gap-2 min-w-[160px]">
+                    <button
+                      onClick={() => handleApprove(request.id, request.investor_name)}
+                      disabled={processingId === request.id}
+                      className="btn-primary flex-1 md:flex-none py-2 px-4 text-sm disabled:opacity-50"
+                    >
+                      {processingId === request.id ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="spinner w-4 h-4"></div>
+                        </span>
+                      ) : (
+                        '✅ Approve'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleReject(request.id, request.investor_name)}
+                      disabled={processingId === request.id}
+                      className="bg-red-600 hover:bg-red-700 text-white flex-1 md:flex-none py-2 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50"
+                    >
+                      {processingId === request.id ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="spinner w-4 h-4"></div>
+                        </span>
+                      ) : (
+                        '❌ Reject'
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Submissions Tab - Shows who submitted and what they voted for
 function SubmissionsTab({ gameState }) {
   const submittedInvestors = (gameState?.investors || []).filter(inv => inv.submitted);
@@ -1423,293 +1697,6 @@ function SubmissionsTab({ gameState }) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// Funds Requests Tab - Manage investor funds requests
-function FundsRequestsTab({ username, password }) {
-  const [requests, setRequests] = useState([]);
-  const [statusFilter, setStatusFilter] = useState('pending');
-  const [loading, setLoading] = useState(false);
-  const [respondingTo, setRespondingTo] = useState(null);
-  const [adminResponse, setAdminResponse] = useState('');
-
-  // Fetch funds requests
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const data = await adminApi.getFundsRequests(username, password, statusFilter);
-      setRequests(data.requests || []);
-    } catch (error) {
-      console.error('Error fetching funds requests:', error);
-      alert('Failed to fetch funds requests');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch on component mount and when filter changes
-  useEffect(() => {
-    fetchRequests();
-  }, [statusFilter, username, password]);
-
-  const handleApprove = async (request) => {
-    if (!confirm(`Approve funds request for ${request.investor_name}? This will increase their capital by ${formatCurrency(request.requested_amount)}.`)) {
-      return;
-    }
-
-    try {
-      await adminApi.approveFundsRequest(
-        username,
-        password,
-        request.id,
-        adminResponse || 'Approved',
-        username
-      );
-      setRespondingTo(null);
-      setAdminResponse('');
-      await fetchRequests();
-      alert('Request approved successfully!');
-    } catch (error) {
-      console.error('Error approving request:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to approve request';
-      alert(`Failed to approve request: ${errorMessage}`);
-    }
-  };
-
-  const handleReject = async (request) => {
-    if (!adminResponse.trim()) {
-      alert('Please provide a reason for rejection');
-      return;
-    }
-
-    if (!confirm(`Reject funds request for ${request.investor_name}?`)) {
-      return;
-    }
-
-    try {
-      await adminApi.rejectFundsRequest(
-        username,
-        password,
-        request.id,
-        adminResponse,
-        username
-      );
-      setRespondingTo(null);
-      setAdminResponse('');
-      await fetchRequests();
-      alert('Request rejected successfully!');
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to reject request';
-      alert(`Failed to reject request: ${errorMessage}`);
-    }
-  };
-
-  const pendingRequests = requests.filter(r => r.status === 'pending');
-  const approvedRequests = requests.filter(r => r.status === 'approved');
-  const rejectedRequests = requests.filter(r => r.status === 'rejected');
-
-  return (
-    <div className="space-y-6">
-      {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="card-executive bg-gradient-to-br from-amber-500/10 to-yellow-500/10 border-2 border-amber-500/30">
-          <p className="text-sm font-bold text-amber-400 uppercase mb-2">⏳ Pending</p>
-          <p className="text-4xl font-bold text-amber-300">{pendingRequests.length}</p>
-        </div>
-        <div className="card-executive bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-2 border-green-500/30">
-          <p className="text-sm font-bold text-green-400 uppercase mb-2">✅ Approved</p>
-          <p className="text-4xl font-bold text-green-300">{approvedRequests.length}</p>
-        </div>
-        <div className="card-executive bg-gradient-to-br from-red-500/10 to-rose-500/10 border-2 border-red-500/30">
-          <p className="text-sm font-bold text-red-400 uppercase mb-2">❌ Rejected</p>
-          <p className="text-4xl font-bold text-red-300">{rejectedRequests.length}</p>
-        </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex gap-2 bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
-        <button
-          onClick={() => setStatusFilter('pending')}
-          className={`flex-1 px-4 py-2 rounded-lg font-bold transition-all ${
-            statusFilter === 'pending'
-              ? 'bg-amber-500/20 text-amber-400 border-2 border-amber-500/50'
-              : 'text-slate-400 hover:text-slate-300'
-          }`}
-        >
-          ⏳ Pending
-        </button>
-        <button
-          onClick={() => setStatusFilter('approved')}
-          className={`flex-1 px-4 py-2 rounded-lg font-bold transition-all ${
-            statusFilter === 'approved'
-              ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
-              : 'text-slate-400 hover:text-slate-300'
-          }`}
-        >
-          ✅ Approved
-        </button>
-        <button
-          onClick={() => setStatusFilter('rejected')}
-          className={`flex-1 px-4 py-2 rounded-lg font-bold transition-all ${
-            statusFilter === 'rejected'
-              ? 'bg-red-500/20 text-red-400 border-2 border-red-500/50'
-              : 'text-slate-400 hover:text-slate-300'
-          }`}
-        >
-          ❌ Rejected
-        </button>
-        <button
-          onClick={() => setStatusFilter(null)}
-          className={`flex-1 px-4 py-2 rounded-lg font-bold transition-all ${
-            statusFilter === null
-              ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-500/50'
-              : 'text-slate-400 hover:text-slate-300'
-          }`}
-        >
-          📋 All
-        </button>
-      </div>
-
-      {/* Requests List */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="card-executive text-center py-12">
-            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-400">Loading requests...</p>
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="card-executive text-center py-12">
-            <p className="text-slate-400 text-lg">No {statusFilter || ''} funds requests</p>
-          </div>
-        ) : (
-          requests.map((request) => (
-            <div
-              key={request.id}
-              className={`card-executive border-2 ${
-                request.status === 'pending'
-                  ? 'border-amber-500/30 bg-amber-500/5'
-                  : request.status === 'approved'
-                  ? 'border-green-500/30 bg-green-500/5'
-                  : 'border-red-500/30 bg-red-500/5'
-              }`}
-            >
-              {/* Request Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-100 mb-1">{request.investor_name}</h3>
-                  <p className="text-sm text-slate-500">
-                    Requested on {new Date(request.created_at).toLocaleString()}
-                  </p>
-                </div>
-                <span
-                  className={`px-4 py-2 rounded-full text-xs font-bold ${
-                    request.status === 'pending'
-                      ? 'bg-amber-500/20 text-amber-400 border-2 border-amber-500/50'
-                      : request.status === 'approved'
-                      ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
-                      : 'bg-red-500/20 text-red-400 border-2 border-red-500/50'
-                  }`}
-                >
-                  {request.status.toUpperCase()}
-                </span>
-              </div>
-
-              {/* Request Details */}
-              <div className="grid grid-cols-3 gap-4 mb-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Current Capital</p>
-                  <p className="text-lg font-bold text-slate-300">{formatCurrency(request.current_credit)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Requested Amount</p>
-                  <p className="text-lg font-bold text-blue-400">+{formatCurrency(request.requested_amount)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Potential New Capital</p>
-                  <p className="text-lg font-bold text-emerald-400">
-                    {formatCurrency(request.current_credit + request.requested_amount)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Justification */}
-              <div className="mb-4">
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Justification:</p>
-                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                  <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">{request.justification}</p>
-                </div>
-              </div>
-
-              {/* Admin Response (if reviewed) */}
-              {request.status !== 'pending' && request.admin_response && (
-                <div className="mb-4">
-                  <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Admin Response:</p>
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <p className="text-slate-300 leading-relaxed">{request.admin_response}</p>
-                    <p className="text-xs text-slate-500 mt-2">
-                      Reviewed by {request.reviewed_by} on {new Date(request.reviewed_at).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Actions for pending requests */}
-              {request.status === 'pending' && (
-                <div className="space-y-3">
-                  {respondingTo === request.id ? (
-                    <div className="space-y-3">
-                      <textarea
-                        value={adminResponse}
-                        onChange={(e) => setAdminResponse(e.target.value)}
-                        placeholder="Add optional response message..."
-                        className="input-executive min-h-[100px]"
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApprove(request)}
-                          className="btn-executive flex-1 bg-green-500/20 border-green-500/50 hover:bg-green-500/30"
-                        >
-                          ✅ Approve Request
-                        </button>
-                        <button
-                          onClick={() => handleReject(request)}
-                          className="btn-executive flex-1 bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
-                        >
-                          ❌ Reject Request
-                        </button>
-                        <button
-                          onClick={() => {
-                            setRespondingTo(null);
-                            setAdminResponse('');
-                          }}
-                          className="btn-secondary"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setRespondingTo(request.id);
-                          setAdminResponse('');
-                        }}
-                        className="btn-executive flex-1"
-                      >
-                        Review Request
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }
