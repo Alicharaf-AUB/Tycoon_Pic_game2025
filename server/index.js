@@ -9,7 +9,10 @@ const multer = require('multer');
 const fs = require('fs');
 require('dotenv').config();
 
-const db = require('./database');
+// Use PostgreSQL instead of SQLite
+const pool = require('./postgres');
+const { initializeDatabase } = require('./schema');
+const dbHelpers = require('./dbHelpers');
 
 const app = express();
 const server = http.createServer(app);
@@ -101,73 +104,83 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// Helper: Broadcast game state to all clients
-const broadcastGameState = () => {
-  const gameState = getGameState();
-  io.emit('gameStateUpdate', gameState);
+// Helper: Broadcast game state to all clients (now async)
+const broadcastGameState = async () => {
+  try {
+    const gameState = await getGameState();
+    io.emit('gameStateUpdate', gameState);
+  } catch (error) {
+    console.error('Error broadcasting game state:', error);
+  }
 };
 
-// Helper: Get complete game state
-const getGameState = () => {
-  // Get game lock status
-  const lockStatus = db.prepare('SELECT is_locked FROM game_state WHERE id = 1').get();
-  
-  // Get all active startups with investment totals
-  const startups = db.prepare(`
-    SELECT 
-      s.id,
-      s.name,
-      s.slug,
-      s.description,
-      s.is_active,
-      COALESCE(SUM(i.amount), 0) as total_raised
-    FROM startups s
-    LEFT JOIN investments i ON s.id = i.startup_id
-    WHERE s.is_active = 1
-    GROUP BY s.id
-    ORDER BY total_raised DESC
-  `).all();
-  
-  // Get all investments with investor names
-  const investments = db.prepare(`
-    SELECT 
-      inv.id,
-      inv.investor_id,
-      investor.name as investor_name,
-      inv.startup_id,
-      inv.amount
-    FROM investments inv
-    JOIN investors investor ON inv.investor_id = investor.id
-    ORDER BY inv.amount DESC
-  `).all();
-  
-  // Get all investors with their stats
-  const investors = db.prepare(`
-    SELECT 
-      i.id,
-      i.name,
-      i.starting_credit,
-      i.submitted,
-      COALESCE(SUM(inv.amount), 0) as invested,
-      i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
-    FROM investors i
-    LEFT JOIN investments inv ON i.id = inv.investor_id
-    GROUP BY i.id
-    ORDER BY i.name
-  `).all();
-  
-  return {
-    isLocked: lockStatus.is_locked === 1,
-    startups,
-    investments,
-    investors
-  };
+// Helper: Get complete game state (now async for PostgreSQL)
+const getGameState = async () => {
+  try {
+    // Get game lock status
+    const lockResult = await pool.query('SELECT is_locked FROM game_state WHERE id = 1');
+    const isLocked = lockResult.rows[0]?.is_locked || false;
+    
+    // Get all active startups with investment totals
+    const startupsResult = await pool.query(`
+      SELECT 
+        s.id,
+        s.name,
+        s.slug,
+        s.description,
+        s.is_active,
+        COALESCE(SUM(i.amount), 0) as total_raised
+      FROM startups s
+      LEFT JOIN investments i ON s.id = i.startup_id
+      WHERE s.is_active = true
+      GROUP BY s.id
+      ORDER BY total_raised DESC
+    `);
+    
+    // Get all investments with investor names
+    const investmentsResult = await pool.query(`
+      SELECT 
+        inv.id,
+        inv.investor_id,
+        investor.name as investor_name,
+        inv.startup_id,
+        inv.amount
+      FROM investments inv
+      JOIN investors investor ON inv.investor_id = investor.id
+      ORDER BY inv.amount DESC
+    `);
+    
+    // Get all investors with their stats
+    const investorsResult = await pool.query(`
+      SELECT 
+        i.id,
+        i.name,
+        i.starting_credit,
+        i.submitted,
+        COALESCE(SUM(inv.amount), 0) as invested,
+        i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
+      FROM investors i
+      LEFT JOIN investments inv ON i.id = inv.investor_id
+      GROUP BY i.id, i.name, i.starting_credit, i.submitted
+      ORDER BY i.name
+    `);
+    
+    return {
+      isLocked,
+      startups: startupsResult.rows,
+      investments: investmentsResult.rows,
+      investors: investorsResult.rows
+    };
+  } catch (error) {
+    console.error('Error getting game state:', error);
+    throw error;
+  }
 };
 
 // ===== PUBLIC API ROUTES =====
 
 // Join as investor
-app.post('/api/join', (req, res) => {
+app.post('/api/join', async (req, res) => {
   const { name, email } = req.body;
 
   if (!name || name.trim() === '') {
@@ -189,7 +202,7 @@ app.post('/api/join', (req, res) => {
 
   try {
     // Check if investor already exists by email (exact match, case-sensitive)
-    const existing = db.prepare('SELECT * FROM investors WHERE email = ?').get(trimmedEmail);
+    const existing = await dbHelpers.getInvestorByEmail(trimmedEmail);
 
     if (existing) {
       // Allow rejoin - return existing investor
@@ -198,15 +211,11 @@ app.post('/api/join', (req, res) => {
     }
 
     // Create new investor
-    const id = uuidv4();
-    const stmt = db.prepare('INSERT INTO investors (id, name, email) VALUES (?, ?, ?)');
-    stmt.run(id, trimmedName, trimmedEmail);
-
-    const investor = db.prepare('SELECT * FROM investors WHERE id = ?').get(id);
+    const investor = await dbHelpers.createInvestor(trimmedName, trimmedEmail);
 
     console.log(`New investor created: ${investor.name} (${investor.email})`);
 
-    broadcastGameState();
+    await broadcastGameState();
 
     res.json({ investor, rejoined: false });
   } catch (error) {

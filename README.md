@@ -1,8 +1,17 @@
-# 🎯 AUB Angel Investor
+# 🎯 AUB Talal and Madiha Zein Angel's Investment Hub
 
-> **Production-Ready Investment Simulation with Real AIM Startups**
+> **Production-Ready Investment Simulation with PostgreSQL Database**
 
-A real-time, mobile-first web application for investment simulation events. Participants receive virtual capital and invest in **5 real AIM startups**, with full transparency and live leaderboards.
+A real-time, mobile-first web application for investment simulation events. Participants receive virtual capital and invest in **real AIM startups**, with full transparency, live updates, and admin analytics.
+
+## 🗄️ Database Options
+
+This app now supports **PostgreSQL** for production scalability and data persistence:
+
+- **Development**: SQLite (included, zero-config)
+- **Production**: PostgreSQL (Azure, Supabase, or any PostgreSQL provider)
+
+**📖 Migration Guide:** [POSTGRESQL_MIGRATION.md](POSTGRESQL_MIGRATION.md)
 
 ## ⚡ Quick Start (3 Minutes)
 
@@ -10,32 +19,57 @@ A real-time, mobile-first web application for investment simulation events. Part
 # Install dependencies
 npm install
 
-# Load real AIM startups into database
+# Option A: Use SQLite (default for development)
 npm run seed
-
-# Start development servers
 npm run dev
+
+# Option B: Use PostgreSQL (recommended for production)
+# Set DATABASE_URL in .env
+# npm start (auto-creates tables and seeds data)
 ```
 
 **Access:**
 - 👥 **Players:** http://localhost:5173
 - 🔐 **Admin:** http://localhost:5173/admin (admin/demo123)
 
-## 🚀 Deploy to Production (10 Minutes)
+## 🚀 Deploy to Production
 
-### ⚠️ IMPORTANT: Data Persistence Required
+### Option 1: Azure (Recommended)
 
-Railway deployments reset data by default. **You MUST set up persistent storage** to keep your data between deployments!
+**With PostgreSQL for data persistence:**
+
+```bash
+# Create PostgreSQL database
+az postgres flexible-server create \
+  --name aub-investment-db \
+  --resource-group investment-game-rg \
+  --location eastus
+
+# Deploy app
+az webapp create \
+  --name aub-investment-game \
+  --runtime "NODE:18-lts"
+
+# Set DATABASE_URL environment variable
+az webapp config appsettings set \
+  --settings DATABASE_URL="postgresql://..."
+```
+
+See: [POSTGRESQL_MIGRATION.md](POSTGRESQL_MIGRATION.md) for complete setup
+
+### Option 2: Railway
+
+⚠️ **Railway requires persistent storage setup**
 
 **📖 Complete Guide:** [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md)
 
-### Quick Railway Setup
-
+Quick steps:
 1. Push to GitHub
 2. Deploy on [Railway](https://railway.app)
-3. **Add a Volume** (Settings → Volumes → Add → Mount to `/data`)
+3. **Add PostgreSQL database** (recommended) OR add Volume for SQLite
 4. **Set Environment Variables**:
-   - `DATA_DIR=/data` (CRITICAL for persistence)
+   - `DATABASE_URL=postgresql://...` (if using PostgreSQL)
+   - OR `DATA_DIR=/data` (if using SQLite with volume)
    - `ADMIN_PASSWORD=your_secure_password`
    - `NODE_ENV=production`
 5. Redeploy
