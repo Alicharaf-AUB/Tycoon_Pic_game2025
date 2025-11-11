@@ -30,11 +30,11 @@ async function getInvestorById(id) {
 }
 
 async function createInvestor(name, email) {
-  const id = uuidv4();
-  await pool.query(
-    'INSERT INTO investors (id, name, email, starting_credit, invested, remaining) VALUES ($1, $2, $3, 500, 0, 500)',
-    [id, name, email]
+  const result = await pool.query(
+    'INSERT INTO investors (name, email, starting_credit, invested, remaining) VALUES ($1, $2, 500, 0, 500) RETURNING id',
+    [name, email]
   );
+  const id = result.rows[0].id;
   return await getInvestorById(id);
 }
 
