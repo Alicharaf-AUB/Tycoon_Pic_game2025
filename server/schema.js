@@ -198,4 +198,4 @@ async function seedDatabase() {
   }
 }
 
-module.exports = { initializeDatabase, pool };
+module.exports = { initializeDatabase, seedDatabase, pool };

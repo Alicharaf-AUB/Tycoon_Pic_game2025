@@ -11,7 +11,7 @@ require('dotenv').config();
 
 // Use PostgreSQL instead of SQLite
 const pool = require('./postgres');
-const { initializeDatabase } = require('./schema');
+const { initializeDatabase, seedDatabase } = require('./schema');
 const dbHelpers = require('./dbHelpers');
 
 const app = express();
@@ -791,7 +791,6 @@ const initializeDatabaseOnStartup = async () => {
     await initializeDatabase();
     
     // Seed if needed (seedDatabase checks if empty)
-    const { seedDatabase } = require('./schema');
     await seedDatabase();
     
     console.log('✅ Database ready');
