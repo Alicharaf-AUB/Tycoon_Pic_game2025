@@ -71,8 +71,9 @@ export default function DashboardPage() {
   // Update investor from game state
   useEffect(() => {
     if (gameState?.investors) {
-      const updatedInvestor = gameState.investors.find(i => i.id === investorId);
+      const updatedInvestor = gameState.investors.find(i => i.id === parseInt(investorId));
       if (updatedInvestor) {
+        console.log('🔄 Updating investor from game state:', updatedInvestor);
         setInvestor(updatedInvestor);
       }
     }
@@ -82,7 +83,7 @@ export default function DashboardPage() {
     const state = gameState || fallbackGameState;
     if (!state?.investments) return null;
     return state.investments.find(
-      inv => inv.investor_id === investorId && inv.startup_id === startupId
+      inv => inv.investor_id === parseInt(investorId) && inv.startup_id === startupId
     );
   };
 
