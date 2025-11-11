@@ -67,6 +67,7 @@ async function initializeDatabase() {
         reason TEXT NOT NULL,
         status VARCHAR(20) DEFAULT 'pending',
         admin_notes TEXT,
+        reviewed_by VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         reviewed_at TIMESTAMP,
         FOREIGN KEY (investor_id) REFERENCES investors(id) ON DELETE CASCADE

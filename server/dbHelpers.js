@@ -63,25 +63,13 @@ async function updateInvestorRememberMe(id, rememberMe) {
   await pool.query('UPDATE investors SET remember_me = $2 WHERE id = $1', [id, rememberMe]);
 }
 
-async function updateInvestorCredit(id, amount) {
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    
-    await client.query(`
-      UPDATE investors
-      SET starting_credit = starting_credit + $2,
-          remaining = remaining + $2
-      WHERE id = $1
-    `, [id, amount]);
-    
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+async function updateInvestorCredit(id, newStartingCredit) {
+  // SET the credit to the new value, don't ADD to existing
+  await pool.query(`
+    UPDATE investors
+    SET starting_credit = $2
+    WHERE id = $1
+  `, [id, newStartingCredit]);
 }
 
 async function deleteInvestor(id) {
@@ -110,37 +98,18 @@ async function createOrUpdateInvestment(investorId, startupId, amount) {
     );
 
     if (existing.rows.length > 0) {
-      const oldAmount = existing.rows[0].amount;
-      const difference = amount - oldAmount;
-
       if (amount === 0) {
         // Delete investment
         await client.query(
           'DELETE FROM investments WHERE investor_id = $1 AND startup_id = $2',
           [investorId, startupId]
         );
-        
-        // Update investor balances
-        await client.query(`
-          UPDATE investors
-          SET invested = invested - $2,
-              remaining = remaining + $2
-          WHERE id = $1
-        `, [investorId, oldAmount]);
       } else {
         // Update investment
         await client.query(
           'UPDATE investments SET amount = $3, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
           [investorId, startupId, amount]
         );
-        
-        // Update investor balances
-        await client.query(`
-          UPDATE investors
-          SET invested = invested + $2,
-              remaining = remaining - $2
-          WHERE id = $1
-        `, [investorId, difference]);
       }
     } else {
       // Create new investment
@@ -148,14 +117,6 @@ async function createOrUpdateInvestment(investorId, startupId, amount) {
         'INSERT INTO investments (investor_id, startup_id, amount) VALUES ($1, $2, $3)',
         [investorId, startupId, amount]
       );
-      
-      // Update investor balances
-      await client.query(`
-        UPDATE investors
-        SET invested = invested + $2,
-            remaining = remaining - $2
-        WHERE id = $1
-      `, [investorId, amount]);
     }
 
     await client.query('COMMIT');
@@ -318,13 +279,16 @@ async function getAllFundRequests() {
   return result.rows;
 }
 
-async function updateFundRequestStatus(id, status, adminNotes) {
+async function updateFundRequestStatus(id, status, adminNotes, reviewedBy) {
   const result = await pool.query(`
     UPDATE fund_requests
-    SET status = $2, admin_notes = $3, reviewed_at = CURRENT_TIMESTAMP
+    SET status = $2, 
+        admin_notes = $3, 
+        reviewed_by = $4,
+        reviewed_at = CURRENT_TIMESTAMP
     WHERE id = $1
     RETURNING *
-  `, [id, status, adminNotes]);
+  `, [id, status, adminNotes, reviewedBy]);
   return result.rows[0];
 }
 
