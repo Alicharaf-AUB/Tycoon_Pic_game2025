@@ -194,7 +194,7 @@ export function generateComplianceReport(gameState) {
 
   const report = {
     reportDate: new Date().toLocaleString(),
-    platform: 'AUB Angel Investor Platform',
+    platform: 'iPark Angel Hub',
     reportType: 'Compliance Report',
 
     summary: {

@@ -39,7 +39,7 @@ export function generateInvestmentReport(investor, investments, startups, gameSt
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text('AUB Angel Investor Platform', pageWidth / 2, 25, { align: 'center' });
+  doc.text('iPark Angel Hub', pageWidth / 2, 25, { align: 'center' });
 
   yPos = 45;
 
@@ -242,7 +242,7 @@ export function generateInvestmentReport(investor, investments, startups, gameSt
   const footerY = pageHeight - 15;
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
-  doc.text('This is an official investment report from AUB Angel Investor Platform', pageWidth / 2, footerY, { align: 'center' });
+  doc.text('This is an official investment report from iPark Angel Hub', pageWidth / 2, footerY, { align: 'center' });
   doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - 20, footerY, { align: 'right' });
 
   // Disclaimer on last page

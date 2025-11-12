@@ -5,9 +5,9 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🎮 GAME IDENTITY
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  gameName: 'AUB Angel Investor',
+  gameName: 'iPark Angel Hub',
   gameTagline: 'Join the elite investment simulation',
-  organizationName: 'AUB Innovation & Entrepreneurship',
+  organizationName: 'iPark Angel Hub',
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 💰 INVESTOR SETTINGS
@@ -63,7 +63,7 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   organizationInfo: {
     enabled: true,
-    name: 'AUB Innovation & Entrepreneurship',
+    name: 'iPark Angel Hub',
   }
 };
 

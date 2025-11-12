@@ -595,6 +595,45 @@ app.get('/api/investors/:id/funds-requests', async (req, res) => {
   }
 });
 
+// ===== ERROR LOGGING =====
+// Log client-side errors
+app.post('/api/log-error', async (req, res) => {
+  const { investorId, investorName, investorEmail, errorType, errorMessage, errorStack, pageUrl, userAgent } = req.body;
+  const clientIp = getClientIp(req);
+
+  try {
+    await pool.query(`
+      INSERT INTO error_logs (investor_id, investor_name, investor_email, error_type, error_message, error_stack, page_url, user_agent, ip_address)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `, [investorId || null, investorName || null, investorEmail || null, errorType, errorMessage, errorStack || null, pageUrl, userAgent, clientIp]);
+
+    console.log('📝 Error logged:', errorType, '-', errorMessage.substring(0, 50));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error logging error:', error);
+    // Don't fail the request if logging fails
+    res.json({ success: false });
+  }
+});
+
+// Get all error logs (admin only)
+app.get('/api/admin/error-logs', adminAuth, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 500;
+
+    const result = await pool.query(`
+      SELECT * FROM error_logs
+      ORDER BY timestamp DESC
+      LIMIT $1
+    `, [limit]);
+
+    res.json({ logs: result.rows });
+  } catch (error) {
+    console.error('Error fetching error logs:', error);
+    res.status(500).json({ error: 'Failed to fetch error logs' });
+  }
+});
+
 // ===== FILE UPLOAD =====
 // Upload file endpoint (admin)
 app.post('/api/admin/upload', adminAuth, (req, res) => {

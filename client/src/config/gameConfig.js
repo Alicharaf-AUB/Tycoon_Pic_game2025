@@ -1,14 +1,14 @@
-// 🎯 AUB ANGEL INVESTOR - EASY CUSTOMIZATION
+// 🎯 iPARK ANGEL HUB - EASY CUSTOMIZATION
 // Edit this file to customize your investment game!
 
 export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🎮 GAME SETTINGS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
-  gameName: 'AUB Angel Investor',
+
+  gameName: 'iPark Angel Hub',
   gameTagline: 'Join the elite investment simulation',
-  organizationName: 'AUB Innovation & Entrepreneurship',
+  organizationName: 'iPark Angel Hub',
   
   // Starting capital for each investor (in Credits)
   defaultStartingCredits: 2000000,

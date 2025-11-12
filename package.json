@@ -1,7 +1,7 @@
 {
-  "name": "aub-angel-investor",
+  "name": "ipark-angel-hub",
   "version": "1.0.0",
-  "description": "AUB Angel Investor - Real-time investment simulation",
+  "description": "iPark Angel Hub - Real-time investment simulation",
   "main": "server/index.js",
   "engines": {
     "node": ">=18.0.0",

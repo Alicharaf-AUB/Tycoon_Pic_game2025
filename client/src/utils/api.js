@@ -89,6 +89,18 @@ export const api = {
     const { data } = await axios.get(`${API_BASE}/api/investors/${investorId}/funds-requests`);
     return data;
   },
+
+  // Log client-side error
+  logError: async (errorData) => {
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/log-error`, errorData);
+      return data;
+    } catch (error) {
+      // Silent fail - don't throw if error logging fails
+      console.error('Failed to log error:', error);
+      return { success: false };
+    }
+  },
 };
 
 // Admin API
@@ -243,6 +255,15 @@ export const adminApi = {
       `${API_BASE}/api/admin/funds-requests/${requestId}`,
       { headers: adminApi.getAuthHeader(username, password) }
     );
+    return data;
+  },
+
+  // Get error logs
+  getErrorLogs: async (username, password, limit = 500) => {
+    const { data } = await axios.get(`${API_BASE}/api/admin/error-logs`, {
+      headers: adminApi.getAuthHeader(username, password),
+      params: { limit },
+    });
     return data;
   },
 };

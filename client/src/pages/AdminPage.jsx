@@ -4,6 +4,7 @@ import { adminApi, api, formatCurrency, getFileUrl } from '../utils/api';
 import ActivityFeed from '../components/admin/ActivityFeed';
 import InvestmentCharts from '../components/admin/InvestmentCharts';
 import AuditTrail from '../components/admin/AuditTrail';
+import ErrorLogs from '../components/admin/ErrorLogs';
 import { exportInvestorsToCSV, exportStartupsToCSV, exportInvestmentsToCSV, exportAllDataToCSV } from '../utils/adminExport';
 
 export default function AdminPage() {
@@ -144,6 +145,7 @@ export default function AdminPage() {
     { id: 'analytics', name: '📈 Analytics', emoji: '📈' },
     { id: 'activity', name: '⚡ Activity Feed', emoji: '⚡' },
     { id: 'audit', name: '📋 Audit Trail', emoji: '📋' },
+    { id: 'errors', name: '🐛 Error Logs', emoji: '🐛' },
   ];
 
   return (
@@ -216,6 +218,9 @@ export default function AdminPage() {
         )}
         {activeTab === 'audit' && (
           <AuditTab />
+        )}
+        {activeTab === 'errors' && (
+          <ErrorLogsTab />
         )}
       </div>
     </div>
@@ -1954,6 +1959,15 @@ function AuditTab() {
   return (
     <div>
       <AuditTrail />
+    </div>
+  );
+}
+
+// Error Logs Tab - User Error Tracking
+function ErrorLogsTab() {
+  return (
+    <div>
+      <ErrorLogs />
     </div>
   );
 }

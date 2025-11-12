@@ -85,6 +85,24 @@ async function initializeDatabase() {
       )
     `);
 
+    // Create error_logs table for tracking user errors
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS error_logs (
+        id SERIAL PRIMARY KEY,
+        investor_id INTEGER,
+        investor_name VARCHAR(255),
+        investor_email VARCHAR(255),
+        error_type VARCHAR(100) NOT NULL,
+        error_message TEXT NOT NULL,
+        error_stack TEXT,
+        page_url VARCHAR(500),
+        user_agent TEXT,
+        ip_address VARCHAR(45),
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (investor_id) REFERENCES investors(id) ON DELETE SET NULL
+      )
+    `);
+
     // Create game_state table for lock status
     await client.query(`
       CREATE TABLE IF NOT EXISTS game_state (
@@ -109,6 +127,8 @@ async function initializeDatabase() {
     await client.query('CREATE INDEX IF NOT EXISTS idx_fund_requests_status ON fund_requests(status)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_startups_active ON startups(is_active)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_investors_email ON investors(email)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_error_logs_investor ON error_logs(investor_id)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_error_logs_timestamp ON error_logs(timestamp)');
 
     await client.query('COMMIT');
     console.log('✅ Database schema initialized successfully');
