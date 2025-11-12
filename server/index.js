@@ -446,43 +446,8 @@ app.post('/api/invest', async (req, res) => {
       });
     }
     
-    // Business Rule: Check maximum startup investment limits based on TOTAL INVESTED amount
-    // If trying to add a NEW investment (amount > 0) to a startup they haven't invested in yet
-    const existingInvestment = await dbHelpers.getExistingInvestment(startupId, investorId);
-    const isNewStartup = !existingInvestment || existingInvestment.amount === 0;
-    
-    if (amount > 0 && isNewStartup) {
-      // Calculate total invested amount (not including the current investment being added)
-      const currentTotalInvested = parseFloat(investor.other_investments);
-      let maxStartups;
-      
-      if (currentTotalInvested < 500) {
-        maxStartups = 1;
-      } else if (currentTotalInvested >= 500 && currentTotalInvested < 10000) {
-        maxStartups = 2;
-      } else if (currentTotalInvested >= 10000 && currentTotalInvested < 15000) {
-        maxStartups = 3;
-      } else if (currentTotalInvested >= 15000 && currentTotalInvested < 20000) {
-        maxStartups = 4;
-      } else {
-        maxStartups = Infinity; // No limit for 20k+
-      }
-      
-      console.log('🔒 Startup limit check:', {
-        investorId,
-        currentTotalInvested,
-        maxStartups,
-        currentUniqueStartups,
-        isNewStartup
-      });
-      
-      if (currentUniqueStartups >= maxStartups) {
-        return res.status(400).json({ 
-          error: `Maximum startup limit reached. With ${formatCurrency(currentTotalInvested)} invested, you can invest in up to ${maxStartups} startup${maxStartups !== 1 ? 's' : ''}. Invest more to unlock additional slots.`,
-          maxStartups
-        });
-      }
-    }
+    // No startup limit - investors can invest in as many startups as they want
+    // Only requirement is 500€ increments (validated on frontend)
     
     // Use helper to create or update investment
     await dbHelpers.createOrUpdateInvestment(investorId, startupId, amount);
@@ -787,7 +752,6 @@ app.put('/api/admin/startups/:id', adminAuth, async (req, res) => {
     slug,
     logo: logo || '(none)',
     pitch_deck: pitch_deck || '(none)',
-    ask: ask || '(none)',
     isActive
   });
   
