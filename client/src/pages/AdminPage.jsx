@@ -1516,7 +1516,7 @@ function FundRequestsTab({ username, password }) {
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-slate-700">
           <p className="text-sm font-bold text-slate-400 uppercase mb-2">📋 Total</p>
           <p className="text-4xl font-bold text-slate-100">{requests.length}</p>
@@ -1620,12 +1620,12 @@ function FundRequestsTab({ username, password }) {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
                     <div>
                       <p className="text-xs text-slate-500 uppercase font-bold mb-1">
                         Requested Amount
                       </p>
-                      <p className="text-xl font-bold text-slate-100">
+                      <p className="text-lg sm:text-xl font-bold text-slate-100">
                         {formatCurrency(request.amount)}
                       </p>
                     </div>
@@ -1633,11 +1633,11 @@ function FundRequestsTab({ username, password }) {
                       <p className="text-xs text-slate-500 uppercase font-bold mb-1">
                         Current Credit
                       </p>
-                      <p className="text-xl font-bold text-slate-300">
+                      <p className="text-lg sm:text-xl font-bold text-slate-300">
                         {formatCurrency(request.current_credit)}
                       </p>
                     </div>
-                    <div className="sm:col-span-2 lg:col-span-1">
+                    <div className="col-span-2 lg:col-span-1">
                       <p className="text-xs text-slate-500 uppercase font-bold mb-1">
                         Submitted
                       </p>
@@ -1675,13 +1675,20 @@ function FundRequestsTab({ username, password }) {
                 </div>
 
                 {/* Actions */}
-                <div className="pt-3 border-t border-slate-700">
+                <div className="pt-3 border-t border-slate-700 relative z-10">
                   {request.status === 'pending' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <button
-                        onClick={() => handleApprove(request.id, request.investor_name, request.amount)}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('✅ Approve button clicked for request:', request.id);
+                          handleApprove(request.id, request.investor_name, request.amount);
+                        }}
                         disabled={processingId === request.id}
-                        className="btn-primary py-2.5 px-4 text-sm disabled:opacity-50 min-h-[44px]"
+                        className="btn-primary py-3 px-4 text-sm disabled:opacity-50 min-h-[48px] relative z-10 pointer-events-auto cursor-pointer touch-manipulation active:scale-95"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
                         {processingId === request.id ? (
                           <span className="flex items-center justify-center gap-2">
@@ -1693,9 +1700,16 @@ function FundRequestsTab({ username, password }) {
                         )}
                       </button>
                       <button
-                        onClick={() => handleReject(request.id, request.investor_name)}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('❌ Reject button clicked for request:', request.id);
+                          handleReject(request.id, request.investor_name);
+                        }}
                         disabled={processingId === request.id}
-                        className="bg-red-600 hover:bg-red-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[44px]"
+                        className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[48px] relative z-10 pointer-events-auto cursor-pointer touch-manipulation active:scale-95"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
                         {processingId === request.id ? (
                           <span className="flex items-center justify-center gap-2">
@@ -1707,9 +1721,16 @@ function FundRequestsTab({ username, password }) {
                         )}
                       </button>
                       <button
-                        onClick={() => handleDelete(request.id, request.investor_name)}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🗑️ Delete button clicked for request:', request.id);
+                          handleDelete(request.id, request.investor_name);
+                        }}
                         disabled={processingId === request.id}
-                        className="bg-slate-600 hover:bg-slate-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[44px]"
+                        className="bg-slate-600 hover:bg-slate-700 active:bg-slate-800 text-white py-3 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[48px] relative z-10 pointer-events-auto cursor-pointer touch-manipulation active:scale-95"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
                         {processingId === request.id ? (
                           <span className="flex items-center justify-center gap-2">
@@ -1722,11 +1743,26 @@ function FundRequestsTab({ username, password }) {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex justify-end">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <div className="text-xs text-slate-400">
+                        <span className="font-semibold text-slate-300">Reviewed by:</span> {request.reviewed_by || 'Unknown'}
+                        {request.reviewed_at && (
+                          <span className="ml-2">
+                            on {new Date(request.reviewed_at).toLocaleDateString()} at {new Date(request.reviewed_at).toLocaleTimeString()}
+                          </span>
+                        )}
+                      </div>
                       <button
-                        onClick={() => handleDelete(request.id, request.investor_name)}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🗑️ Delete button clicked for request:', request.id);
+                          handleDelete(request.id, request.investor_name);
+                        }}
                         disabled={processingId === request.id}
-                        className="bg-slate-600 hover:bg-slate-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[44px]"
+                        className="bg-slate-600 hover:bg-slate-700 active:bg-slate-800 text-white py-3 px-4 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 min-h-[48px] relative z-10 pointer-events-auto cursor-pointer touch-manipulation active:scale-95 w-full sm:w-auto"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
                         {processingId === request.id ? (
                           <span className="flex items-center justify-center gap-2">
