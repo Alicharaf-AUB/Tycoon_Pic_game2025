@@ -120,7 +120,7 @@ export default function GamePage() {
       alert(`⚠️ You must invest all your available funds before finalizing.\n\nRemaining: ${formatCurrency(remaining)}\n\nPlease allocate the remaining funds to startups.`);
       return;
     }
-    
+
     if (!confirm('Are you sure you want to submit your investments? You won\'t be able to change them after submission.')) {
       return;
     }
@@ -130,6 +130,11 @@ export default function GamePage() {
 
     try {
       await api.submit(investorId);
+
+      // Refresh investor data to reflect submitted status
+      const { investor: updatedInvestor } = await api.getInvestor(investorId);
+      setInvestor(updatedInvestor);
+
       alert('✅ Your investments have been submitted successfully!');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit investments');

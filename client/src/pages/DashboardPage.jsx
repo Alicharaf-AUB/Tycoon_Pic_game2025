@@ -178,7 +178,7 @@ export default function DashboardPage() {
       alert(`⚠️ You must invest all your available funds before finalizing.\n\nRemaining: ${formatCurrency(remaining)}\n\nPlease allocate the remaining funds to startups.`);
       return;
     }
-    
+
     if (!confirm('Are you sure you want to finalize your portfolio? This action cannot be undone.')) {
       return;
     }
@@ -188,13 +188,18 @@ export default function DashboardPage() {
 
     try {
       await api.submit(investorId);
+
+      // Refresh investor data to reflect submitted status
+      const { investor: updatedInvestor } = await api.getInvestor(investorId);
+      setInvestor(updatedInvestor);
+
       // Show success notification
       setShowConfirmation(true);
       setLastInvestment({
         startup: null,
-        amount: investor.invested,
+        amount: updatedInvestor.invested,
         date: new Date(),
-        investorName: investor.name,
+        investorName: updatedInvestor.name,
         isFinalization: true
       });
     } catch (err) {
