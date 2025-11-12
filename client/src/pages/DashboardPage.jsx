@@ -187,10 +187,13 @@ export default function DashboardPage() {
     setError('');
 
     try {
-      await api.submit(investorId);
+      console.log('📤 Submitting portfolio for investor:', investorId);
+      const result = await api.submit(investorId);
+      console.log('✅ Submit result:', result);
 
       // Refresh investor data to reflect submitted status
       const { investor: updatedInvestor } = await api.getInvestor(investorId);
+      console.log('🔄 Updated investor:', updatedInvestor);
       setInvestor(updatedInvestor);
 
       // Show success notification
@@ -202,8 +205,14 @@ export default function DashboardPage() {
         investorName: updatedInvestor.name,
         isFinalization: true
       });
+      
+      // Success alert
+      alert('✅ Portfolio successfully finalized! You can now view your analytics and request additional funds if needed.');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to submit investments');
+      console.error('❌ Submit error:', err);
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to submit investments';
+      setError(errorMsg);
+      alert(`Failed to finalize portfolio: ${errorMsg}`);
     } finally {
       setSubmitting(false);
     }
