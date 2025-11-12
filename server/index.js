@@ -43,6 +43,9 @@ const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'demo123';
 
+// Trust proxy to get real IP addresses from Railway/proxies
+app.set('trust proxy', true);
+
 // Helper function to format currency
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
@@ -158,7 +161,12 @@ if (process.env.NODE_ENV === 'production') {
 
 // Helper function to get client IP address
 const getClientIp = (req) => {
-  // Check various headers for IP (in order of priority)
+  // With trust proxy enabled, Express provides req.ip
+  if (req.ip) {
+    return req.ip;
+  }
+  
+  // Fallback: Check various headers for IP (in order of priority)
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     // x-forwarded-for can contain multiple IPs, take the first one
