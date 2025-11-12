@@ -16,6 +16,17 @@ export default function FundsRequestModal({ investor, onClose }) {
       return;
     }
 
+    // Validate minimum and increments
+    if (amount < 500) {
+      alert('Minimum fund request is 500€');
+      return;
+    }
+
+    if (amount % 500 !== 0) {
+      alert('Fund request must be in increments of 500€ (e.g., 500€, 1,000€, 2,500€)');
+      return;
+    }
+
     if (!justification.trim()) {
       alert('Please provide a justification for your request');
       return;
@@ -147,16 +158,17 @@ export default function FundsRequestModal({ investor, onClose }) {
           {/* Amount Field */}
           <div>
             <label className="block text-sm font-bold text-slate-300 mb-3 uppercase tracking-wider">
-              Requested Amount *
+              Requested Amount * (Minimum 500€, increments of 500€)
             </label>
             <div className="relative">
               <input
                 type="number"
                 value={requestAmount}
                 onChange={(e) => setRequestAmount(e.target.value)}
-                placeholder="Enter amount"
+                placeholder="500"
                 className="input-executive text-xl font-bold text-blue-400 pr-16"
-                min="1"
+                min="500"
+                step="500"
                 required
               />
               <span className="absolute right-6 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-bold">
@@ -164,7 +176,7 @@ export default function FundsRequestModal({ investor, onClose }) {
               </span>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Enter the additional capital amount you wish to request
+              Request additional capital in increments of 500€ (e.g., 500€, 1,000€, 2,500€)
             </p>
           </div>
 

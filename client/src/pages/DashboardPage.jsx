@@ -118,6 +118,17 @@ export default function DashboardPage() {
       return;
     }
 
+    // Validate minimum investment and increments
+    if (amount > 0 && amount < 500) {
+      setError('Minimum investment is 500€');
+      return;
+    }
+
+    if (amount % 500 !== 0) {
+      setError('Investment must be in increments of 500€ (e.g., 500€, 1,000€, 1,500€)');
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
@@ -555,16 +566,17 @@ export default function DashboardPage() {
 
             <div className="mb-8">
               <label className="block text-sm font-bold text-slate-300 mb-3 uppercase tracking-wider">
-                Investment Amount
+                Investment Amount (Minimum 500€, increments of 500€)
               </label>
               <div className="relative">
                 <input
                   type="number"
                   value={investmentAmount}
                   onChange={(e) => setInvestmentAmount(e.target.value)}
-                  placeholder="0"
+                  placeholder="500"
                   className="input-executive pr-24 text-xl font-bold text-blue-400"
-                  min="0"
+                  min="500"
+                  step="500"
                   max={getActualRemaining() + (getInvestmentForStartup(selectedStartup.id)?.amount || 0)}
                   autoFocus
                 />
