@@ -60,18 +60,32 @@ if (process.env.NODE_ENV === 'production' && ADMIN_PASSWORD === 'demo123') {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Use persistent storage for uploads (same as database)
+// Use persistent storage for uploads
+// IMPORTANT: On Railway, configure a Volume with mount path: /app/data
+// This ensures uploaded files persist across container restarts
 const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
 const uploadDir = path.join(dataDir, 'uploads');
+
+console.log('🔧 Storage Configuration:');
+console.log('   DATA_DIR:', dataDir);
+console.log('   UPLOAD_DIR:', uploadDir);
+console.log('   Is Railway:', !!process.env.RAILWAY_ENVIRONMENT);
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
-  console.log(`📁 Created uploads directory: ${uploadDir}`);
+  console.log(`✅ Created uploads directory: ${uploadDir}`);
 } else {
-  console.log(`📁 Uploads directory exists: ${uploadDir}`);
+  console.log(`✅ Uploads directory exists: ${uploadDir}`);
   // List files in upload directory
   try {
     const files = fs.readdirSync(uploadDir);
     console.log(`📂 Uploaded files (${files.length}):`, files.slice(0, 10).join(', '), files.length > 10 ? '...' : '');
+    
+    if (process.env.RAILWAY_ENVIRONMENT && files.length === 0) {
+      console.warn('⚠️  WARNING: Running on Railway with empty uploads directory!');
+      console.warn('⚠️  Make sure you have configured a Railway Volume at mount path: /app/data');
+      console.warn('⚠️  Without a volume, all uploaded files will be LOST on container restart!');
+    }
   } catch (err) {
     console.error('❌ Error reading upload directory:', err);
   }
@@ -201,7 +215,9 @@ const getGameState = async () => {
       FROM startups s
       LEFT JOIN investments i ON s.id = i.startup_id
       WHERE s.is_active = true
-      GROUP BY s.id
+      GROUP BY s.id, s.name, s.slug, s.description, s.logo, s.pitch_deck, 
+               s.cohort, s.support_program, s.industry, s.email, s.team, 
+               s.generating_revenue, s.ask, s.legal_entity, s.is_active
       ORDER BY total_raised DESC
     `);
     
