@@ -807,7 +807,7 @@ function OpportunitiesTab({
                       Funding Ask
                     </div>
                     <div className="text-base sm:text-lg font-display font-bold text-slate-200">
-                      {startup.ask ? formatCurrency(startup.ask) : 'N/A'}
+                      {startup.ask || 'N/A'}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5 sm:mt-1">
                       {startup.generating_revenue === 'Yes' ? '✓ Revenue' : 'Pre-revenue'}
