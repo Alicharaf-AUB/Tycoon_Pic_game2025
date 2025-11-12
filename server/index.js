@@ -156,12 +156,34 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/dist')));
 }
 
+// Helper function to get client IP address
+const getClientIp = (req) => {
+  // Check various headers for IP (in order of priority)
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    // x-forwarded-for can contain multiple IPs, take the first one
+    return forwarded.split(',')[0].trim();
+  }
+
+  return req.headers['x-real-ip'] ||
+         req.connection?.remoteAddress ||
+         req.socket?.remoteAddress ||
+         req.connection?.socket?.remoteAddress ||
+         'unknown';
+};
+
 // Basic Auth Middleware for Admin
 const adminAuth = (req, res, next) => {
   const credentials = basicAuth(req);
 
+  // Capture IP address
+  const clientIp = getClientIp(req);
+  req.adminIp = clientIp;
+  req.adminUsername = credentials?.name || 'admin';
+
   console.log('=== ADMIN AUTH CHECK ===');
   console.log('Request path:', req.method, req.path);
+  console.log('Client IP:', clientIp);
   console.log('Credentials provided:', credentials ? `Yes (user: ${credentials.name})` : 'No');
 
   if (!credentials || credentials.name !== ADMIN_USERNAME || credentials.pass !== ADMIN_PASSWORD) {
@@ -172,7 +194,7 @@ const adminAuth = (req, res, next) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  console.log('AUTH SUCCESS');
+  console.log('AUTH SUCCESS - IP:', clientIp);
   next();
 };
 
@@ -979,8 +1001,8 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) =>
       reviewedBy: reviewedBy || 'admin',
       adminResponse: adminResponse || 'Approved',
       timestamp: new Date().toISOString()
-    });
-    console.log('📝 Admin action logged');
+    }, req.adminIp);
+    console.log('📝 Approval logged from IP:', req.adminIp);
 
     await broadcastGameState();
 
@@ -1041,8 +1063,8 @@ app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => 
       reviewedBy: reviewedBy || 'admin',
       adminResponse: adminResponse || 'Rejected',
       timestamp: new Date().toISOString()
-    });
-    console.log('📝 Rejection logged');
+    }, req.adminIp);
+    console.log('📝 Rejection logged from IP:', req.adminIp);
 
     await broadcastGameState();
 
@@ -1088,8 +1110,8 @@ app.delete('/api/admin/funds-requests/:id', adminAuth, async (req, res) => {
       requestStatus: request.status,
       deletedBy: req.adminUsername || 'admin',
       timestamp: new Date().toISOString()
-    });
-    console.log('📝 Deletion logged:', {
+    }, req.adminIp);
+    console.log('📝 Deletion logged from IP:', req.adminIp, {
       requestId: id,
       investor: request.investor_name,
       amount: request.amount,
@@ -1199,12 +1221,29 @@ const initializeDatabaseOnStartup = async () => {
     if (reviewedByCheck.rows.length === 0) {
       console.log('⚠️  Adding missing reviewed_by column to fund_requests...');
       await pool.query(`
-        ALTER TABLE fund_requests 
+        ALTER TABLE fund_requests
         ADD COLUMN reviewed_by VARCHAR(255)
       `);
       console.log('✅ Added reviewed_by column');
     }
-    
+
+    // Check if ip_address column exists in admin_logs
+    const ipAddressCheck = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'admin_logs'
+      AND column_name = 'ip_address'
+    `);
+
+    if (ipAddressCheck.rows.length === 0) {
+      console.log('⚠️  Adding missing ip_address column to admin_logs...');
+      await pool.query(`
+        ALTER TABLE admin_logs
+        ADD COLUMN ip_address VARCHAR(45)
+      `);
+      console.log('✅ Added ip_address column to admin_logs for tracking admin actions by IP');
+    }
+
     // Initialize schema (this also seeds if needed)
     await initializeDatabase();
     

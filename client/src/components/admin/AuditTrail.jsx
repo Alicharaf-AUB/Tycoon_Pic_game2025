@@ -1,46 +1,64 @@
 import { useState, useEffect } from 'react';
 import { exportAuditLogToCSV } from '../../utils/adminExport';
+import { adminApi } from '../../utils/api';
 
 export default function AuditTrail() {
   const [auditLog, setAuditLog] = useState([]);
   const [filter, setFilter] = useState('all'); // all, admin, investor, system
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Load audit log from localStorage
-    const savedLog = localStorage.getItem('auditLog');
-    if (savedLog) {
-      try {
-        setAuditLog(JSON.parse(savedLog));
-      } catch (e) {
-        console.error('Error loading audit log:', e);
+  const fetchAuditLogs = async () => {
+    setLoading(true);
+    try {
+      const username = localStorage.getItem('admin_username');
+      const password = localStorage.getItem('admin_password');
+
+      if (!username || !password) {
+        console.error('No admin credentials found');
+        setLoading(false);
+        return;
       }
+
+      const { logs } = await adminApi.getLogs(username, password, 500);
+
+      // Transform logs from database format to display format
+      const transformedLogs = logs.map(log => {
+        const details = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+        return {
+          id: log.id,
+          timestamp: log.timestamp,
+          admin: details.reviewedBy || details.deletedBy || 'admin',
+          action: log.action.replace(/_/g, ' '),
+          target: details.investorName || details.target || '',
+          details: formatDetails(details),
+          ipAddress: log.ip_address || 'Unknown'
+        };
+      });
+
+      setAuditLog(transformedLogs);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  // Log admin action
-  const logAction = (action, target, details) => {
-    const entry = {
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-      admin: localStorage.getItem('admin_username') || 'Admin',
-      action,
-      target,
-      details,
-      ipAddress: 'Local', // In production, this would be the actual IP
-    };
-
-    const newLog = [entry, ...auditLog].slice(0, 500); // Keep last 500 entries
-    setAuditLog(newLog);
-    localStorage.setItem('auditLog', JSON.stringify(newLog));
   };
 
-  // Make logAction available globally
+  const formatDetails = (details) => {
+    if (details.newCredit) {
+      return `Added ${details.amountAdded} credit. New total: ${details.newCredit}`;
+    }
+    if (details.requestedAmount) {
+      return `Amount: ${details.requestedAmount}. Status: ${details.requestStatus || 'pending'}`;
+    }
+    return details.adminResponse || details.reason || JSON.stringify(details);
+  };
+
   useEffect(() => {
-    window.logAdminAction = logAction;
-    return () => {
-      delete window.logAdminAction;
-    };
-  }, [auditLog]);
+    fetchAuditLogs();
+    // Refresh logs every 30 seconds
+    const interval = setInterval(fetchAuditLogs, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredLog = auditLog.filter(entry => {
     if (filter === 'all') return true;
@@ -100,12 +118,8 @@ export default function AuditTrail() {
     exportAuditLogToCSV(filteredLog);
   };
 
-  const clearAuditLog = () => {
-    if (confirm('Are you sure you want to clear the audit log? This action cannot be undone.')) {
-      setAuditLog([]);
-      localStorage.removeItem('auditLog');
-      logAction('Clear Audit Log', 'System', 'Audit log cleared by admin');
-    }
+  const handleRefresh = () => {
+    fetchAuditLogs();
   };
 
   return (
@@ -124,19 +138,24 @@ export default function AuditTrail() {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={handleRefresh}
+              className="btn-secondary text-sm py-2 flex items-center gap-2"
+              disabled={loading}
+            >
+              <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+            <button
               onClick={handleExport}
               className="btn-secondary text-sm py-2 flex items-center gap-2"
+              disabled={loading}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Export Log
-            </button>
-            <button
-              onClick={clearAuditLog}
-              className="btn-danger text-sm py-2"
-            >
-              Clear Log
             </button>
           </div>
         </div>
@@ -191,7 +210,12 @@ export default function AuditTrail() {
       {/* Audit Log Entries */}
       <div className="card-executive">
         <div className="space-y-2 max-h-[600px] overflow-y-auto scrollbar-thin">
-          {filteredLog.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="spinner w-8 h-8 mx-auto mb-4"></div>
+              <p className="text-slate-500">Loading audit logs...</p>
+            </div>
+          ) : filteredLog.length === 0 ? (
             <div className="text-center py-12">
               <svg className="w-16 h-16 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -219,6 +243,16 @@ export default function AuditTrail() {
                       )}
                       {entry.details && (
                         <p className="text-xs text-slate-500 mt-1">{entry.details}</p>
+                      )}
+                      {entry.ipAddress && entry.ipAddress !== 'Unknown' && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-400 font-mono border border-purple-500/30">
+                            <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm11 4.414l-4.293 4.293a1 1 0 01-1.414 0L6 9.414l-2 2V14a1 1 0 001 1h10a1 1 0 001-1V7.414l-2-2z" clipRule="evenodd" />
+                            </svg>
+                            IP: {entry.ipAddress}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <div className="text-right flex-shrink-0">

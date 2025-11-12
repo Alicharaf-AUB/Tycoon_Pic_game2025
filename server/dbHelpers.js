@@ -332,10 +332,10 @@ async function toggleGameLock() {
 
 // ===== ADMIN LOG FUNCTIONS =====
 
-async function createAdminLog(action, details) {
+async function createAdminLog(action, details, ipAddress = null) {
   await pool.query(
-    'INSERT INTO admin_logs (action, details) VALUES ($1, $2)',
-    [action, JSON.stringify(details)]
+    'INSERT INTO admin_logs (action, details, ip_address) VALUES ($1, $2, $3)',
+    [action, JSON.stringify(details), ipAddress]
   );
 }
 

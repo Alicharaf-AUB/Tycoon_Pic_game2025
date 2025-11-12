@@ -80,6 +80,7 @@ async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         action VARCHAR(255) NOT NULL,
         details TEXT,
+        ip_address VARCHAR(45),
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
