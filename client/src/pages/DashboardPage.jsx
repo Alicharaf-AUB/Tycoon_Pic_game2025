@@ -246,7 +246,7 @@ export default function DashboardPage() {
   const currentGameState = gameState || fallbackGameState;
   const isLocked = currentGameState?.isLocked || false;
   const startups = currentGameState?.startups || [];
-  const myInvestments = (currentGameState?.investments || []).filter(inv => inv.investor_id === investorId);
+  const myInvestments = (currentGameState?.investments || []).filter(inv => inv.investor_id === parseInt(investorId));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -448,11 +448,52 @@ export default function DashboardPage() {
           )}
 
           {investor.submitted && (
-            <div className="mt-6 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border-2 border-emerald-500/30 backdrop-blur-xl text-emerald-200 px-6 py-4 rounded-xl text-sm font-bold flex items-center gap-3">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>Portfolio Successfully Finalized</span>
+            <div className="mt-6 space-y-4">
+              <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 border-2 border-emerald-500/30 backdrop-blur-xl text-emerald-200 px-6 py-5 rounded-xl">
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg mb-2">✅ Portfolio Successfully Finalized!</h3>
+                    <p className="text-emerald-300 text-sm mb-3">
+                      Your investment portfolio has been locked and submitted. You can now view your complete portfolio analytics and transaction history in the tabs below.
+                    </p>
+                    <div className="flex gap-3 text-xs">
+                      <button
+                        onClick={() => setActiveTab('portfolio')}
+                        className="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg font-semibold transition-colors"
+                      >
+                        📊 View Portfolio
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('transactions')}
+                        className="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg font-semibold transition-colors"
+                      >
+                        📜 View Transactions
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Request Additional Funds Option */}
+              <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-xl px-6 py-4 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-200 mb-1">Want to invest more?</h4>
+                    <p className="text-sm text-slate-400">Request additional capital to expand your portfolio</p>
+                  </div>
+                  <button
+                    onClick={() => setShowFundsRequest(true)}
+                    className="px-5 py-2.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg font-semibold text-blue-300 transition-colors whitespace-nowrap"
+                  >
+                    💰 Request Funds
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

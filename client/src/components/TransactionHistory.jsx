@@ -2,7 +2,7 @@ import { formatCurrency } from '../utils/api';
 
 export default function TransactionHistory({ investorId, investments, startups }) {
   // Filter investments for this investor
-  const myInvestments = investments.filter(inv => inv.investor_id === investorId);
+  const myInvestments = investments.filter(inv => inv.investor_id === parseInt(investorId));
 
   // Sort by date (most recent first)
   const sortedInvestments = [...myInvestments].sort((a, b) => {
