@@ -380,27 +380,37 @@ app.post('/api/invest', async (req, res) => {
       });
     }
     
-    // Business Rule: Check maximum startup investment limits based on account balance
+    // Business Rule: Check maximum startup investment limits based on TOTAL INVESTED amount
     // If trying to add a NEW investment (amount > 0) to a startup they haven't invested in yet
     const existingInvestment = await dbHelpers.getExistingInvestment(startupId, investorId);
     const isNewStartup = !existingInvestment || existingInvestment.amount === 0;
     
     if (amount > 0 && isNewStartup) {
+      // Calculate total invested amount (not including the current investment being added)
+      const currentTotalInvested = parseFloat(investor.other_investments);
       let maxStartups;
       
-      if (startingCredit < 10000) {
+      if (currentTotalInvested < 10000) {
         maxStartups = 2;
-      } else if (startingCredit >= 10000 && startingCredit < 15000) {
+      } else if (currentTotalInvested >= 10000 && currentTotalInvested < 15000) {
         maxStartups = 3;
-      } else if (startingCredit >= 15000 && startingCredit < 20000) {
+      } else if (currentTotalInvested >= 15000 && currentTotalInvested < 20000) {
         maxStartups = 4;
       } else {
         maxStartups = Infinity; // No limit for 20k+
       }
       
+      console.log('🔒 Startup limit check:', {
+        investorId,
+        currentTotalInvested,
+        maxStartups,
+        currentUniqueStartups,
+        isNewStartup
+      });
+      
       if (currentUniqueStartups >= maxStartups) {
         return res.status(400).json({ 
-          error: `Maximum startup limit reached. With ${formatCurrency(startingCredit)} capital, you can invest in up to ${maxStartups} startup${maxStartups !== 1 ? 's' : ''}.`,
+          error: `Maximum startup limit reached. With ${formatCurrency(currentTotalInvested)} invested, you can invest in up to ${maxStartups} startup${maxStartups !== 1 ? 's' : ''}. Invest more to unlock additional slots.`,
           maxStartups
         });
       }
