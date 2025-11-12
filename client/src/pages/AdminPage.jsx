@@ -781,10 +781,14 @@ function StartupsTab({ username, password, gameState }) {
                         const file = e.target.files[0];
                         if (file) {
                           try {
+                            console.log('📤 Uploading logo:', file.name, file.type);
                             const result = await adminApi.uploadFile(username, password, file);
+                            console.log('✅ Logo uploaded:', result);
                             setNewStartup({ ...newStartup, logo: result.url });
                           } catch (err) {
-                            alert('Failed to upload logo');
+                            console.error('❌ Logo upload error:', err);
+                            const errorMsg = err.response?.data?.error || 'Failed to upload logo';
+                            alert(errorMsg);
                           }
                         }
                       }}
@@ -818,10 +822,14 @@ function StartupsTab({ username, password, gameState }) {
                         const file = e.target.files[0];
                         if (file) {
                           try {
+                            console.log('📤 Uploading pitch deck:', file.name, file.type);
                             const result = await adminApi.uploadFile(username, password, file);
+                            console.log('✅ Pitch deck uploaded:', result);
                             setNewStartup({ ...newStartup, pitch_deck: result.url });
                           } catch (err) {
-                            alert('Failed to upload pitch deck');
+                            console.error('❌ Pitch deck upload error:', err);
+                            const errorMsg = err.response?.data?.error || 'Failed to upload pitch deck';
+                            alert(errorMsg);
                           }
                         }
                       }}
@@ -1020,10 +1028,14 @@ function StartupsTab({ username, password, gameState }) {
                           const file = e.target.files[0];
                           if (file) {
                             try {
+                              console.log('📤 Uploading logo (edit):', file.name, file.type);
                               const result = await adminApi.uploadFile(username, password, file);
+                              console.log('✅ Logo uploaded (edit):', result);
                               setEditForm({ ...editForm, logo: result.url });
                             } catch (err) {
-                              alert('Failed to upload logo');
+                              console.error('❌ Logo upload error (edit):', err);
+                              const errorMsg = err.response?.data?.error || 'Failed to upload logo';
+                              alert(errorMsg);
                             }
                           }
                         }}
@@ -1056,10 +1068,14 @@ function StartupsTab({ username, password, gameState }) {
                           const file = e.target.files[0];
                           if (file) {
                             try {
+                              console.log('📤 Uploading pitch deck (edit):', file.name, file.type);
                               const result = await adminApi.uploadFile(username, password, file);
+                              console.log('✅ Pitch deck uploaded (edit):', result);
                               setEditForm({ ...editForm, pitch_deck: result.url });
                             } catch (err) {
-                              alert('Failed to upload pitch deck');
+                              console.error('❌ Pitch deck upload error (edit):', err);
+                              const errorMsg = err.response?.data?.error || 'Failed to upload pitch deck';
+                              alert(errorMsg);
                             }
                           }
                         }}

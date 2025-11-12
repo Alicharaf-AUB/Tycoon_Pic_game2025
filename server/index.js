@@ -86,14 +86,35 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|pdf|ppt|pptx|doc|docx/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    // Check file extension
+    const allowedExtensions = /\.(jpeg|jpg|png|pdf|ppt|pptx|doc|docx)$/i;
+    const hasValidExtension = allowedExtensions.test(file.originalname.toLowerCase());
     
-    if (extname && mimetype) {
+    // Check MIME type
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'application/pdf',
+      'application/vnd.ms-powerpoint', // .ppt
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+      'application/msword', // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
+    ];
+    const hasValidMimeType = allowedMimeTypes.includes(file.mimetype);
+    
+    console.log('📤 File upload attempt:', {
+      filename: file.originalname,
+      mimetype: file.mimetype,
+      hasValidExtension,
+      hasValidMimeType
+    });
+    
+    if (hasValidExtension && hasValidMimeType) {
       return cb(null, true);
     }
-    cb(new Error('Only images (JPG, PNG) and documents (PDF, PPT) are allowed'));
+    
+    cb(new Error(`File type not allowed. Got: ${file.mimetype}`));
   }
 });
 
@@ -505,23 +526,43 @@ app.get('/api/investors/:id/funds-requests', async (req, res) => {
 
 // ===== FILE UPLOAD =====
 // Upload file endpoint (admin)
-app.post('/api/admin/upload', adminAuth, upload.single('file'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+app.post('/api/admin/upload', adminAuth, (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      console.error('❌ Multer error:', err);
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File too large. Maximum size is 10MB.' });
+      }
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      console.error('❌ Upload error:', err);
+      return res.status(400).json({ error: err.message });
     }
     
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({ 
-      success: true, 
-      url: fileUrl,
-      filename: req.file.filename,
-      originalName: req.file.originalname
-    });
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    res.status(500).json({ error: 'Failed to upload file' });
-  }
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      
+      const fileUrl = `/uploads/${req.file.filename}`;
+      console.log('✅ File uploaded successfully:', {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        url: fileUrl
+      });
+      
+      res.json({ 
+        success: true, 
+        url: fileUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname
+      });
+    } catch (error) {
+      console.error('❌ Error processing upload:', error);
+      res.status(500).json({ error: 'Failed to upload file' });
+    }
+  });
 });
 
 // ===== ADMIN API ROUTES =====
