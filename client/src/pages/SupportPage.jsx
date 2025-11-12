@@ -123,7 +123,7 @@ export default function SupportPage() {
         </svg>
       ),
       title: "Multi-Investor Support",
-      description: "Compete with other investors on the platform and see live leaderboards."
+      description: "Join other investors on the platform and track portfolio activity in real-time."
     }
   ];
 
