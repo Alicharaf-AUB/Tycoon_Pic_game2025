@@ -951,6 +951,11 @@ app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) =>
     console.log('🔄 Updating investor credit...');
     await dbHelpers.updateInvestorCredit(request.investor_id, newCredit);
     console.log('✅ Investor credit updated');
+    
+    // Unlock investor portfolio so they can invest the new funds
+    console.log('🔓 Unlocking investor portfolio...');
+    await pool.query('UPDATE investors SET submitted = 0 WHERE id = $1', [request.investor_id]);
+    console.log('✅ Investor portfolio unlocked - can now make additional investments');
 
     // Update request status
     console.log('🔄 Updating fund request status...');
