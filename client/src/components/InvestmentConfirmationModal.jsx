@@ -305,7 +305,7 @@ export default function InvestmentConfirmationModal({ investment, investor, onCl
 
   return (
     <div className="modal-overlay flex items-center justify-center p-4 z-50">
-      <div className="card-premium max-w-2xl w-full my-8 animate-fade-in">
+      <div className="card-premium max-w-2xl w-full max-h-[90vh] overflow-y-auto my-4 animate-fade-in">
         {/* Success Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-full flex items-center justify-center border-2 border-emerald-500/30 shadow-lg shadow-emerald-500/20">
