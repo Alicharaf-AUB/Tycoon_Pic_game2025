@@ -167,6 +167,16 @@ const getGameState = async () => {
         s.name,
         s.slug,
         s.description,
+        s.logo,
+        s.pitch_deck,
+        s.cohort,
+        s.support_program,
+        s.industry,
+        s.email,
+        s.team,
+        s.generating_revenue,
+        s.ask,
+        s.legal_entity,
         s.is_active,
         COALESCE(SUM(i.amount), 0) as total_raised
       FROM startups s
@@ -656,13 +666,25 @@ app.get('/api/admin/startups', adminAuth, async (req, res) => {
         s.name,
         s.slug,
         s.description,
+        s.logo,
+        s.pitch_deck,
+        s.cohort,
+        s.support_program,
+        s.industry,
+        s.email,
+        s.team,
+        s.generating_revenue,
+        s.ask,
+        s.legal_entity,
         s.is_active,
         COALESCE(SUM(i.amount), 0) as total_raised,
         COUNT(DISTINCT i.investor_id) as investor_count,
         s.created_at
       FROM startups s
       LEFT JOIN investments i ON s.id = i.startup_id
-      GROUP BY s.id, s.name, s.slug, s.description, s.is_active, s.created_at
+      GROUP BY s.id, s.name, s.slug, s.description, s.logo, s.pitch_deck, 
+               s.cohort, s.support_program, s.industry, s.email, s.team, 
+               s.generating_revenue, s.ask, s.legal_entity, s.is_active, s.created_at
       ORDER BY s.created_at DESC
     `);
     
@@ -1055,6 +1077,38 @@ const initializeDatabaseOnStartup = async () => {
   try {
     // Check and add missing columns if needed
     console.log('🔄 Checking database schema...');
+    
+    // Check startup table columns
+    const startupColumns = [
+      { name: 'logo', type: 'VARCHAR(500) DEFAULT \'\'', description: 'Startup logo URL' },
+      { name: 'pitch_deck', type: 'VARCHAR(500) DEFAULT \'\'', description: 'Pitch deck URL' },
+      { name: 'cohort', type: 'VARCHAR(100) DEFAULT \'\'', description: 'Cohort name' },
+      { name: 'support_program', type: 'VARCHAR(100) DEFAULT \'\'', description: 'Support program' },
+      { name: 'industry', type: 'VARCHAR(100) DEFAULT \'\'', description: 'Industry' },
+      { name: 'email', type: 'VARCHAR(255) DEFAULT \'\'', description: 'Contact email' },
+      { name: 'team', type: 'TEXT DEFAULT \'\'', description: 'Team info' },
+      { name: 'generating_revenue', type: 'TEXT DEFAULT \'\'', description: 'Revenue status' },
+      { name: 'ask', type: 'TEXT DEFAULT \'\'', description: 'Funding ask' },
+      { name: 'legal_entity', type: 'TEXT DEFAULT \'\'', description: 'Legal entity type' }
+    ];
+    
+    for (const column of startupColumns) {
+      const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'startups' 
+        AND column_name = $1
+      `, [column.name]);
+      
+      if (columnCheck.rows.length === 0) {
+        console.log(`⚠️  Adding missing ${column.name} column to startups (${column.description})...`);
+        await pool.query(`
+          ALTER TABLE startups 
+          ADD COLUMN ${column.name} ${column.type}
+        `);
+        console.log(`✅ Added ${column.name} column`);
+      }
+    }
     
     // Check if reviewed_at column exists in fund_requests
     const reviewedAtCheck = await pool.query(`
