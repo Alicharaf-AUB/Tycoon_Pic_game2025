@@ -878,7 +878,7 @@ function OpportunitiesTab({
                 </div>
 
                 {/* Pitch Deck & Contact Info */}
-                <div className="flex gap-2 mb-3 sm:mb-4">
+                <div className="flex gap-2 mb-3 sm:mb-4 relative z-10">
                   {startup.pitch_deck && (
                     <a
                       href={getFileUrl(startup.pitch_deck)}
@@ -886,9 +886,11 @@ function OpportunitiesTab({
                       rel="noopener noreferrer"
                       onClick={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
+                        window.open(getFileUrl(startup.pitch_deck), '_blank', 'noopener,noreferrer');
                         console.log('📄 Opening pitch deck:', getFileUrl(startup.pitch_deck));
                       }}
-                      className="flex-1 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 text-xs font-semibold px-2.5 sm:px-3 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2"
+                      className="flex-1 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 hover:border-purple-400/50 text-purple-300 hover:text-purple-200 text-xs font-semibold px-2.5 sm:px-3 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
                     >
                       <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
