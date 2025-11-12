@@ -65,11 +65,30 @@ const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
 const uploadDir = path.join(dataDir, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
-  console.log(`Created uploads directory: ${uploadDir}`);
+  console.log(`📁 Created uploads directory: ${uploadDir}`);
+} else {
+  console.log(`📁 Uploads directory exists: ${uploadDir}`);
+  // List files in upload directory
+  try {
+    const files = fs.readdirSync(uploadDir);
+    console.log(`📂 Uploaded files (${files.length}):`, files.slice(0, 10).join(', '), files.length > 10 ? '...' : '');
+  } catch (err) {
+    console.error('❌ Error reading upload directory:', err);
+  }
 }
 
 // Serve uploaded files
-app.use('/uploads', express.static(uploadDir));
+app.use('/uploads', (req, res, next) => {
+  console.log('📁 File request:', req.path);
+  next();
+}, express.static(uploadDir, {
+  setHeaders: (res, path) => {
+    // Set CORS headers for uploaded files
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    console.log('📤 Serving file:', path);
+  }
+}));
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({

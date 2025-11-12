@@ -713,6 +713,12 @@ function OpportunitiesTab({
                         src={getFileUrl(startup.logo)}
                         alt={`${startup.name} logo`}
                         className="w-full h-full object-contain"
+                        onError={(e) => {
+                          console.error('❌ Failed to load logo:', startup.logo, 'Full URL:', getFileUrl(startup.logo));
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center text-slate-400 text-xs">Logo Error</div>`;
+                        }}
+                        onLoad={() => console.log('✅ Logo loaded:', startup.logo)}
                       />
                     </div>
                   </div>

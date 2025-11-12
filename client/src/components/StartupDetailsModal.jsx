@@ -7,6 +7,19 @@ export default function StartupDetailsModal({ startup, gameState, investor, isLo
 
   const myInvestment = investors.find(inv => inv.investor_id === investor?.id);
 
+  // Debug logging
+  console.log('📊 Startup Details Modal - Startup data:', {
+    id: startup.id,
+    name: startup.name,
+    ask: startup.ask,
+    team: startup.team,
+    generating_revenue: startup.generating_revenue,
+    legal_entity: startup.legal_entity,
+    logo: startup.logo,
+    pitch_deck: startup.pitch_deck,
+    industry: startup.industry
+  });
+
   return (
     <div className="modal-overlay flex items-center justify-center p-4 overflow-y-auto z-40">
       <div className="card-premium max-w-5xl w-full my-8 animate-fade-in">

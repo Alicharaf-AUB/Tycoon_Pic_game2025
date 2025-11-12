@@ -802,7 +802,16 @@ function StartupsTab({ username, password, gameState }) {
                   </label>
                 </div>
                 {newStartup.logo && (
-                  <img src={getFileUrl(newStartup.logo)} alt="Logo preview" className="mt-2 h-16 w-16 object-contain border rounded" />
+                  <img 
+                    src={getFileUrl(newStartup.logo)} 
+                    alt="Logo preview" 
+                    className="mt-2 h-16 w-16 object-contain border rounded"
+                    onError={(e) => {
+                      console.error('❌ Admin preview failed to load:', newStartup.logo, 'Full URL:', getFileUrl(newStartup.logo));
+                      e.target.style.display = 'none';
+                    }}
+                    onLoad={() => console.log('✅ Admin preview loaded:', newStartup.logo)}
+                  />
                 )}
               </div>
               <div>
@@ -1049,7 +1058,16 @@ function StartupsTab({ username, password, gameState }) {
                     </label>
                   </div>
                   {editForm.logo && (
-                    <img src={getFileUrl(editForm.logo)} alt="Logo preview" className="mt-2 h-16 w-16 object-contain border rounded" />
+                    <img 
+                      src={getFileUrl(editForm.logo)} 
+                      alt="Logo preview" 
+                      className="mt-2 h-16 w-16 object-contain border rounded"
+                      onError={(e) => {
+                        console.error('❌ Edit preview failed to load:', editForm.logo, 'Full URL:', getFileUrl(editForm.logo));
+                        e.target.style.display = 'none';
+                      }}
+                      onLoad={() => console.log('✅ Edit preview loaded:', editForm.logo)}
+                    />
                   )}
                 </div>
                 <div>
