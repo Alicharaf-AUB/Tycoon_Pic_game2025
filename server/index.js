@@ -117,7 +117,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
   fileFilter: (req, file, cb) => {
     // Check file extension
     const allowedExtensions = /\.(jpeg|jpg|png|pdf|ppt|pptx|doc|docx)$/i;
@@ -572,7 +572,7 @@ app.post('/api/admin/upload', adminAuth, (req, res) => {
     if (err instanceof multer.MulterError) {
       console.error('❌ Multer error:', err);
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ error: 'File too large. Maximum size is 10MB.' });
+        return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });
       }
       return res.status(400).json({ error: err.message });
     } else if (err) {
