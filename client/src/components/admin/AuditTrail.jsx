@@ -208,44 +208,44 @@ export default function AuditTrail() {
       </div>
 
       {/* Audit Log Entries */}
-      <div className="card-executive">
-        <h4 className="text-lg font-semibold text-slate-200 mb-4">Recent Activity</h4>
-        <div className="space-y-2 max-h-[500px] overflow-y-auto scrollbar-thin pr-2">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="spinner w-8 h-8 mx-auto mb-4"></div>
-              <p className="text-slate-500">Loading audit logs...</p>
-            </div>
-          ) : filteredLog.length === 0 ? (
-            <div className="text-center py-12">
-              <svg className="w-16 h-16 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-slate-500">No audit entries</p>
-              <p className="text-slate-600 text-sm mt-1">Administrative actions will be logged here</p>
-            </div>
-          ) : (
-            filteredLog.map(entry => (
-              <div
-                key={entry.id}
-                className="flex items-start gap-3 p-4 rounded-lg bg-slate-800/20 border border-slate-700/30 hover:border-blue-500/30 transition-all"
-              >
-                {getActionIcon(entry.action)}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-200">
-                        {entry.action}
-                      </p>
-                      {entry.target && (
-                        <p className="text-sm text-slate-400 mt-1">
-                          Target: <span className="text-blue-400">{entry.target}</span>
+      <div className="card-executive flex flex-col h-[600px]">
+        <h4 className="text-lg font-semibold text-slate-200 mb-4 flex-shrink-0">Recent Activity</h4>
+        <div className="flex-1 overflow-y-auto scrollbar-thin pr-2">
+          <div className="space-y-2">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="spinner w-8 h-8 mx-auto mb-4"></div>
+                <p className="text-slate-500">Loading audit logs...</p>
+              </div>
+            ) : filteredLog.length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="w-16 h-16 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-slate-500">No audit entries</p>
+                <p className="text-slate-600 text-sm mt-1">Administrative actions will be logged here</p>
+              </div>
+            ) : (
+              filteredLog.map(entry => (
+                <div
+                  key={entry.id}
+                  className="flex items-start gap-3 p-4 rounded-lg bg-slate-800/20 border border-slate-700/30 hover:border-blue-500/30 transition-all"
+                >
+                  {getActionIcon(entry.action)}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-200">
+                          {entry.action}
                         </p>
-                      )}
-                      {entry.details && (
-                        <p className="text-xs text-slate-500 mt-1">{entry.details}</p>
-                      )}
-                      {entry.ipAddress && entry.ipAddress !== 'Unknown' && (
+                        {entry.target && (
+                          <p className="text-sm text-slate-400 mt-1">
+                            Target: <span className="text-blue-400">{entry.target}</span>
+                          </p>
+                        )}
+                        {entry.details && (
+                          <p className="text-xs text-slate-500 mt-1">{entry.details}</p>
+                        )}
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-400 font-mono border border-purple-500/30">
                             <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -254,19 +254,19 @@ export default function AuditTrail() {
                             IP: {entry.ipAddress}
                           </span>
                         </div>
-                      )}
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-xs text-slate-400">
-                        {new Date(entry.timestamp).toLocaleString()}
-                      </p>
-                      <p className="text-xs text-slate-600 mt-1">by {entry.admin}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-xs text-slate-400">
+                          {new Date(entry.timestamp).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-600 mt-1">by {entry.admin}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
