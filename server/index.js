@@ -390,7 +390,9 @@ app.post('/api/invest', async (req, res) => {
       const currentTotalInvested = parseFloat(investor.other_investments);
       let maxStartups;
       
-      if (currentTotalInvested < 10000) {
+      if (currentTotalInvested < 500) {
+        maxStartups = 1;
+      } else if (currentTotalInvested >= 500 && currentTotalInvested < 10000) {
         maxStartups = 2;
       } else if (currentTotalInvested >= 10000 && currentTotalInvested < 15000) {
         maxStartups = 3;
