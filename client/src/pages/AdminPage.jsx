@@ -633,10 +633,13 @@ function StartupsTab({ username, password, gameState }) {
 
     setCreating(true);
     try {
+      console.log('📝 Creating startup with data:', newStartup);
       await adminApi.createStartup(username, password, newStartup);
       setNewStartup(emptyForm);
       setShowCreateForm(false);
+      alert('Startup created successfully!');
     } catch (err) {
+      console.error('❌ Error creating startup:', err);
       alert(err.response?.data?.error || 'Failed to create startup');
     } finally {
       setCreating(false);
@@ -668,9 +671,12 @@ function StartupsTab({ username, password, gameState }) {
 
     setUpdating(true);
     try {
+      console.log('📝 Updating startup with data:', editForm);
       await adminApi.updateStartup(username, password, editingStartup.id, editForm);
       setEditingStartup(null);
+      alert('Startup updated successfully!');
     } catch (err) {
+      console.error('❌ Error updating startup:', err);
       alert(err.response?.data?.error || 'Failed to update startup');
     } finally {
       setUpdating(false);

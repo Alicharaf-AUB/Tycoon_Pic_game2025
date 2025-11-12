@@ -677,6 +677,14 @@ app.get('/api/admin/startups', adminAuth, async (req, res) => {
 app.post('/api/admin/startups', adminAuth, async (req, res) => {
   const { name, slug, description, logo, pitch_deck, cohort, support_program, industry, email, team, generating_revenue, ask, legal_entity } = req.body;
   
+  console.log('📝 Creating startup with:', {
+    name,
+    slug,
+    logo: logo || '(none)',
+    pitch_deck: pitch_deck || '(none)',
+    description: description?.substring(0, 50) + '...'
+  });
+  
   if (!name || !slug) {
     return res.status(400).json({ error: 'Name and slug are required' });
   }
@@ -698,6 +706,8 @@ app.post('/api/admin/startups', adminAuth, async (req, res) => {
       legal_entity: legal_entity || ''
     });
     
+    console.log('✅ Startup created successfully with ID:', id);
+    
     await broadcastGameState();
     
     res.json({ success: true, id });
@@ -705,7 +715,7 @@ app.post('/api/admin/startups', adminAuth, async (req, res) => {
     if (error.message.includes('UNIQUE')) {
       return res.status(400).json({ error: 'Slug already exists' });
     }
-    console.error('Error creating startup:', error);
+    console.error('❌ Error creating startup:', error);
     res.status(500).json({ error: 'Failed to create startup' });
   }
 });
@@ -714,6 +724,14 @@ app.post('/api/admin/startups', adminAuth, async (req, res) => {
 app.put('/api/admin/startups/:id', adminAuth, async (req, res) => {
   const { id } = req.params;
   const { name, slug, description, logo, pitch_deck, cohort, support_program, industry, email, team, generating_revenue, ask, legal_entity, isActive } = req.body;
+  
+  console.log('📝 Updating startup', id, 'with:', {
+    name,
+    slug,
+    logo: logo || '(none)',
+    pitch_deck: pitch_deck || '(none)',
+    isActive
+  });
   
   try {
     await dbHelpers.updateStartup(id, {
@@ -733,6 +751,8 @@ app.put('/api/admin/startups/:id', adminAuth, async (req, res) => {
       is_active: isActive
     });
     
+    console.log('✅ Startup updated successfully');
+    
     await broadcastGameState();
     
     res.json({ success: true });
@@ -740,7 +760,7 @@ app.put('/api/admin/startups/:id', adminAuth, async (req, res) => {
     if (error.message && (error.message.includes('duplicate key') || error.message.includes('unique constraint'))) {
       return res.status(400).json({ error: 'Slug already exists' });
     }
-    console.error('Error updating startup:', error);
+    console.error('❌ Error updating startup:', error);
     res.status(500).json({ error: 'Failed to update startup' });
   }
 });
