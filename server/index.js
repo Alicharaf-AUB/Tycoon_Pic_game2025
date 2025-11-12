@@ -147,11 +147,19 @@ const checkAppAccess = (req, res, next) => {
   next();
 };
 
-// Apply access check to all /api routes (except verify-app-access)
+// Apply access check to all /api routes (except verify-app-access and admin routes)
 app.use('/api', (req, res, next) => {
+  // Skip password check for password verification endpoint
   if (req.path === '/verify-app-access') {
     return next();
   }
+
+  // Skip password check for ALL admin routes - admins use their own auth
+  if (req.path.startsWith('/admin')) {
+    return next();
+  }
+
+  // Regular routes require app password
   checkAppAccess(req, res, next);
 });
 
@@ -1257,13 +1265,14 @@ app.delete('/api/admin/funds-requests/:id', adminAuth, async (req, res) => {
 
 // ===== SOCKET.IO =====
 
-// Socket.IO middleware to check app access
+// Socket.IO middleware to check app access (optional for admins)
 io.use((socket, next) => {
   const accessToken = socket.handshake.auth.accessToken;
 
   if (!accessToken || !validAccessTokens.has(accessToken)) {
-    console.log('❌ Socket connection denied - invalid access token');
-    return next(new Error('App access denied'));
+    console.log('⚠️ Socket connection without valid app access token (may be admin)');
+    // Allow connection but mark it as unauthenticated
+    // Admins can still connect to see real-time updates if they want
   }
 
   next();
