@@ -671,7 +671,12 @@ function StartupsTab({ username, password, gameState }) {
 
     setUpdating(true);
     try {
-      console.log('📝 Updating startup with data:', editForm);
+      console.log('📝 Updating startup with data:', {
+        ...editForm,
+        logo: editForm.logo || '(empty)',
+        pitch_deck: editForm.pitch_deck || '(empty)',
+        ask: editForm.ask || '(empty)'
+      });
       await adminApi.updateStartup(username, password, editingStartup.id, editForm);
       setEditingStartup(null);
       alert('Startup updated successfully!');

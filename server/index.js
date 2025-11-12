@@ -787,6 +787,7 @@ app.put('/api/admin/startups/:id', adminAuth, async (req, res) => {
     slug,
     logo: logo || '(none)',
     pitch_deck: pitch_deck || '(none)',
+    ask: ask || '(none)',
     isActive
   });
   
