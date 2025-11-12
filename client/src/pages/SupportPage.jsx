@@ -6,7 +6,7 @@ export default function SupportPage() {
 
   const faqs = [
     {
-      question: "How do I join the game?",
+      question: "How do I join the platform?",
       answer: "Enter your full name and email address on the login page. If you're a new investor, you'll automatically receive your starting capital. If you're returning, you'll be logged back into your existing account."
     },
     {
@@ -19,7 +19,7 @@ export default function SupportPage() {
     },
     {
       question: "Can I sell my investments?",
-      answer: "Currently, investments are locked for the duration of the game. You can view your portfolio performance but cannot sell positions."
+      answer: "Currently, investments are locked for the duration of the investment period. You can view your portfolio performance but cannot sell positions."
     },
     {
       question: "How do I track my performance?",
@@ -123,7 +123,7 @@ export default function SupportPage() {
         </svg>
       ),
       title: "Multi-Investor Support",
-      description: "Compete with other investors in the game and see live leaderboards."
+      description: "Compete with other investors on the platform and see live leaderboards."
     }
   ];
 
@@ -310,7 +310,7 @@ export default function SupportPage() {
               Still Need Help?
             </h2>
             <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
-              If you have any questions or need assistance, please contact the game administrator or event organizer for support.
+              If you have any questions or need assistance, please contact the platform administrator or event organizer for support.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <button
