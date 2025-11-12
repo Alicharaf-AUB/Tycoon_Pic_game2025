@@ -2,34 +2,62 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, formatCurrency } from '../utils/api';
 import { GAME_CONFIG } from '../config';
+import axios from 'axios';
+
+// Use relative path in production (same domain), localhost in development
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const API_BASE = import.meta.env.VITE_API_URL || (isProduction ? window.location.origin : 'http://localhost:3001');
 
 export default function LoginPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [appPassword, setAppPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [isAppAuthenticated, setIsAppAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  // Auto-login if remembered
+  // Check app authentication and auto-login if remembered
   useEffect(() => {
-    const rememberedInvestorId = localStorage.getItem('rememberedInvestorId');
-    const rememberedName = localStorage.getItem('rememberedName');
+    const checkAuth = async () => {
+      const accessToken = sessionStorage.getItem('app_access_token');
 
-    if (rememberedInvestorId && rememberedName) {
-      // Automatically redirect to dashboard
-      setLoading(true);
-      api.getInvestor(rememberedInvestorId)
-        .then(({ investor }) => {
-          navigate(`/dashboard/${investor.id}`);
-        })
-        .catch(() => {
-          // If investor no longer exists, clear remembered data
-          localStorage.removeItem('rememberedInvestorId');
-          localStorage.removeItem('rememberedName');
-          setLoading(false);
-        });
-    }
+      if (accessToken) {
+        // Verify token is still valid
+        try {
+          await axios.get(`${API_BASE}/api/game-state`, {
+            headers: {
+              'x-app-access-token': accessToken
+            }
+          });
+          setIsAppAuthenticated(true);
+
+          // If app is authenticated and user is remembered, auto-login
+          const rememberedInvestorId = localStorage.getItem('rememberedInvestorId');
+          const rememberedName = localStorage.getItem('rememberedName');
+
+          if (rememberedInvestorId && rememberedName) {
+            setLoading(true);
+            api.getInvestor(rememberedInvestorId)
+              .then(({ investor }) => {
+                navigate(`/dashboard/${investor.id}`);
+              })
+              .catch(() => {
+                localStorage.removeItem('rememberedInvestorId');
+                localStorage.removeItem('rememberedName');
+                setLoading(false);
+              });
+          }
+        } catch (err) {
+          // Token is invalid, clear it
+          sessionStorage.removeItem('app_access_token');
+          setIsAppAuthenticated(false);
+        }
+      }
+    };
+
+    checkAuth();
   }, [navigate]);
 
   const handleLogin = async (e) => {
@@ -45,10 +73,34 @@ export default function LoginPage() {
       return;
     }
 
+    // Verify app password first if not already authenticated
+    if (!isAppAuthenticated && !appPassword.trim()) {
+      setError('Please enter the application password');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
+      // First verify app password if not already authenticated
+      if (!isAppAuthenticated) {
+        const appAuthResponse = await axios.post(`${API_BASE}/api/verify-app-access`, {
+          password: appPassword
+        });
+
+        if (!appAuthResponse.data.success) {
+          setError('Incorrect application password');
+          setLoading(false);
+          return;
+        }
+
+        // Store access token
+        sessionStorage.setItem('app_access_token', appAuthResponse.data.accessToken);
+        setIsAppAuthenticated(true);
+      }
+
+      // Then proceed with investor login
       const { investor } = await api.findInvestor(email.trim(), name.trim());
 
       // Store investor info in localStorage for session management
@@ -65,7 +117,11 @@ export default function LoginPage() {
 
       navigate(`/dashboard/${investor.id}`);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to access your account');
+      if (err.response?.status === 401 && err.response?.config?.url?.includes('verify-app-access')) {
+        setError('Incorrect application password. Please try again.');
+      } else {
+        setError(err.response?.data?.error || 'Failed to access your account');
+      }
     } finally {
       setLoading(false);
     }
@@ -232,6 +288,28 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* App Password Input - only show if not already authenticated */}
+            {!isAppAuthenticated && (
+              <div>
+                <label htmlFor="appPassword" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
+                  Application Password
+                </label>
+                <input
+                  type="password"
+                  id="appPassword"
+                  value={appPassword}
+                  onChange={(e) => setAppPassword(e.target.value)}
+                  placeholder="Enter application password"
+                  className="input-executive text-lg"
+                  disabled={loading}
+                  autoComplete="current-password"
+                />
+                <p className="mt-2 text-xs text-slate-500">
+                  Required for first-time access
+                </p>
+              </div>
+            )}
+
             {/* Remember Me Checkbox */}
             <div className="flex items-start gap-3 group cursor-pointer" onClick={() => setRememberMe(!rememberMe)}>
               <div className="relative flex items-center justify-center mt-0.5">
@@ -266,7 +344,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || !name.trim() || !email.trim()}
+              disabled={loading || !name.trim() || !email.trim() || (!isAppAuthenticated && !appPassword.trim())}
               className="btn-executive w-full disabled:opacity-50 disabled:cursor-not-allowed text-xl py-6 font-bold relative overflow-hidden group"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">
