@@ -12,9 +12,19 @@ export default function AppPasswordGate({ children }) {
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
+  // Check if user is on admin route - admins bypass app password
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+
   // Check if user is already authenticated
   useEffect(() => {
     const checkAuth = async () => {
+      // Admin routes bypass app password protection
+      if (isAdminRoute) {
+        setIsAuthenticated(true);
+        setCheckingAuth(false);
+        return;
+      }
+
       const accessToken = sessionStorage.getItem('app_access_token');
 
       if (accessToken) {
@@ -36,7 +46,7 @@ export default function AppPasswordGate({ children }) {
     };
 
     checkAuth();
-  }, []);
+  }, [isAdminRoute]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
