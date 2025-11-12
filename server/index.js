@@ -470,6 +470,25 @@ app.post('/api/submit', async (req, res) => {
   }
 
   try {
+    // Get investor details to check remaining funds
+    const investor = await dbHelpers.getInvestorById(investorId);
+    
+    if (!investor) {
+      return res.status(404).json({ error: 'Investor not found' });
+    }
+    
+    // Calculate remaining funds
+    const totalInvested = parseFloat(investor.other_investments) || 0;
+    const remaining = investor.starting_credit - totalInvested;
+    
+    // Require all funds to be invested before finalizing
+    if (remaining > 0) {
+      return res.status(400).json({ 
+        error: `You must invest all available funds before finalizing. You still have ${formatCurrency(remaining)} remaining.`,
+        remaining
+      });
+    }
+    
     // Mark investor as submitted using helper
     await dbHelpers.submitInvestments(investorId);
 

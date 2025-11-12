@@ -114,6 +114,13 @@ export default function GamePage() {
   };
 
   const handleSubmit = async () => {
+    // Check if there are remaining funds
+    const remaining = investor.remaining;
+    if (remaining > 0) {
+      alert(`⚠️ You must invest all your available funds before finalizing.\n\nRemaining: ${formatCurrency(remaining)}\n\nPlease allocate the remaining funds to startups.`);
+      return;
+    }
+    
     if (!confirm('Are you sure you want to submit your investments? You won\'t be able to change them after submission.')) {
       return;
     }

@@ -172,6 +172,13 @@ export default function DashboardPage() {
   };
 
   const handleSubmit = async () => {
+    // Check if there are remaining funds
+    const remaining = getActualRemaining();
+    if (remaining > 0) {
+      alert(`⚠️ You must invest all your available funds before finalizing.\n\nRemaining: ${formatCurrency(remaining)}\n\nPlease allocate the remaining funds to startups.`);
+      return;
+    }
+    
     if (!confirm('Are you sure you want to finalize your portfolio? This action cannot be undone.')) {
       return;
     }
