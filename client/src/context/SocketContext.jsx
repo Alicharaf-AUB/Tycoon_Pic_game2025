@@ -21,12 +21,16 @@ export const SocketProvider = ({ children }) => {
     // Check if we're in production by looking at the hostname
     const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
     const socketUrl = import.meta.env.VITE_API_URL || (isProduction ? window.location.origin : 'http://localhost:3001');
-    
+
+    // Get app access token
+    const accessToken = sessionStorage.getItem('app_access_token');
+
     console.log('🔌 Connecting to socket:', socketUrl);
     console.log('🌍 Environment:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
     console.log('🌐 Window location:', window.location.origin);
     console.log('🏠 Hostname:', window.location.hostname);
-    
+    console.log('🔑 Access token:', accessToken ? 'Present' : 'Missing');
+
     const socketInstance = io(socketUrl, {
       path: '/socket.io/',
       transports: ['polling', 'websocket'], // Try polling first for Railway
@@ -34,7 +38,10 @@ export const SocketProvider = ({ children }) => {
       reconnectionAttempts: 3, // Reduced from 10
       reconnectionDelay: 2000,
       timeout: 10000, // Reduced from 20000
-      forceNew: true
+      forceNew: true,
+      auth: {
+        accessToken: accessToken
+      }
     });
 
     socketInstance.on('connect', () => {

@@ -42,6 +42,10 @@ console.log('🚦 Transports: polling, websocket');
 const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'demo123';
+const APP_ACCESS_PASSWORD = process.env.APP_ACCESS_PASSWORD || 'Ipark@aim@2025';
+
+// Store for valid access tokens (in production, use Redis or database)
+const validAccessTokens = new Set();
 
 // Trust proxy to get real IP addresses from Railway/proxies
 app.set('trust proxy', true);
@@ -94,8 +98,74 @@ if (!fs.existsSync(uploadDir)) {
   }
 }
 
-// Serve uploaded files
+// ===== APP ACCESS PASSWORD PROTECTION =====
+// Endpoint to verify app access password
+app.post('/api/verify-app-access', (req, res) => {
+  const { password } = req.body;
+
+  if (password === APP_ACCESS_PASSWORD) {
+    // Generate a unique access token
+    const accessToken = uuidv4();
+    validAccessTokens.add(accessToken);
+
+    console.log('✅ App access granted');
+    res.json({
+      success: true,
+      accessToken,
+      message: 'Access granted'
+    });
+  } else {
+    console.log('❌ App access denied - incorrect password');
+    res.status(401).json({
+      success: false,
+      message: 'Incorrect password'
+    });
+  }
+});
+
+// Middleware to check app access token on all routes
+const checkAppAccess = (req, res, next) => {
+  // Skip check for password verification endpoint
+  if (req.path === '/api/verify-app-access') {
+    return next();
+  }
+
+  // Skip check for static files in production build
+  if (req.path.startsWith('/_vite') || req.path.startsWith('/src') || req.path.startsWith('/node_modules')) {
+    return next();
+  }
+
+  // Get token from header
+  const accessToken = req.headers['x-app-access-token'];
+
+  if (!accessToken || !validAccessTokens.has(accessToken)) {
+    return res.status(403).json({
+      error: 'App access denied. Please enter the app password.'
+    });
+  }
+
+  next();
+};
+
+// Apply access check to all /api routes (except verify-app-access)
+app.use('/api', (req, res, next) => {
+  if (req.path === '/verify-app-access') {
+    return next();
+  }
+  checkAppAccess(req, res, next);
+});
+
+// Serve uploaded files (with access check)
 app.use('/uploads', (req, res, next) => {
+  // Check access token from query param or header
+  const accessToken = req.query.token || req.headers['x-app-access-token'];
+
+  if (!accessToken || !validAccessTokens.has(accessToken)) {
+    return res.status(403).json({
+      error: 'App access denied. Please enter the app password.'
+    });
+  }
+
   console.log('📁 File request:', req.path);
   next();
 }, express.static(uploadDir, {
@@ -1186,6 +1256,18 @@ app.delete('/api/admin/funds-requests/:id', adminAuth, async (req, res) => {
 });
 
 // ===== SOCKET.IO =====
+
+// Socket.IO middleware to check app access
+io.use((socket, next) => {
+  const accessToken = socket.handshake.auth.accessToken;
+
+  if (!accessToken || !validAccessTokens.has(accessToken)) {
+    console.log('❌ Socket connection denied - invalid access token');
+    return next(new Error('App access denied'));
+  }
+
+  next();
+});
 
 io.on('connection', async (socket) => {
   console.log('Client connected:', socket.id);

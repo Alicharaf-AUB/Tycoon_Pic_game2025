@@ -8,11 +8,25 @@ const API_BASE = import.meta.env.VITE_API_URL || (isProduction ? window.location
 console.log('🔗 API_BASE:', API_BASE);
 console.log('🌍 Is Production:', isProduction);
 
+// Helper to get app access token
+const getAppAccessToken = () => {
+  return sessionStorage.getItem('app_access_token');
+};
+
+// Helper to get headers with access token
+const getHeaders = () => {
+  const token = getAppAccessToken();
+  return token ? { 'x-app-access-token': token } : {};
+};
+
 // Helper to get full URL for uploaded files
 export const getFileUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path; // Already a full URL
-  return `${API_BASE}${path}`;
+  const token = getAppAccessToken();
+  const url = `${API_BASE}${path}`;
+  // Add token as query parameter for file URLs
+  return token ? `${url}?token=${token}` : url;
 };
 
 // Helper to format currency
@@ -34,25 +48,25 @@ export const formatPercentage = (value, total) => {
 export const api = {
   // Join as investor
   join: async (name, email) => {
-    const { data } = await axios.post(`${API_BASE}/api/join`, { name, email });
+    const { data } = await axios.post(`${API_BASE}/api/join`, { name, email }, { headers: getHeaders() });
     return data;
   },
 
   // Find existing investor by email and name
   findInvestor: async (email, name) => {
-    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { email, name });
+    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { email, name }, { headers: getHeaders() });
     return data;
   },
 
   // Get game state
   getGameState: async () => {
-    const { data } = await axios.get(`${API_BASE}/api/game-state`);
+    const { data } = await axios.get(`${API_BASE}/api/game-state`, { headers: getHeaders() });
     return data;
   },
 
   // Get investor
   getInvestor: async (id) => {
-    const { data } = await axios.get(`${API_BASE}/api/investors/${id}`);
+    const { data } = await axios.get(`${API_BASE}/api/investors/${id}`, { headers: getHeaders() });
     return data;
   },
 
@@ -62,7 +76,7 @@ export const api = {
       investorId,
       startupId,
       amount,
-    });
+    }, { headers: getHeaders() });
     return data;
   },
 
@@ -70,7 +84,7 @@ export const api = {
   submit: async (investorId) => {
     const { data } = await axios.post(`${API_BASE}/api/submit`, {
       investorId,
-    });
+    }, { headers: getHeaders() });
     return data;
   },
 
@@ -80,20 +94,20 @@ export const api = {
       investorId,
       requestedAmount,
       justification,
-    });
+    }, { headers: getHeaders() });
     return data;
   },
 
   // Get investor's funds requests
   getFundsRequests: async (investorId) => {
-    const { data } = await axios.get(`${API_BASE}/api/investors/${investorId}/funds-requests`);
+    const { data } = await axios.get(`${API_BASE}/api/investors/${investorId}/funds-requests`, { headers: getHeaders() });
     return data;
   },
 
   // Log client-side error
   logError: async (errorData) => {
     try {
-      const { data } = await axios.post(`${API_BASE}/api/log-error`, errorData);
+      const { data } = await axios.post(`${API_BASE}/api/log-error`, errorData, { headers: getHeaders() });
       return data;
     } catch (error) {
       // Silent fail - don't throw if error logging fails
@@ -105,10 +119,13 @@ export const api = {
 
 // Admin API
 export const adminApi = {
-  // Create basic auth header
+  // Create basic auth header combined with app access token
   getAuthHeader: (username, password) => {
     const token = btoa(`${username}:${password}`);
-    return { Authorization: `Basic ${token}` };
+    return {
+      Authorization: `Basic ${token}`,
+      ...getHeaders()
+    };
   },
 
   // Get all investors
