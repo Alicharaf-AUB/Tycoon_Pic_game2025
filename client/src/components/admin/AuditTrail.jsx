@@ -209,7 +209,8 @@ export default function AuditTrail() {
 
       {/* Audit Log Entries */}
       <div className="card-executive">
-        <div className="space-y-2 max-h-[600px] overflow-y-auto scrollbar-thin">
+        <h4 className="text-lg font-semibold text-slate-200 mb-4">Recent Activity</h4>
+        <div className="space-y-2 max-h-[500px] overflow-y-auto scrollbar-thin pr-2">
           {loading ? (
             <div className="text-center py-12">
               <div className="spinner w-8 h-8 mx-auto mb-4"></div>
