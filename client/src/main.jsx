@@ -6,6 +6,7 @@ import App from './App'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import AdminPage from './pages/AdminPage'
+import SupportPage from './pages/SupportPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ErrorBoundary from './components/ErrorBoundary'
 
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route index element={<LoginPage />} />
             <Route path="dashboard/:investorId" element={<DashboardPage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="support" element={<SupportPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

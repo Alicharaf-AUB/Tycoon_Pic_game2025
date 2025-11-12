@@ -421,7 +421,7 @@ export default function LoginPage() {
             </a>
             <span className="text-slate-700">|</span>
             <a
-              href="/help"
+              href="/support"
               className="inline-flex items-center gap-2 text-slate-400 hover:text-blue-400 transition-colors font-medium group"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
