@@ -1,7 +1,7 @@
 {
-  "name": "ipark-angel-hub",
+  "name": "tycoon-aub-pic-game",
   "version": "1.0.0",
-  "description": "iPark Angel Hub - Real-time investment simulation",
+  "description": "Tycoon AUB PIC Game - Real-time investment simulation",
   "main": "server/index.js",
   "engines": {
     "node": ">=18.0.0",

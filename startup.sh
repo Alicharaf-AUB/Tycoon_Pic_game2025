@@ -2,7 +2,7 @@
 
 # Azure App Service startup script
 
-echo "Starting AUB Investment Game..."
+echo "Starting Tycoon AUB PIC Game..."
 
 # Start the server (dependencies already installed during deployment)
 echo "Starting server..."

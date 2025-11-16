@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: "aub-investment-game",
+    name: "tycoon-aub-pic-game",
     script: "server/index.js",
     instances: 1,
     exec_mode: "cluster",
