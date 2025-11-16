@@ -5,9 +5,9 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🎮 GAME IDENTITY
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  gameName: 'iPark Angel Hub',
-  gameTagline: 'Join the elite investment simulation',
-  organizationName: 'iPark Angel Hub',
+  gameName: 'AUB PIC 2025',
+  gameTagline: 'Build Your Startup Empire - Vote & Invest Like a Tycoon!',
+  organizationName: 'AUB PIC 2025',
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 💰 INVESTOR SETTINGS
@@ -19,7 +19,7 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🎨 BRANDING
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  logoEmoji: '💰', // Or replace with: <img src="/logo.png" />
+  logoEmoji: '🎩', // Tycoon hat - Or replace with: <img src="/logo.png" />
   accentColor: 'gold', // gold, blue, purple, red
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -42,10 +42,10 @@ export const GAME_CONFIG = {
   // 💬 MESSAGING
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   messages: {
-    welcomeTitle: 'Welcome, Investor!',
-    investmentSuccess: 'Investment recorded! 💎',
+    welcomeTitle: 'Welcome, Tycoon!',
+    investmentSuccess: 'Vote recorded! 🎩💰',
     gameLockedMessage: 'Voting period has ended. Results are final! 🏆',
-    noStartupsMessage: 'Startups will appear here soon...',
+    noStartupsMessage: 'Startups will appear here soon... Get ready to build your empire! 🚀',
   },
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -53,7 +53,7 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   eventInfo: {
     enabled: true,
-    eventName: 'AIM Demo Day 2025',
+    eventName: 'AUB PIC 2025 - Tycoon Investment Challenge',
     eventDate: 'November 2025',
     eventLocation: 'American University of Beirut',
   },
@@ -63,7 +63,7 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   organizationInfo: {
     enabled: true,
-    name: 'iPark Angel Hub',
+    name: 'AUB PIC 2025',
   }
 };
 

@@ -623,55 +623,56 @@ app.post('/api/submit', async (req, res) => {
 
 // ===== FUNDS REQUESTS =====
 
+// DISABLED: Fund request functionality removed - investors have predefined budgets only
 // Submit funds request (investor)
-app.post('/api/funds-request', async (req, res) => {
-  const { investorId, requestedAmount, justification } = req.body;
-
-  if (!investorId || !requestedAmount || !justification) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  if (requestedAmount <= 0) {
-    return res.status(400).json({ error: 'Requested amount must be positive' });
-  }
-
-  try {
-    const investor = await dbHelpers.getInvestorById(investorId);
-
-    if (!investor) {
-      return res.status(404).json({ error: 'Investor not found' });
-    }
-
-    const request = await dbHelpers.createFundRequest(
-      investorId,
-      requestedAmount,
-      justification
-    );
-
-    res.json({ success: true, requestId: request.id });
-  } catch (error) {
-    console.error('Error creating funds request:', error);
-    res.status(500).json({ error: 'Failed to create request' });
-  }
-});
+// app.post('/api/funds-request', async (req, res) => {
+//   const { investorId, requestedAmount, justification } = req.body;
+//
+//   if (!investorId || !requestedAmount || !justification) {
+//     return res.status(400).json({ error: 'Missing required fields' });
+//   }
+//
+//   if (requestedAmount <= 0) {
+//     return res.status(400).json({ error: 'Requested amount must be positive' });
+//   }
+//
+//   try {
+//     const investor = await dbHelpers.getInvestorById(investorId);
+//
+//     if (!investor) {
+//       return res.status(404).json({ error: 'Investor not found' });
+//     }
+//
+//     const request = await dbHelpers.createFundRequest(
+//       investorId,
+//       requestedAmount,
+//       justification
+//     );
+//
+//     res.json({ success: true, requestId: request.id });
+//   } catch (error) {
+//     console.error('Error creating funds request:', error);
+//     res.status(500).json({ error: 'Failed to create request' });
+//   }
+// });
 
 // Get investor's funds requests
-app.get('/api/investors/:id/funds-requests', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const result = await pool.query(`
-      SELECT * FROM fund_requests
-      WHERE investor_id = $1
-      ORDER BY created_at DESC
-    `, [id]);
-
-    res.json({ requests: result.rows });
-  } catch (error) {
-    console.error('Error fetching funds requests:', error);
-    res.status(500).json({ error: 'Failed to fetch requests' });
-  }
-});
+// app.get('/api/investors/:id/funds-requests', async (req, res) => {
+//   const { id } = req.params;
+//
+//   try {
+//     const result = await pool.query(`
+//       SELECT * FROM fund_requests
+//       WHERE investor_id = $1
+//       ORDER BY created_at DESC
+//     `, [id]);
+//
+//     res.json({ requests: result.rows });
+//   } catch (error) {
+//     console.error('Error fetching funds requests:', error);
+//     res.status(500).json({ error: 'Failed to fetch requests' });
+//   }
+// });
 
 // ===== ERROR LOGGING =====
 // Log client-side errors
@@ -1032,236 +1033,237 @@ app.get('/api/admin/logs', adminAuth, async (req, res) => {
   }
 });
 
+// DISABLED: Fund request functionality removed
 // Get all funds requests (admin)
-app.get('/api/admin/funds-requests', adminAuth, async (req, res) => {
-  try {
-    const { status } = req.query;
+// app.get('/api/admin/funds-requests', adminAuth, async (req, res) => {
+//   try {
+//     const { status } = req.query;
+//
+//     const requests = await dbHelpers.getAllFundRequests(status);
+//
+//     res.json({ requests });
+//   } catch (error) {
+//     console.error('Error fetching funds requests:', error);
+//     res.status(500).json({ error: 'Failed to fetch funds requests' });
+//   }
+// });
 
-    const requests = await dbHelpers.getAllFundRequests(status);
-
-    res.json({ requests });
-  } catch (error) {
-    console.error('Error fetching funds requests:', error);
-    res.status(500).json({ error: 'Failed to fetch funds requests' });
-  }
-});
-
-// Approve funds request (admin)
-app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) => {
-  const { id } = req.params;
-  const { adminResponse, reviewedBy } = req.body;
-
-  try {
-    // Get the request
-    const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
-
-    if (result.rows.length === 0) {
-      console.error('Fund request not found:', id);
-      return res.status(404).json({ error: 'Request not found' });
-    }
-
-    const request = result.rows[0];
-    
-    console.log('📋 Fund request found:', {
-      id: request.id,
-      investorId: request.investor_id,
-      amount: request.amount,
-      status: request.status
-    });
-
-    if (request.status !== 'pending') {
-      console.error('Request already reviewed:', request.status);
-      return res.status(400).json({ error: 'Request has already been reviewed' });
-    }
-
-    // Get current investor credit
-    const investor = await dbHelpers.getInvestorById(request.investor_id);
-    
-    if (!investor) {
-      console.error('Investor not found:', request.investor_id);
-      return res.status(404).json({ error: 'Investor not found' });
-    }
-
-    // Calculate new credit: current + requested amount
-    const newCredit = investor.starting_credit + request.amount;
-    
-    console.log('💰 Approving fund request:', {
-      investorId: request.investor_id,
-      investorName: investor.name,
-      currentCredit: investor.starting_credit,
-      requestedAmount: request.amount,
-      newCredit,
-      reviewedBy
-    });
-    
-    // Update investor's starting credit to the new total
-    console.log('🔄 Updating investor credit...');
-    await dbHelpers.updateInvestorCredit(request.investor_id, newCredit);
-    console.log('✅ Investor credit updated');
-    
-    // Unlock investor portfolio so they can invest the new funds
-    console.log('🔓 Unlocking investor portfolio...');
-    await pool.query('UPDATE investors SET submitted = false WHERE id = $1', [request.investor_id]);
-    console.log('✅ Investor portfolio unlocked - can now make additional investments');
-
-    // Update request status
-    console.log('🔄 Updating fund request status...');
-    await dbHelpers.updateFundRequestStatus(
-      id,
-      'approved',
-      adminResponse || 'Approved',
-      reviewedBy || 'admin'
-    );
-    console.log('✅ Fund request status updated');
-
-    // Log the admin action for audit trail
-    await dbHelpers.createAdminLog('FUND_REQUEST_APPROVED', {
-      requestId: id,
-      investorId: request.investor_id,
-      investorName: investor.name,
-      investorEmail: investor.email,
-      previousCredit: investor.starting_credit,
-      amountAdded: request.amount,
-      newCredit: newCredit,
-      reviewedBy: reviewedBy || 'admin',
-      adminResponse: adminResponse || 'Approved',
-      timestamp: new Date().toISOString()
-    }, req.adminIp);
-    console.log('📝 Approval logged from IP:', req.adminIp);
-
-    await broadcastGameState();
-
-    res.json({ 
-      success: true, 
-      newCredit,
-      message: `Successfully added ${request.amount} to ${investor.name}'s account. New total: ${newCredit}`
-    });
-  } catch (error) {
-    console.error('Error approving funds request:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ 
-      error: 'Failed to approve request', 
-      details: error.message,
-      requestId: id 
-    });
-  }
-});
-
-// Reject funds request (admin)
-app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => {
-  const { id } = req.params;
-  const { adminResponse, reviewedBy } = req.body;
-
-  try {
-    // Get the request
-    const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Request not found' });
-    }
-
-    const request = result.rows[0];
-
-    if (request.status !== 'pending') {
-      return res.status(400).json({ error: 'Request has already been reviewed' });
-    }
-
-    // Get investor info for logging
-    const investor = await dbHelpers.getInvestorById(request.investor_id);
-
-    // Update request status
-    await dbHelpers.updateFundRequestStatus(
-      id,
-      'rejected',
-      adminResponse || 'Rejected',
-      reviewedBy || 'admin'
-    );
-
-    // Log the admin action for audit trail
-    await dbHelpers.createAdminLog('FUND_REQUEST_REJECTED', {
-      requestId: id,
-      investorId: request.investor_id,
-      investorName: investor?.name,
-      investorEmail: investor?.email,
-      requestedAmount: request.amount,
-      reviewedBy: reviewedBy || 'admin',
-      adminResponse: adminResponse || 'Rejected',
-      timestamp: new Date().toISOString()
-    }, req.adminIp);
-    console.log('📝 Rejection logged from IP:', req.adminIp);
-
-    await broadcastGameState();
-
-    res.json({ success: true, message: `Fund request rejected for ${investor?.name}` });
-  } catch (error) {
-    console.error('Error rejecting funds request:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({
-      error: 'Failed to reject request',
-      details: error.message,
-      requestId: id
-    });
-  }
-});
-
-// Delete funds request
-app.delete('/api/admin/funds-requests/:id', adminAuth, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    // Check if the request exists and get its details
-    const result = await pool.query(`
-      SELECT fr.*, i.name as investor_name, i.email as investor_email
-      FROM fund_requests fr
-      JOIN investors i ON fr.investor_id = i.id
-      WHERE fr.id = $1
-    `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Request not found' });
-    }
-
-    const request = result.rows[0];
-
-    // Log the admin action for audit trail
-    await dbHelpers.createAdminLog('FUND_REQUEST_DELETED', {
-      requestId: id,
-      investorId: request.investor_id,
-      investorName: request.investor_name,
-      investorEmail: request.investor_email,
-      requestedAmount: request.amount,
-      requestStatus: request.status,
-      deletedBy: req.adminUsername || 'admin',
-      timestamp: new Date().toISOString()
-    }, req.adminIp);
-    console.log('📝 Deletion logged from IP:', req.adminIp, {
-      requestId: id,
-      investor: request.investor_name,
-      amount: request.amount,
-      status: request.status
-    });
-
-    // Delete the request
-    await pool.query('DELETE FROM fund_requests WHERE id = $1', [id]);
-
-    // Broadcast the updated game state
-    const gameState = await getGameState();
-    io.emit('gameStateUpdate', gameState);
-
-    res.json({ success: true, message: `Fund request deleted successfully for ${request.investor_name}` });
-  } catch (error) {
-    console.error('Error deleting funds request:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({
-      error: 'Failed to delete request',
-      details: error.message,
-      requestId: id
-    });
-  }
-});
+// // Approve funds request (admin)
+// app.post('/api/admin/funds-requests/:id/approve', adminAuth, async (req, res) => {
+//   const { id } = req.params;
+//   const { adminResponse, reviewedBy } = req.body;
+// 
+//   try {
+//     // Get the request
+//     const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
+// 
+//     if (result.rows.length === 0) {
+//       console.error('Fund request not found:', id);
+//       return res.status(404).json({ error: 'Request not found' });
+//     }
+// 
+//     const request = result.rows[0];
+//     
+//     console.log('📋 Fund request found:', {
+//       id: request.id,
+//       investorId: request.investor_id,
+//       amount: request.amount,
+//       status: request.status
+//     });
+// 
+//     if (request.status !== 'pending') {
+//       console.error('Request already reviewed:', request.status);
+//       return res.status(400).json({ error: 'Request has already been reviewed' });
+//     }
+// 
+//     // Get current investor credit
+//     const investor = await dbHelpers.getInvestorById(request.investor_id);
+//     
+//     if (!investor) {
+//       console.error('Investor not found:', request.investor_id);
+//       return res.status(404).json({ error: 'Investor not found' });
+//     }
+// 
+//     // Calculate new credit: current + requested amount
+//     const newCredit = investor.starting_credit + request.amount;
+//     
+//     console.log('💰 Approving fund request:', {
+//       investorId: request.investor_id,
+//       investorName: investor.name,
+//       currentCredit: investor.starting_credit,
+//       requestedAmount: request.amount,
+//       newCredit,
+//       reviewedBy
+//     });
+//     
+//     // Update investor's starting credit to the new total
+//     console.log('🔄 Updating investor credit...');
+//     await dbHelpers.updateInvestorCredit(request.investor_id, newCredit);
+//     console.log('✅ Investor credit updated');
+//     
+//     // Unlock investor portfolio so they can invest the new funds
+//     console.log('🔓 Unlocking investor portfolio...');
+//     await pool.query('UPDATE investors SET submitted = false WHERE id = $1', [request.investor_id]);
+//     console.log('✅ Investor portfolio unlocked - can now make additional investments');
+// 
+//     // Update request status
+//     console.log('🔄 Updating fund request status...');
+//     await dbHelpers.updateFundRequestStatus(
+//       id,
+//       'approved',
+//       adminResponse || 'Approved',
+//       reviewedBy || 'admin'
+//     );
+//     console.log('✅ Fund request status updated');
+// 
+//     // Log the admin action for audit trail
+//     await dbHelpers.createAdminLog('FUND_REQUEST_APPROVED', {
+//       requestId: id,
+//       investorId: request.investor_id,
+//       investorName: investor.name,
+//       investorEmail: investor.email,
+//       previousCredit: investor.starting_credit,
+//       amountAdded: request.amount,
+//       newCredit: newCredit,
+//       reviewedBy: reviewedBy || 'admin',
+//       adminResponse: adminResponse || 'Approved',
+//       timestamp: new Date().toISOString()
+//     }, req.adminIp);
+//     console.log('📝 Approval logged from IP:', req.adminIp);
+// 
+//     await broadcastGameState();
+// 
+//     res.json({ 
+//       success: true, 
+//       newCredit,
+//       message: `Successfully added ${request.amount} to ${investor.name}'s account. New total: ${newCredit}`
+//     });
+//   } catch (error) {
+//     console.error('Error approving funds request:', error);
+//     console.error('Error details:', error.message);
+//     console.error('Error stack:', error.stack);
+//     res.status(500).json({ 
+//       error: 'Failed to approve request', 
+//       details: error.message,
+//       requestId: id 
+//     });
+//   }
+// });
+// 
+// // Reject funds request (admin)
+// app.post('/api/admin/funds-requests/:id/reject', adminAuth, async (req, res) => {
+//   const { id } = req.params;
+//   const { adminResponse, reviewedBy } = req.body;
+// 
+//   try {
+//     // Get the request
+//     const result = await pool.query('SELECT * FROM fund_requests WHERE id = $1', [id]);
+// 
+//     if (result.rows.length === 0) {
+//       return res.status(404).json({ error: 'Request not found' });
+//     }
+// 
+//     const request = result.rows[0];
+// 
+//     if (request.status !== 'pending') {
+//       return res.status(400).json({ error: 'Request has already been reviewed' });
+//     }
+// 
+//     // Get investor info for logging
+//     const investor = await dbHelpers.getInvestorById(request.investor_id);
+// 
+//     // Update request status
+//     await dbHelpers.updateFundRequestStatus(
+//       id,
+//       'rejected',
+//       adminResponse || 'Rejected',
+//       reviewedBy || 'admin'
+//     );
+// 
+//     // Log the admin action for audit trail
+//     await dbHelpers.createAdminLog('FUND_REQUEST_REJECTED', {
+//       requestId: id,
+//       investorId: request.investor_id,
+//       investorName: investor?.name,
+//       investorEmail: investor?.email,
+//       requestedAmount: request.amount,
+//       reviewedBy: reviewedBy || 'admin',
+//       adminResponse: adminResponse || 'Rejected',
+//       timestamp: new Date().toISOString()
+//     }, req.adminIp);
+//     console.log('📝 Rejection logged from IP:', req.adminIp);
+// 
+//     await broadcastGameState();
+// 
+//     res.json({ success: true, message: `Fund request rejected for ${investor?.name}` });
+//   } catch (error) {
+//     console.error('Error rejecting funds request:', error);
+//     console.error('Error details:', error.message);
+//     console.error('Error stack:', error.stack);
+//     res.status(500).json({
+//       error: 'Failed to reject request',
+//       details: error.message,
+//       requestId: id
+//     });
+//   }
+// });
+// 
+// // Delete funds request
+// app.delete('/api/admin/funds-requests/:id', adminAuth, async (req, res) => {
+//   const { id } = req.params;
+// 
+//   try {
+//     // Check if the request exists and get its details
+//     const result = await pool.query(`
+//       SELECT fr.*, i.name as investor_name, i.email as investor_email
+//       FROM fund_requests fr
+//       JOIN investors i ON fr.investor_id = i.id
+//       WHERE fr.id = $1
+//     `, [id]);
+// 
+//     if (result.rows.length === 0) {
+//       return res.status(404).json({ error: 'Request not found' });
+//     }
+// 
+//     const request = result.rows[0];
+// 
+//     // Log the admin action for audit trail
+//     await dbHelpers.createAdminLog('FUND_REQUEST_DELETED', {
+//       requestId: id,
+//       investorId: request.investor_id,
+//       investorName: request.investor_name,
+//       investorEmail: request.investor_email,
+//       requestedAmount: request.amount,
+//       requestStatus: request.status,
+//       deletedBy: req.adminUsername || 'admin',
+//       timestamp: new Date().toISOString()
+//     }, req.adminIp);
+//     console.log('📝 Deletion logged from IP:', req.adminIp, {
+//       requestId: id,
+//       investor: request.investor_name,
+//       amount: request.amount,
+//       status: request.status
+//     });
+// 
+//     // Delete the request
+//     await pool.query('DELETE FROM fund_requests WHERE id = $1', [id]);
+// 
+//     // Broadcast the updated game state
+//     const gameState = await getGameState();
+//     io.emit('gameStateUpdate', gameState);
+// 
+//     res.json({ success: true, message: `Fund request deleted successfully for ${request.investor_name}` });
+//   } catch (error) {
+//     console.error('Error deleting funds request:', error);
+//     console.error('Error details:', error.message);
+//     console.error('Error stack:', error.stack);
+//     res.status(500).json({
+//       error: 'Failed to delete request',
+//       details: error.message,
+//       requestId: id
+//     });
+//   }
+// });
 
 // ===== SOCKET.IO =====
 

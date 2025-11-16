@@ -129,11 +129,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 lg:p-8 relative overflow-hidden">
-      {/* Premium Ambient Background */}
+      {/* Tycoon Ambient Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-blue-500/8 to-transparent rounded-full blur-2xl"></div>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-yellow-600/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-amber-500/8 to-transparent rounded-full blur-2xl"></div>
       </div>
 
       <div className="w-full max-w-4xl relative z-10 animate-fade-in">
@@ -141,8 +141,8 @@ export default function LoginPage() {
         <div className="text-center mb-12">
           {/* Premium Logo */}
           <div className="mb-10 relative inline-block">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/30 to-indigo-600/30 blur-3xl rounded-full"></div>
-            <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-2 border-blue-500/40 rounded-3xl p-12 shadow-2xl shadow-blue-500/30">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-600/30 to-yellow-600/30 blur-3xl rounded-full"></div>
+            <div className="relative bg-gradient-to-br from-amber-950/50 via-yellow-950/40 to-amber-950/50 border-2 border-amber-500/40 rounded-3xl p-12 shadow-2xl shadow-amber-500/30">
               <svg className="w-28 h-28 md:w-36 md:h-36 animate-float" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Angel Wings with Blue Gradient */}
                 <path d="M100 100 Q70 80, 40 70 Q30 65, 25 75 Q20 85, 30 90 Q50 95, 70 100 Q80 105, 90 110 Z"
@@ -203,24 +203,24 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* VIP Title */}
+          {/* Tycoon Title */}
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold mb-6 leading-tight">
-            <span className="text-gradient-executive bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500">
+            <span className="text-gradient-executive bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400">
               {GAME_CONFIG.gameName}
             </span>
           </h1>
 
-          <p className="text-2xl sm:text-3xl md:text-4xl text-slate-300 font-serif italic mb-4 font-light">
-            VIP Investment Hub
+          <p className="text-2xl sm:text-3xl md:text-4xl text-amber-200 font-serif italic mb-4 font-light">
+            🎩 {GAME_CONFIG.gameTagline}
           </p>
 
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Exclusive access for elite investors. Manage your portfolio, track performance, and access premium investment opportunities.
+          <p className="text-lg text-amber-300/80 max-w-2xl mx-auto mb-8 leading-relaxed">
+            Step into the world of business tycoons. Cast your votes, build your startup empire, and compete for investment glory!
           </p>
 
           {/* Event Badge */}
           {GAME_CONFIG.eventInfo.enabled && (
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-950/80 to-indigo-950/80 backdrop-blur-xl border border-blue-500/40 rounded-full px-8 py-4 mb-8 shadow-xl shadow-blue-500/20">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-950/80 to-yellow-950/80 backdrop-blur-xl border border-amber-500/40 rounded-full px-8 py-4 mb-8 shadow-xl shadow-amber-500/20">
               <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
               <p className="text-sm md:text-base font-semibold text-blue-200">
                 {GAME_CONFIG.eventInfo.eventName}
