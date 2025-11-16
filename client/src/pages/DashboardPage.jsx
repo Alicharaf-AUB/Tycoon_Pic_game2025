@@ -41,10 +41,34 @@ export default function DashboardPage() {
   }, [gameState, investorId]);
 
   const startups = gameState?.startups?.filter(s => s.is_active) || [];
-  const myVotes = (gameState?.investments || []).filter(inv => inv.investor_id === parseInt(investorId));
+  const allInvestments = gameState?.investments || [];
+  const myVotes = allInvestments.filter(inv => inv.investor_id === parseInt(investorId));
 
   const getVoteForStartup = (startupId) => {
     return myVotes.find(v => v.startup_id === startupId);
+  };
+
+  // Calculate total votes per startup (LIVE!)
+  const getTotalVotesForStartup = (startupId) => {
+    return allInvestments
+      .filter(inv => inv.startup_id === startupId)
+      .reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+  };
+
+  // Get startup rankings
+  const getStartupRankings = () => {
+    const startupsWithVotes = startups.map(s => ({
+      ...s,
+      totalVotes: getTotalVotesForStartup(s.id)
+    }));
+    return startupsWithVotes.sort((a, b) => b.totalVotes - a.totalVotes);
+  };
+
+  const rankedStartups = getStartupRankings();
+
+  const getStartupRank = (startupId) => {
+    const index = rankedStartups.findIndex(s => s.id === startupId);
+    return index + 1;
   };
 
   const coinsSpent = myVotes.reduce((sum, v) => sum + parseFloat(v.amount || 0), 0);
@@ -251,9 +275,12 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {startups.map((startup, idx) => {
+                {rankedStartups.map((startup, idx) => {
                   const currentVote = getVoteForStartup(startup.id);
                   const hasVoted = currentVote && currentVote.amount > 0;
+                  const rank = idx + 1;
+                  const totalVotes = startup.totalVotes;
+                  const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
 
                   return (
                     <div
@@ -262,6 +289,18 @@ export default function DashboardPage() {
                       style={{animationDelay: `${idx * 0.1}s`}}
                       onClick={() => !isLocked && setSelectedStartup(startup)}
                     >
+                      {/* Rank Badge */}
+                      <div className="absolute -top-3 -left-3 z-10">
+                        <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center font-black text-lg shadow-[0_4px_0_0_rgba(120,53,15,1)] ${
+                          rank === 1 ? 'bg-gradient-to-br from-yellow-300 to-yellow-500 border-yellow-700' :
+                          rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 border-gray-600' :
+                          rank === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-600 border-orange-800' :
+                          'bg-gradient-to-br from-amber-400 to-amber-600 border-amber-900'
+                        }`}>
+                          {rankEmoji}
+                        </div>
+                      </div>
+
                       {/* Vote Badge */}
                       {hasVoted && (
                         <div className="absolute -top-3 -right-3 achievement-badge text-2xl z-10">
@@ -273,6 +312,21 @@ export default function DashboardPage() {
                       <h3 className="text-xl sm:text-2xl font-black text-amber-900 dark:text-amber-100 mb-3 line-clamp-2">
                         {startup.name}
                       </h3>
+
+                      {/* LIVE Total Votes Display */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-900 dark:border-purple-600 rounded-lg px-3 py-2">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="text-lg">🏆</span>
+                            <span className="text-base font-black text-purple-900 dark:text-purple-200">
+                              {totalVotes}
+                            </span>
+                            <span className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase">
+                              Total Votes
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
                       {/* Description */}
                       <p className="text-sm text-amber-800 dark:text-amber-300 mb-4 line-clamp-3">
@@ -319,6 +373,44 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Lock Votes Button - Available in VOTE tab */}
+            {!isLocked && myVotes.length > 0 && (
+              <div className="game-card bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-900 mt-8">
+                <div className="text-center">
+                  <p className="text-xl sm:text-2xl font-black text-purple-300 mb-2">
+                    🔒 Ready to Lock In Your Votes?
+                  </p>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="bg-purple-950/30 border border-purple-800 rounded-lg p-2">
+                      <p className="text-xs font-bold text-purple-400 uppercase">Voted</p>
+                      <p className="text-xl font-black text-purple-200">🚀 {myVotes.length}</p>
+                    </div>
+                    <div className="bg-purple-950/30 border border-purple-800 rounded-lg p-2">
+                      <p className="text-xs font-bold text-purple-400 uppercase">Spent</p>
+                      <p className="text-xl font-black text-purple-200">🪙 {coinsSpent}</p>
+                    </div>
+                    <div className="bg-purple-950/30 border border-purple-800 rounded-lg p-2">
+                      <p className="text-xs font-bold text-purple-400 uppercase">Left</p>
+                      <p className="text-xl font-black text-purple-200">🪙 {coinsLeft}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm sm:text-base text-purple-400 mb-6">
+                    {coinsLeft > 0
+                      ? `⚠️ You still have ${coinsLeft} coins left! Spend them all before locking.`
+                      : '✅ All coins spent! You can lock your votes now.'
+                    }
+                  </p>
+                  <button
+                    onClick={handleSubmitPortfolio}
+                    disabled={submitting}
+                    className="btn-game w-full sm:w-auto px-12 disabled:opacity-50"
+                  >
+                    {submitting ? '⚡ LOCKING...' : '🔒 LOCK MY VOTES NOW'}
+                  </button>
+                </div>
               </div>
             )}
           </div>
