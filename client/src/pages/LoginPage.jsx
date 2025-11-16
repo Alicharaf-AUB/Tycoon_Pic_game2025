@@ -156,7 +156,7 @@ export default function LoginPage() {
 
             <div className="inline-block bg-gradient-to-r from-amber-400 to-yellow-500 px-8 py-3 border-4 border-amber-900 rounded-full shadow-[4px_4px_0px_0px_rgba(120,53,15,1)] mb-6">
               <p className="text-2xl sm:text-3xl md:text-4xl font-black text-amber-950 uppercase tracking-wider">
-                🎩 Tycoon Challenge! 🪙
+                🎩 Voting Challenge! 🪙
               </p>
             </div>
 
