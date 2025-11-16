@@ -1390,8 +1390,7 @@ const initializeDatabaseOnStartup = async () => {
     
     console.log('✅ Database ready');
   } catch (error) {
-    console.error('❌ Error initializing database:', error);
-    console.error('Stack trace:', error.stack);
+    console.error('❌ Database initialization error:', error.message);
   }
 };
 
@@ -1457,9 +1456,12 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`Admin credentials: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
   }
   
-  // Initialize database after server starts (non-blocking)
-  initializeDatabaseOnStartup().catch(error => {
-    console.error('❌ Database initialization failed:', error);
-    // Don't exit - let the app run even if DB init fails
+  // Initialize database after server starts (non-blocking with timeout)
+  Promise.race([
+    initializeDatabaseOnStartup(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('DB init timeout')), 10000))
+  ]).catch(error => {
+    console.error('❌ Database initialization failed:', error.message);
+    // App continues to run even if DB init fails/times out
   });
 });
