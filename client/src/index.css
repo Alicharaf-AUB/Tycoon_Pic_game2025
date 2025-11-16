@@ -11,19 +11,19 @@
   }
 
   :root {
-    --color-executive-navy: #0a0e27;
-    --color-executive-blue: #1e3a8a;
-    --color-gold: #f59e0b;
-    --color-platinum: #e5e7eb;
+    --color-tycoon-dark: #1a1410;
+    --color-tycoon-gold: #fbbf24;
+    --color-tycoon-amber: #f59e0b;
+    --color-tycoon-yellow: #fcd34d;
     --shadow-premium: 0 20px 60px rgba(0, 0, 0, 0.4);
-    --shadow-executive: 0 10px 40px rgba(30, 58, 138, 0.3);
+    --shadow-tycoon: 0 10px 40px rgba(251, 191, 36, 0.3);
     --shadow-gold: 0 10px 40px rgba(245, 158, 11, 0.3);
   }
 
   body {
-    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+    background: linear-gradient(135deg, #1a1410 0%, #2d2310 50%, #1a1410 100%);
     background-attachment: fixed;
-    @apply text-slate-50 antialiased;
+    @apply text-amber-50 antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     overflow-x: hidden;
   }
@@ -44,20 +44,20 @@
   }
 
   ::selection {
-    background-color: rgba(30, 58, 138, 0.3);
+    background-color: rgba(251, 191, 36, 0.3);
     color: #ffffff;
   }
 }
 
 @layer components {
   .btn-executive {
-    @apply relative inline-flex items-center justify-center gap-2 px-8 py-4 
-           bg-gradient-to-r from-blue-600 to-blue-500 
-           hover:from-blue-500 hover:to-blue-400
-           text-white font-semibold rounded-xl
-           transition-all duration-300 
-           shadow-lg shadow-blue-900/50
-           hover:shadow-xl hover:shadow-blue-900/60
+    @apply relative inline-flex items-center justify-center gap-2 px-8 py-4
+           bg-gradient-to-r from-amber-600 to-yellow-500
+           hover:from-amber-500 hover:to-yellow-400
+           text-slate-900 font-bold rounded-xl
+           transition-all duration-300
+           shadow-lg shadow-amber-900/50
+           hover:shadow-xl hover:shadow-amber-900/60
            hover:-translate-y-0.5
            active:translate-y-0
            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
@@ -91,10 +91,10 @@
 
   .btn-secondary {
     @apply relative inline-flex items-center justify-center gap-2 px-8 py-4
-           bg-slate-800/80 backdrop-blur-xl
-           hover:bg-slate-700/80
-           text-slate-100 font-semibold rounded-xl
-           border border-slate-600 hover:border-blue-500/50
+           bg-amber-950/30 backdrop-blur-xl
+           hover:bg-amber-900/40
+           text-amber-50 font-semibold rounded-xl
+           border border-amber-700/40 hover:border-amber-500/50
            transition-all duration-300
            shadow-lg hover:shadow-xl
            hover:-translate-y-0.5
@@ -124,16 +124,16 @@
   }
 
   .card-executive {
-    @apply relative bg-gradient-to-br from-slate-900/95 to-slate-800/95
-           backdrop-blur-2xl border border-slate-700/50 rounded-2xl p-8
-           shadow-2xl hover:shadow-blue-900/20
+    @apply relative bg-gradient-to-br from-amber-950/40 to-yellow-950/30
+           backdrop-blur-2xl border border-amber-700/30 rounded-2xl p-8
+           shadow-2xl hover:shadow-amber-900/20
            transition-all duration-300;
   }
 
   .card-executive::before {
     content: '';
     @apply absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300;
-    background: radial-gradient(circle at top right, rgba(30, 58, 138, 0.1), transparent 60%);
+    background: radial-gradient(circle at top right, rgba(251, 191, 36, 0.1), transparent 60%);
   }
 
   .card-executive:hover::before {
@@ -142,19 +142,19 @@
 
   .card-hover {
     @apply card-executive cursor-pointer
-           hover:border-blue-500/50 hover:-translate-y-1 hover:scale-[1.01];
+           hover:border-amber-500/50 hover:-translate-y-1 hover:scale-[1.01];
   }
 
   .card-premium {
-    @apply relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
-           border-2 border-blue-500/30 rounded-2xl p-8
-           shadow-2xl shadow-blue-900/30 overflow-hidden;
+    @apply relative bg-gradient-to-br from-amber-950/50 via-yellow-950/40 to-amber-950/50
+           border-2 border-amber-500/30 rounded-2xl p-8
+           shadow-2xl shadow-amber-900/30 overflow-hidden;
   }
 
   .card-premium::before {
     content: '';
     @apply absolute inset-0 opacity-10;
-    background: radial-gradient(circle at top right, rgba(30, 58, 138, 0.3), transparent 60%);
+    background: radial-gradient(circle at top right, rgba(251, 191, 36, 0.3), transparent 60%);
   }
 
   .card-gold {
@@ -176,18 +176,18 @@
   }
 
   .input-executive {
-    @apply w-full bg-slate-900/70 backdrop-blur-xl
-           border-2 border-slate-700 rounded-xl
-           px-6 py-4 text-slate-100 placeholder-slate-500
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-           transition-all shadow-inner hover:bg-slate-900/90;
+    @apply w-full bg-amber-950/30 backdrop-blur-xl
+           border-2 border-amber-700/40 rounded-xl
+           px-6 py-4 text-amber-50 placeholder-amber-600
+           focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500
+           transition-all shadow-inner hover:bg-amber-950/40;
     -webkit-appearance: none;
     appearance: none;
     font-size: 16px;
   }
 
   .input-executive:focus {
-    @apply bg-slate-900 shadow-blue-900/30;
+    @apply bg-amber-950/50 shadow-amber-900/30;
   }
   
   .input {
@@ -217,8 +217,8 @@
   }
 
   .badge-info {
-    @apply badge-executive bg-blue-500/20 text-blue-300
-           border border-blue-500/40 shadow-blue-900/20;
+    @apply badge-executive bg-amber-500/20 text-amber-300
+           border border-amber-500/40 shadow-amber-900/20;
   }
 
   .badge-gold {
@@ -231,7 +231,7 @@
   }
 
   .text-gradient-executive {
-    @apply bg-gradient-to-r from-blue-400 via-blue-300 to-cyan-300
+    @apply bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400
            bg-clip-text text-transparent;
   }
 
@@ -243,9 +243,9 @@
   }
 
   .stat-card {
-    @apply relative bg-gradient-to-br from-slate-900/90 to-slate-800/90
+    @apply relative bg-gradient-to-br from-amber-950/40 to-yellow-950/30
            backdrop-blur-xl rounded-2xl p-6
-           border border-slate-700/50 shadow-xl overflow-hidden
+           border border-amber-700/30 shadow-xl overflow-hidden
            hover:-translate-y-1 transition-all duration-300;
   }
 
@@ -257,7 +257,7 @@
 
   .modal-overlay-executive {
     @apply fixed inset-0 z-50
-           bg-slate-950/80 backdrop-blur-lg
+           bg-stone-950/80 backdrop-blur-lg
            flex items-center justify-center p-4
            animate-fade-in;
   }
@@ -286,20 +286,20 @@
   }
 
   .scrollbar-executive::-webkit-scrollbar-thumb {
-    @apply bg-blue-600/50 rounded-lg hover:bg-blue-600/70;
+    @apply bg-amber-600/50 rounded-lg hover:bg-amber-600/70;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    @apply bg-slate-900/50 rounded-lg;
+    @apply bg-amber-950/50 rounded-lg;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-blue-600/50 rounded-lg hover:bg-blue-600/70;
+    @apply bg-amber-600/50 rounded-lg hover:bg-amber-600/70;
   }
 
   /* Hide scrollbar for mobile navigation */
@@ -313,28 +313,28 @@
   }
 
   .page-header-executive {
-    @apply relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900
-           border-b-2 border-blue-500/20 p-8 mb-8;
+    @apply relative bg-gradient-to-r from-amber-950/50 via-yellow-950/40 to-amber-950/50
+           border-b-2 border-amber-500/20 p-8 mb-8;
   }
 
   .page-header-executive::before {
     content: '';
     @apply absolute inset-0;
-    background: linear-gradient(to right, transparent, rgba(30, 58, 138, 0.1), transparent);
+    background: linear-gradient(to right, transparent, rgba(251, 191, 36, 0.1), transparent);
   }
-  
+
   .loading-elite {
-    border: 3px solid rgba(30, 58, 138, 0.2);
-    border-top: 3px solid #3b82f6;
+    border: 3px solid rgba(251, 191, 36, 0.2);
+    border-top: 3px solid #fbbf24;
     border-radius: 50%;
     width: 48px;
     height: 48px;
     animation: spin 0.8s linear infinite;
   }
-  
+
   .spinner-executive {
-    border: 3px solid rgba(30, 58, 138, 0.2);
-    border-top: 3px solid #3b82f6;
+    border: 3px solid rgba(251, 191, 36, 0.2);
+    border-top: 3px solid #fbbf24;
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -348,12 +348,6 @@
   .from-amber-500\/5 {
     --tw-gradient-from: rgba(245, 158, 11, 0.05);
     --tw-gradient-to: rgba(245, 158, 11, 0);
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-  }
-  
-  .from-blue-500\/5 {
-    --tw-gradient-from: rgba(59, 130, 246, 0.05);
-    --tw-gradient-to: rgba(59, 130, 246, 0);
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   }
 }
@@ -384,13 +378,13 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { 
+  0%, 100% {
     opacity: 1;
-    box-shadow: 0 0 20px rgba(30, 58, 138, 0.3);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
   }
-  50% { 
+  50% {
     opacity: 0.9;
-    box-shadow: 0 0 40px rgba(30, 58, 138, 0.5);
+    box-shadow: 0 0 40px rgba(251, 191, 36, 0.5);
   }
 }
 
@@ -424,7 +418,7 @@
 }
 
 .glow-executive {
-  box-shadow: 0 0 30px rgba(30, 58, 138, 0.4), 0 0 60px rgba(30, 58, 138, 0.2);
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.4), 0 0 60px rgba(251, 191, 36, 0.2);
 }
 
 .glow-gold {
@@ -434,8 +428,8 @@
 .glass-executive {
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
-  background-color: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background-color: rgba(26, 20, 16, 0.6);
+  border: 1px solid rgba(251, 191, 36, 0.1);
 }
 
 .shadow-elite {
@@ -447,7 +441,7 @@
 }
 
 .shadow-executive {
-  box-shadow: var(--shadow-executive);
+  box-shadow: var(--shadow-tycoon);
 }
 
 .shadow-gold {
@@ -455,11 +449,11 @@
 }
 
 .shadow-inner-glow {
-  box-shadow: inset 0 0 20px rgba(30, 58, 138, 0.2);
+  box-shadow: inset 0 0 20px rgba(251, 191, 36, 0.2);
 }
 
 *:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #fbbf24;
   outline-offset: 2px;
 }
 
@@ -469,16 +463,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #1a1410;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #1e3a8a, #3b82f6);
+  background: linear-gradient(to bottom, #d97706, #fbbf24);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+  background: linear-gradient(to bottom, #fbbf24, #fcd34d);
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -504,15 +498,15 @@
 
 /* Light Theme Overrides */
 :root.light-theme {
-  --color-executive-navy: #f8fafc;
-  --color-executive-blue: #3b82f6;
+  --color-tycoon-dark: #fef3c7;
+  --color-tycoon-gold: #f59e0b;
   --shadow-premium: 0 20px 60px rgba(0, 0, 0, 0.15);
-  --shadow-executive: 0 10px 40px rgba(59, 130, 246, 0.2);
+  --shadow-tycoon: 0 10px 40px rgba(245, 158, 11, 0.2);
 }
 
 .light-theme body {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
-  color: #0f172a;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fffbeb 100%);
+  color: #78350f;
 }
 
 .light-theme .card-executive,
@@ -524,7 +518,7 @@
 }
 
 .light-theme .btn-executive {
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
 }
 
 .light-theme .btn-secondary {
@@ -600,6 +594,6 @@
 }
 
 .light-theme ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+  background: linear-gradient(to bottom, #f59e0b, #fbbf24);
 }
 

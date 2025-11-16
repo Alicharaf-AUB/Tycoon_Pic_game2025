@@ -140,7 +140,6 @@ export default function AdminPage() {
     { id: 'investors', name: '👥 Investors', emoji: '👥' },
     { id: 'startups', name: '🚀 Startups', emoji: '🚀' },
     { id: 'investments', name: '💰 Investments', emoji: '💰' },
-    { id: 'fund-requests', name: '💸 Fund Requests', emoji: '💸' },
     { id: 'submissions', name: '✅ Submissions', emoji: '✅' },
     { id: 'analytics', name: '📈 Analytics', emoji: '📈' },
     { id: 'activity', name: '⚡ Activity Feed', emoji: '⚡' },
@@ -203,9 +202,6 @@ export default function AdminPage() {
         )}
         {activeTab === 'investments' && (
           <InvestmentsTab gameState={gameState} />
-        )}
-        {activeTab === 'fund-requests' && (
-          <FundRequestsTab username={username} password={password} />
         )}
         {activeTab === 'submissions' && (
           <SubmissionsTab gameState={gameState} />

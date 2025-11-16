@@ -5,7 +5,6 @@ import { useTheme } from '../context/ThemeContext';
 import { api, formatCurrency, formatPercentage, getFileUrl } from '../utils/api';
 import { generateInvestmentReport } from '../utils/pdfExport';
 import InvestmentConfirmationModal from '../components/InvestmentConfirmationModal';
-import FundsRequestModal from '../components/FundsRequestModal';
 import TransactionHistory from '../components/TransactionHistory';
 import StartupDetailsModal from '../components/StartupDetailsModal';
 import PortfolioAnalytics from '../components/PortfolioAnalytics';
@@ -25,7 +24,6 @@ export default function DashboardPage() {
   const [fallbackGameState, setFallbackGameState] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [lastInvestment, setLastInvestment] = useState(null);
-  const [showFundsRequest, setShowFundsRequest] = useState(false);
   const [showTransactions, setShowTransactions] = useState(false);
   const [activeTab, setActiveTab] = useState('opportunities'); // opportunities, portfolio, transactions
 
@@ -409,12 +407,6 @@ export default function DashboardPage() {
                 <p className="text-3xl font-display font-bold text-emerald-300">
                   {formatCurrency(getActualRemaining())}
                 </p>
-                <button
-                  onClick={() => setShowFundsRequest(true)}
-                  className="text-xs text-blue-400 hover:text-blue-300 font-semibold mt-2 transition-colors"
-                >
-                  Request Additional Funds →
-                </button>
               </div>
             </div>
 
@@ -490,22 +482,6 @@ export default function DashboardPage() {
                       </button>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              {/* Request Additional Funds Option */}
-              <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-xl px-6 py-4 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-slate-200 mb-1">Want to invest more?</h4>
-                    <p className="text-sm text-slate-400">Request additional capital to expand your portfolio</p>
-                  </div>
-                  <button
-                    onClick={() => setShowFundsRequest(true)}
-                    className="px-5 py-2.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg font-semibold text-blue-300 transition-colors whitespace-nowrap"
-                  >
-                    💰 Request Funds
-                  </button>
                 </div>
               </div>
             </div>
@@ -708,13 +684,6 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Funds Request Modal */}
-      {showFundsRequest && (
-        <FundsRequestModal
-          investor={investor}
-          onClose={() => setShowFundsRequest(false)}
-        />
-      )}
     </div>
   );
 }
