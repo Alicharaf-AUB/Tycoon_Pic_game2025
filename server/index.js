@@ -1298,8 +1298,12 @@ io.on('connection', async (socket) => {
 const initializeDatabaseOnStartup = async () => {
   console.log('🔍 Initializing database...');
   try {
+    // Initialize schema first (creates tables if they don't exist)
+    await initializeDatabase();
+    console.log('✅ Database schema initialized');
+    
     // Check and add missing columns if needed
-    console.log('🔄 Checking database schema...');
+    console.log('🔄 Checking database schema for missing columns...');
     
     // Check startup table columns
     const startupColumns = [
@@ -1383,9 +1387,6 @@ const initializeDatabaseOnStartup = async () => {
       `);
       console.log('✅ Added ip_address column to admin_logs for tracking admin actions by IP');
     }
-
-    // Initialize schema (this also seeds if needed)
-    await initializeDatabase();
     
     console.log('✅ Database ready');
   } catch (error) {
