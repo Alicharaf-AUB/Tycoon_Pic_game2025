@@ -42,7 +42,7 @@ console.log('🚦 Transports: polling, websocket');
 const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'demo123';
-const APP_ACCESS_PASSWORD = process.env.APP_ACCESS_PASSWORD || 'Ipark@aim@2025';
+const APP_ACCESS_PASSWORD = process.env.APP_ACCESS_PASSWORD || 'TycoonAUB@2025';
 
 // Store for valid access tokens (in production, use Redis or database)
 const validAccessTokens = new Set();
