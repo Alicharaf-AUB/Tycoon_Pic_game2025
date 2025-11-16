@@ -1443,26 +1443,23 @@ app.get('*', (req, res) => {
   }
 });
 
-// Initialize database first, then start server
-(async () => {
-  try {
-    await initializeDatabaseOnStartup();
-    
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-      
-      if (process.env.NODE_ENV === 'production') {
-        console.log('Running in PRODUCTION mode');
-        console.log('Serving client from /client/dist');
-        if (ADMIN_PASSWORD === 'demo123') {
-          console.warn('⚠️  SECURITY WARNING: Change admin password immediately!');
-        }
-      } else {
-        console.log(`Admin credentials: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
-      }
-    });
-  } catch (error) {
-    console.error('❌ Failed to initialize application:', error);
-    process.exit(1);
+// Start server first, then initialize database in background
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Running in PRODUCTION mode');
+    console.log('Serving client from /client/dist');
+    if (ADMIN_PASSWORD === 'demo123') {
+      console.warn('⚠️  SECURITY WARNING: Change admin password immediately!');
+    }
+  } else {
+    console.log(`Admin credentials: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
   }
-})();
+  
+  // Initialize database after server starts (non-blocking)
+  initializeDatabaseOnStartup().catch(error => {
+    console.error('❌ Database initialization failed:', error);
+    // Don't exit - let the app run even if DB init fails
+  });
+});
