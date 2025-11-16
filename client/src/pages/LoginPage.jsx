@@ -64,18 +64,18 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!name.trim()) {
-      setError('Please enter your name');
+      setError('🚫 Enter your player name!');
       return;
     }
 
     if (!email.trim()) {
-      setError('Please enter your email address');
+      setError('🚫 Enter your email address!');
       return;
     }
 
     // Verify app password first if not already authenticated
     if (!isAppAuthenticated && !appPassword.trim()) {
-      setError('Please enter the application password');
+      setError('🔒 Enter the game code!');
       return;
     }
 
@@ -90,7 +90,7 @@ export default function LoginPage() {
         });
 
         if (!appAuthResponse.data.success) {
-          setError('Incorrect application password');
+          setError('❌ Wrong game code! Try again.');
           setLoading(false);
           return;
         }
@@ -118,9 +118,9 @@ export default function LoginPage() {
       navigate(`/dashboard/${investor.id}`);
     } catch (err) {
       if (err.response?.status === 401 && err.response?.config?.url?.includes('verify-app-access')) {
-        setError('Incorrect application password. Please try again.');
+        setError('❌ Wrong game code! Try again.');
       } else {
-        setError(err.response?.data?.error || 'Failed to access your account');
+        setError(err.response?.data?.error || '⚠️ Failed to join game');
       }
     } finally {
       setLoading(false);
@@ -128,318 +128,198 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 lg:p-8 relative overflow-hidden">
-      {/* Tycoon Ambient Background */}
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Coin Rain Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-yellow-600/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-amber-500/8 to-transparent rounded-full blur-2xl"></div>
+        <div className="absolute top-0 left-1/4 text-6xl opacity-20 bounce-game">🪙</div>
+        <div className="absolute top-20 right-1/4 text-5xl opacity-15 bounce-game" style={{animationDelay: '0.5s'}}>💰</div>
+        <div className="absolute bottom-1/4 left-1/3 text-7xl opacity-10 bounce-game" style={{animationDelay: '1s'}}>🎩</div>
+        <div className="absolute top-1/3 right-1/3 text-4xl opacity-20 bounce-game" style={{animationDelay: '1.5s'}}>💵</div>
+        <div className="absolute bottom-1/3 right-1/4 text-6xl opacity-15 bounce-game" style={{animationDelay: '2s'}}>🏆</div>
+        <div className="absolute top-2/3 left-1/4 text-5xl opacity-10 bounce-game" style={{animationDelay: '2.5s'}}>🚀</div>
       </div>
 
-      <div className="w-full max-w-4xl relative z-10 animate-fade-in">
-        {/* VIP Header */}
-        <div className="text-center mb-12">
-          {/* Premium Logo */}
-          <div className="mb-10 relative inline-block">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-600/30 to-yellow-600/30 blur-3xl rounded-full"></div>
-            <div className="relative bg-gradient-to-br from-amber-950/50 via-yellow-950/40 to-amber-950/50 border-2 border-amber-500/40 rounded-3xl p-12 shadow-2xl shadow-amber-500/30">
-              <svg className="w-28 h-28 md:w-36 md:h-36 animate-float" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Angel Wings with Blue Gradient */}
-                <path d="M100 100 Q70 80, 40 70 Q30 65, 25 75 Q20 85, 30 90 Q50 95, 70 100 Q80 105, 90 110 Z"
-                      fill="url(#blueWingGradient)" stroke="url(#blueWingStroke)" strokeWidth="1.5" opacity="0.9"/>
-                <path d="M90 110 Q65 95, 45 90 Q35 88, 32 95 Q30 102, 40 105 Q55 108, 75 115 Z"
-                      fill="url(#blueWingGradient)" stroke="url(#blueWingStroke)" strokeWidth="1" opacity="0.8"/>
-                <path d="M100 100 Q130 80, 160 70 Q170 65, 175 75 Q180 85, 170 90 Q150 95, 130 100 Q120 105, 110 110 Z"
-                      fill="url(#blueWingGradient)" stroke="url(#blueWingStroke)" strokeWidth="1.5" opacity="0.9"/>
-                <path d="M110 110 Q135 95, 155 90 Q165 88, 168 95 Q170 102, 160 105 Q145 108, 125 115 Z"
-                      fill="url(#blueWingGradient)" stroke="url(#blueWingStroke)" strokeWidth="1" opacity="0.8"/>
+      <div className="w-full max-w-2xl relative z-10">
+        {/* Game Title - Arcade Style */}
+        <div className="text-center mb-12 pop-in">
+          {/* Super Playful Title */}
+          <div className="mb-8">
+            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black mb-4 pixel-text"
+                style={{
+                  background: 'linear-gradient(to bottom, #fcd34d, #f59e0b, #d97706)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  filter: 'drop-shadow(4px 4px 0px rgba(120,53,15,0.8))',
+                }}>
+              {GAME_CONFIG.gameName}
+            </h1>
 
-                {/* Blue Halo */}
-                <ellipse cx="100" cy="45" rx="25" ry="8" fill="none" stroke="url(#blueHaloGradient)" strokeWidth="3" opacity="0.9"/>
-                <ellipse cx="100" cy="45" rx="25" ry="8" fill="url(#blueHaloGlow)" opacity="0.3"/>
-
-                {/* Center Body - Blue gradient */}
-                <circle cx="100" cy="100" r="20" fill="url(#blueBodyGradient)" stroke="url(#blueWingStroke)" strokeWidth="2"/>
-                <circle cx="100" cy="100" r="12" fill="url(#blueInnerGlow)" opacity="0.6"/>
-
-                {/* Sparkles */}
-                <circle cx="70" cy="60" r="2" fill="#60A5FA" opacity="0.8">
-                  <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="130" cy="60" r="2" fill="#60A5FA" opacity="0.8">
-                  <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
-                </circle>
-
-                <defs>
-                  <linearGradient id="blueWingGradient" x1="0" y1="50" x2="200" y2="120">
-                    <stop offset="0%" stopColor="#DBEAFE"/>
-                    <stop offset="50%" stopColor="#60A5FA"/>
-                    <stop offset="100%" stopColor="#3B82F6"/>
-                  </linearGradient>
-                  <linearGradient id="blueWingStroke" x1="0" y1="50" x2="200" y2="120">
-                    <stop offset="0%" stopColor="#60A5FA"/>
-                    <stop offset="100%" stopColor="#3B82F6"/>
-                  </linearGradient>
-                  <linearGradient id="blueHaloGradient" x1="75" y1="45" x2="125" y2="45">
-                    <stop offset="0%" stopColor="#60A5FA"/>
-                    <stop offset="50%" stopColor="#3B82F6"/>
-                    <stop offset="100%" stopColor="#60A5FA"/>
-                  </linearGradient>
-                  <radialGradient id="blueHaloGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#DBEAFE"/>
-                    <stop offset="100%" stopColor="transparent"/>
-                  </radialGradient>
-                  <radialGradient id="blueBodyGradient" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#DBEAFE"/>
-                    <stop offset="50%" stopColor="#60A5FA"/>
-                    <stop offset="100%" stopColor="#3B82F6"/>
-                  </radialGradient>
-                  <radialGradient id="blueInnerGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#EFF6FF"/>
-                    <stop offset="100%" stopColor="transparent"/>
-                  </radialGradient>
-                </defs>
-              </svg>
+            <div className="inline-block bg-gradient-to-r from-amber-400 to-yellow-500 px-8 py-3 border-4 border-amber-900 rounded-full shadow-[4px_4px_0px_0px_rgba(120,53,15,1)] mb-6">
+              <p className="text-2xl sm:text-3xl md:text-4xl font-black text-amber-950 uppercase tracking-wider">
+                🎩 Tycoon Challenge! 🪙
+              </p>
             </div>
+
+            <p className="text-xl sm:text-2xl text-amber-200 font-bold mb-4">
+              ⭐ Build Your Startup Empire ⭐
+            </p>
+
+            <p className="text-lg text-amber-300/90 max-w-xl mx-auto">
+              Vote with your coins 🪙 • Compete with friends 🏆 • Become the ultimate tycoon! 👑
+            </p>
           </div>
 
-          {/* Tycoon Title */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold mb-6 leading-tight">
-            <span className="text-gradient-executive bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400">
-              {GAME_CONFIG.gameName}
-            </span>
-          </h1>
-
-          <p className="text-2xl sm:text-3xl md:text-4xl text-amber-200 font-serif italic mb-4 font-light">
-            🎩 {GAME_CONFIG.gameTagline}
-          </p>
-
-          <p className="text-lg text-amber-300/80 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Step into the world of business tycoons. Cast your votes, build your startup empire, and compete for investment glory!
-          </p>
-
-          {/* Event Badge */}
-          {GAME_CONFIG.eventInfo.enabled && (
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-950/80 to-yellow-950/80 backdrop-blur-xl border border-amber-500/40 rounded-full px-8 py-4 mb-8 shadow-xl shadow-amber-500/20">
-              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
-              <p className="text-sm md:text-base font-semibold text-blue-200">
-                {GAME_CONFIG.eventInfo.eventName}
-              </p>
-              <div className="h-6 w-px bg-blue-500/30"></div>
-              <p className="text-sm md:text-base text-blue-300">
-                {GAME_CONFIG.eventInfo.eventDate}
-              </p>
+          {/* Coin Counter Display */}
+          <div className="flex justify-center gap-4 mb-8 flex-wrap">
+            <div className="coin-display coin-flip">
+              <span className="text-3xl">🪙</span>
+              <span>{GAME_CONFIG.defaultStartingCredit}</span>
+              <span className="text-sm">COINS/PLAYER</span>
             </div>
-          )}
-
-          <div className="h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent max-w-md mx-auto"></div>
+          </div>
         </div>
 
-        {/* VIP Login Form */}
-        <div className="card-premium shadow-elite-lg mb-8 max-w-2xl mx-auto">
-          <form onSubmit={handleLogin} className="space-y-8">
-            {/* Header */}
-            <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-display font-bold text-slate-100 mb-3">
-                Investor Portal Access
+        {/* Game Start Form - Arcade Style */}
+        <div className="game-card max-w-md mx-auto pop-in" style={{animationDelay: '0.2s'}}>
+          <form onSubmit={handleLogin} className="space-y-6">
+            {/* Fun Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
+                🎮 ENTER GAME
               </h2>
-              <p className="text-sm text-slate-400">
-                Enter your credentials to access your investment dashboard
+              <p className="text-sm text-amber-700 dark:text-amber-400 font-bold">
+                Ready to become a tycoon?
               </p>
             </div>
 
-            {/* Name Input */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
-                Your Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
-                className="input-executive text-lg"
-                disabled={loading}
-                maxLength={100}
-                autoComplete="name"
-                autoFocus
-              />
-            </div>
+            {/* Error Message */}
+            {error && (
+              <div className="game-alert wiggle">
+                <span className="text-xl mr-2">⚠️</span>
+                {error}
+              </div>
+            )}
 
-            {/* Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
-                Your Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                className="input-executive text-lg"
-                disabled={loading}
-                maxLength={100}
-                autoComplete="email"
-              />
-              <p className="mt-2 text-xs text-slate-500">
-                Both name and email must match your registered account
-              </p>
-            </div>
-
-            {/* App Password Input - only show if not already authenticated */}
+            {/* Input Fields - Game Style */}
             {!isAppAuthenticated && (
               <div>
-                <label htmlFor="appPassword" className="block text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest">
-                  Application Password
+                <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
+                  🔑 Game Code
                 </label>
                 <input
                   type="password"
-                  id="appPassword"
                   value={appPassword}
                   onChange={(e) => setAppPassword(e.target.value)}
-                  placeholder="Enter application password"
-                  className="input-executive text-lg"
+                  className="w-full px-6 py-4 text-lg font-bold
+                           bg-white dark:bg-amber-950/50
+                           border-4 border-amber-900 dark:border-amber-600 rounded-2xl
+                           focus:outline-none focus:ring-4 focus:ring-amber-400
+                           text-amber-950 dark:text-amber-100
+                           shadow-[4px_4px_0px_0px_rgba(120,53,15,0.6)] dark:shadow-[4px_4px_0px_0px_rgba(251,191,36,0.3)]
+                           transition-all duration-200"
+                  placeholder="Enter secret code..."
                   disabled={loading}
-                  autoComplete="current-password"
                 />
-                <p className="mt-2 text-xs text-slate-500">
-                  Required for first-time access
-                </p>
               </div>
             )}
 
-            {/* Remember Me Checkbox */}
-            <div className="flex items-start gap-3 group cursor-pointer" onClick={() => setRememberMe(!rememberMe)}>
-              <div className="relative flex items-center justify-center mt-0.5">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900/70 checked:bg-blue-500 checked:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 cursor-pointer transition-all"
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-              <label htmlFor="rememberMe" className="text-sm text-slate-300 cursor-pointer select-none">
-                <div className="flex flex-col gap-1">
-                  <span className="group-hover:text-slate-100 transition-colors">Remember me on this device</span>
-                  <span className="text-xs text-slate-500">(Auto-login next time)</span>
-                </div>
+            <div>
+              <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
+                👤 Player Name
               </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-6 py-4 text-lg font-bold
+                         bg-white dark:bg-amber-950/50
+                         border-4 border-amber-900 dark:border-amber-600 rounded-2xl
+                         focus:outline-none focus:ring-4 focus:ring-amber-400
+                         text-amber-950 dark:text-amber-100
+                         shadow-[4px_4px_0px_0px_rgba(120,53,15,0.6)] dark:shadow-[4px_4px_0px_0px_rgba(251,191,36,0.3)]
+                         transition-all duration-200"
+                placeholder="Your cool name..."
+                disabled={loading}
+              />
             </div>
 
-            {error && (
-              <div className="bg-rose-500/10 border-2 border-rose-500/30 backdrop-blur-xl text-rose-300 px-6 py-4 rounded-xl text-sm font-medium animate-fade-in shadow-lg">
-                <div className="flex items-center gap-3">
-                  <svg className="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
+                📧 Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-6 py-4 text-lg font-bold
+                         bg-white dark:bg-amber-950/50
+                         border-4 border-amber-900 dark:border-amber-600 rounded-2xl
+                         focus:outline-none focus:ring-4 focus:ring-amber-400
+                         text-amber-950 dark:text-amber-100
+                         shadow-[4px_4px_0px_0px_rgba(120,53,15,0.6)] dark:shadow-[4px_4px_0px_0px_rgba(251,191,36,0.3)]
+                         transition-all duration-200"
+                placeholder="your@email.com"
+                disabled={loading}
+              />
+            </div>
 
-            {/* Submit Button */}
+            {/* Remember Me */}
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-6 h-6 rounded border-4 border-amber-900 text-amber-600 focus:ring-4 focus:ring-amber-400"
+                disabled={loading}
+              />
+              <span className="text-base font-bold text-amber-900 dark:text-amber-300 group-hover:text-amber-700 dark:group-hover:text-amber-200">
+                💾 Remember me for next round!
+              </span>
+            </label>
+
+            {/* Big Game Button */}
             <button
               type="submit"
-              disabled={loading || !name.trim() || !email.trim() || (!isAppAuthenticated && !appPassword.trim())}
-              className="btn-executive w-full disabled:opacity-50 disabled:cursor-not-allowed text-xl py-6 font-bold relative overflow-hidden group"
+              disabled={loading}
+              className="btn-game w-full text-2xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="relative z-10 flex items-center justify-center gap-3">
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Authenticating Access...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                    </svg>
-                    <span>Access Dashboard</span>
-                    <svg className="w-6 h-6 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </>
-                )}
-              </span>
+              {loading ? (
+                <span className="flex items-center justify-center gap-3">
+                  <span className="animate-spin text-3xl">⚡</span>
+                  Loading Game...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-3">
+                  <span className="text-3xl">🚀</span>
+                  PRESS START!
+                  <span className="text-3xl">🚀</span>
+                </span>
+              )}
             </button>
           </form>
 
-          {/* Trust Features */}
-          <div className="mt-10 pt-8 border-t border-slate-700/50">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center group">
-                <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-blue-500/30 shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
+          {/* Event Info Badge */}
+          {GAME_CONFIG.eventInfo.enabled && (
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-amber-900/20 dark:bg-amber-400/20 border-2 border-amber-900 dark:border-amber-400 rounded-full">
+                <span className="text-2xl bounce-game">🎪</span>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase">Event</p>
+                  <p className="text-sm font-black text-amber-950 dark:text-amber-200">
+                    {GAME_CONFIG.eventInfo.eventName}
+                  </p>
                 </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Secure</p>
-              </div>
-              <div className="text-center group">
-                <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-emerald-500/30 shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Real-Time</p>
-              </div>
-              <div className="text-center group">
-                <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-purple-500/30 shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Analytics</p>
-              </div>
-              <div className="text-center group">
-                <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-amber-500/20 to-amber-600/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-amber-500/30 shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">VIP Access</p>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Footer */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-6 text-sm">
-            <a
-              href="/admin"
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-blue-400 transition-colors font-medium group"
-            >
-              <svg className="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span>Admin Portal</span>
-            </a>
-            <span className="text-slate-700">|</span>
-            <a
-              href="/support"
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-blue-400 transition-colors font-medium group"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Support</span>
-            </a>
-          </div>
-
-          {GAME_CONFIG.organizationInfo.enabled && (
-            <p className="text-xs text-slate-500 font-medium">
-              Powered by {GAME_CONFIG.organizationInfo.name}
-            </p>
-          )}
-
-          <div className="pt-6">
-            <div className="h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent max-w-xs mx-auto"></div>
-          </div>
+        {/* Bottom Decorations */}
+        <div className="flex justify-center gap-8 mt-12 text-6xl opacity-30">
+          <span className="bounce-game">💰</span>
+          <span className="bounce-game" style={{animationDelay: '0.3s'}}>🪙</span>
+          <span className="bounce-game" style={{animationDelay: '0.6s'}}>🏆</span>
+          <span className="bounce-game" style={{animationDelay: '0.9s'}}>🎩</span>
         </div>
       </div>
     </div>

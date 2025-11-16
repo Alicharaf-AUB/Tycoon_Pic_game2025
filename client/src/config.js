@@ -10,11 +10,11 @@ export const GAME_CONFIG = {
   organizationName: 'AUB PIC 2025',
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 💰 INVESTOR SETTINGS
+  // 💰 PLAYER SETTINGS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  defaultStartingCredit: 500, // 500 points = 500 euros
-  currencySymbol: '€',
-  currencyName: 'Points',
+  defaultStartingCredit: 500, // Starting coins for each player
+  currencySymbol: '🪙',
+  currencyName: 'Coins',
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🎨 BRANDING
@@ -39,13 +39,15 @@ export const GAME_CONFIG = {
   requireFullAllocation: false, // Must invest all credits?
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 💬 MESSAGING
+  // 💬 GAME MESSAGES
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   messages: {
-    welcomeTitle: 'Welcome, Tycoon!',
-    investmentSuccess: 'Vote recorded! 🎩💰',
-    gameLockedMessage: 'Voting period has ended. Results are final! 🏆',
-    noStartupsMessage: 'Startups will appear here soon... Get ready to build your empire! 🚀',
+    welcomeTitle: 'Welcome, Player!',
+    investmentSuccess: '🎉 COINS INVESTED! +XP',
+    gameLockedMessage: '⏰ Game Over! Final scores locked! 🏆',
+    noStartupsMessage: '🚀 Loading challenges... Get your coins ready!',
+    portfolioSubmitted: '✅ MISSION COMPLETE! Portfolio locked!',
+    gameLocked: '🔒 Trading closed! Check the leaderboard!',
   },
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
