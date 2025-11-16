@@ -868,7 +868,7 @@
          border-4 border-amber-900 dark:border-amber-400
          bg-gradient-to-r from-amber-300 to-yellow-400
          shadow-[4px_4px_0px_0px_rgba(120,53,15,1)]
-         font-bold text-amber-950 text-lg
-         animate-bounce-game;
+         font-bold text-amber-950 text-lg;
+  animation: bounce-game 1s ease-in-out infinite;
 }
 
