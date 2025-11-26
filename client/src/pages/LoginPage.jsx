@@ -220,8 +220,7 @@ export default function LoginPage() {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-3">
-                  <span className="text-3xl">🚀</span>
-                  PRESS START!
+                  START!
                   <span className="text-3xl">🚀</span>
                 </span>
               )}
