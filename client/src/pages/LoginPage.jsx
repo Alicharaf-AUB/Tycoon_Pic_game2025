@@ -11,53 +11,32 @@ const API_BASE = import.meta.env.VITE_API_URL || (isProduction ? window.location
 export default function LoginPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [appPassword, setAppPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [isAppAuthenticated, setIsAppAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  // Check app authentication and auto-login if remembered
+  // Auto-login if remembered
   useEffect(() => {
-    const checkAuth = async () => {
-      const accessToken = sessionStorage.getItem('app_access_token');
+    const checkRemembered = async () => {
+      const rememberedInvestorId = localStorage.getItem('rememberedInvestorId');
+      const rememberedName = localStorage.getItem('rememberedName');
 
-      if (accessToken) {
-        // Verify token is still valid
-        try {
-          await axios.get(`${API_BASE}/api/game-state`, {
-            headers: {
-              'x-app-access-token': accessToken
-            }
+      if (rememberedInvestorId && rememberedName) {
+        setLoading(true);
+        api.getInvestor(rememberedInvestorId)
+          .then(({ investor }) => {
+            navigate(`/dashboard/${investor.id}`);
+          })
+          .catch(() => {
+            localStorage.removeItem('rememberedInvestorId');
+            localStorage.removeItem('rememberedName');
+            setLoading(false);
           });
-          setIsAppAuthenticated(true);
-
-          // If app is authenticated and user is remembered, auto-login
-          const rememberedInvestorId = localStorage.getItem('rememberedInvestorId');
-          const rememberedName = localStorage.getItem('rememberedName');
-
-          if (rememberedInvestorId && rememberedName) {
-            setLoading(true);
-            api.getInvestor(rememberedInvestorId)
-              .then(({ investor }) => {
-                navigate(`/dashboard/${investor.id}`);
-              })
-              .catch(() => {
-                localStorage.removeItem('rememberedInvestorId');
-                localStorage.removeItem('rememberedName');
-                setLoading(false);
-              });
-          }
-        } catch (err) {
-          // Token is invalid, clear it
-          sessionStorage.removeItem('app_access_token');
-          setIsAppAuthenticated(false);
-        }
       }
     };
 
-    checkAuth();
+    checkRemembered();
   }, [navigate]);
 
   const handleLogin = async (e) => {
@@ -73,34 +52,11 @@ export default function LoginPage() {
       return;
     }
 
-    // Verify app password first if not already authenticated
-    if (!isAppAuthenticated && !appPassword.trim()) {
-      setError('🔒 Enter the game code!');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
-      // First verify app password if not already authenticated
-      if (!isAppAuthenticated) {
-        const appAuthResponse = await axios.post(`${API_BASE}/api/verify-app-access`, {
-          password: appPassword
-        });
-
-        if (!appAuthResponse.data.success) {
-          setError('❌ Wrong game code! Try again.');
-          setLoading(false);
-          return;
-        }
-
-        // Store access token
-        sessionStorage.setItem('app_access_token', appAuthResponse.data.accessToken);
-        setIsAppAuthenticated(true);
-      }
-
-      // Then proceed with investor login
+      // Proceed with investor login
       const { investor } = await api.findInvestor(email.trim(), name.trim());
 
       // Store investor info in localStorage for session management
@@ -117,11 +73,7 @@ export default function LoginPage() {
 
       navigate(`/dashboard/${investor.id}`);
     } catch (err) {
-      if (err.response?.status === 401 && err.response?.config?.url?.includes('verify-app-access')) {
-        setError('❌ Wrong game code! Try again.');
-      } else {
-        setError(err.response?.data?.error || '⚠️ Failed to join game');
-      }
+      setError(err.response?.data?.error || '⚠️ Failed to join game');
     } finally {
       setLoading(false);
     }
@@ -201,28 +153,6 @@ export default function LoginPage() {
             )}
 
             {/* Input Fields - Game Style */}
-            {!isAppAuthenticated && (
-              <div>
-                <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
-                  🔑 Game Code
-                </label>
-                <input
-                  type="password"
-                  value={appPassword}
-                  onChange={(e) => setAppPassword(e.target.value)}
-                  className="w-full px-6 py-4 text-lg font-bold
-                           bg-white dark:bg-amber-950/50
-                           border-4 border-amber-900 dark:border-amber-600 rounded-2xl
-                           focus:outline-none focus:ring-4 focus:ring-amber-400
-                           text-amber-950 dark:text-amber-100
-                           shadow-[4px_4px_0px_0px_rgba(120,53,15,0.6)] dark:shadow-[4px_4px_0px_0px_rgba(251,191,36,0.3)]
-                           transition-all duration-200"
-                  placeholder="Enter secret code..."
-                  disabled={loading}
-                />
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
                 👤 Player Name
