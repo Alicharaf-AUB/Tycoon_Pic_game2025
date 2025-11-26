@@ -112,12 +112,8 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <p className="text-xl sm:text-2xl text-amber-200 font-bold mb-4">
-              ⭐ Build Your Startup Empire ⭐
-            </p>
-
             <p className="text-lg text-amber-300/90 max-w-xl mx-auto">
-              Vote with your coins 🪙 • Compete with friends 🏆 • Become the ultimate tycoon! 👑
+              Vote with your coins 🪙! 👑
             </p>
           </div>
 
