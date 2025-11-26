@@ -55,7 +55,7 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   eventInfo: {
     enabled: true,
-    eventName: 'Talal and Madiha Zein AUB PIC Demo Day 2026',
+    eventName: 'Zein AUB iPark PIC 2025 Demo Day – People's Choice Award',
     eventDate: 'November 2025',
     eventLocation: 'American University of Beirut',
   },

@@ -108,12 +108,16 @@ export default function LoginPage() {
 
             <div className="inline-block bg-gradient-to-r from-amber-400 to-yellow-500 px-8 py-3 border-4 border-amber-900 rounded-full shadow-[4px_4px_0px_0px_rgba(120,53,15,1)] mb-6">
               <p className="text-2xl sm:text-3xl md:text-4xl font-black text-amber-950 uppercase tracking-wider">
-                🎩 Voting Challenge! 🪙
+                VOTING CHALLENGE!
               </p>
             </div>
 
+            <p className="text-xl sm:text-2xl text-amber-200 font-bold mb-4">
+              Vote for your favorite startup here
+            </p>
+
             <p className="text-lg text-amber-300/90 max-w-xl mx-auto">
-              Vote with your coins 🪙! 👑
+              Vote with your coins / compete with friends
             </p>
           </div>
 
@@ -133,10 +137,10 @@ export default function LoginPage() {
             {/* Fun Header */}
             <div className="text-center mb-6">
               <h2 className="text-3xl font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
-                🎮 ENTER GAME
+                🎮 Enter Game
               </h2>
               <p className="text-sm text-amber-700 dark:text-amber-400 font-bold">
-                Ready to become a tycoon?
+                Ready to vote for your favorite startup?
               </p>
             </div>
 
