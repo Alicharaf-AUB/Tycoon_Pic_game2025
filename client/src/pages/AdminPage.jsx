@@ -736,6 +736,7 @@ function StartupsTab({ username, password, gameState }) {
 
     try {
       await adminApi.deleteStartup(username, password, startupId);
+      showToast(`Startup "${name}" deleted successfully`, 'success');
     } catch (err) {
       showToast('Failed to delete startup', 'error');
     }
