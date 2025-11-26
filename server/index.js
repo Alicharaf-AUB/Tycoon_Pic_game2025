@@ -98,82 +98,14 @@ if (!fs.existsSync(uploadDir)) {
   }
 }
 
-// ===== APP ACCESS PASSWORD PROTECTION =====
-// Endpoint to verify app access password
-app.post('/api/verify-app-access', (req, res) => {
-  const { password } = req.body;
+// ===== APP ACCESS PASSWORD REMOVED =====
+// Users can now access the app directly without a password
 
-  if (password === APP_ACCESS_PASSWORD) {
-    // Generate a unique access token
-    const accessToken = uuidv4();
-    validAccessTokens.add(accessToken);
+// ===== REMOVED APP ACCESS PASSWORD PROTECTION =====
+// Users can now access the app directly without a password
 
-    console.log('✅ App access granted');
-    res.json({
-      success: true,
-      accessToken,
-      message: 'Access granted'
-    });
-  } else {
-    console.log('❌ App access denied - incorrect password');
-    res.status(401).json({
-      success: false,
-      message: 'Incorrect password'
-    });
-  }
-});
-
-// Middleware to check app access token on all routes
-const checkAppAccess = (req, res, next) => {
-  // Skip check for password verification endpoint
-  if (req.path === '/api/verify-app-access') {
-    return next();
-  }
-
-  // Skip check for static files in production build
-  if (req.path.startsWith('/_vite') || req.path.startsWith('/src') || req.path.startsWith('/node_modules')) {
-    return next();
-  }
-
-  // Get token from header
-  const accessToken = req.headers['x-app-access-token'];
-
-  if (!accessToken || !validAccessTokens.has(accessToken)) {
-    return res.status(403).json({
-      error: 'App access denied. Please enter the app password.'
-    });
-  }
-
-  next();
-};
-
-// Apply access check to all /api routes (except verify-app-access and admin routes)
-app.use('/api', (req, res, next) => {
-  // Skip password check for password verification endpoint
-  if (req.path === '/verify-app-access') {
-    return next();
-  }
-
-  // Skip password check for ALL admin routes - admins use their own auth
-  if (req.path.startsWith('/admin')) {
-    return next();
-  }
-
-  // Regular routes require app password
-  checkAppAccess(req, res, next);
-});
-
-// Serve uploaded files (with access check)
+// Serve uploaded files
 app.use('/uploads', (req, res, next) => {
-  // Check access token from query param or header
-  const accessToken = req.query.token || req.headers['x-app-access-token'];
-
-  if (!accessToken || !validAccessTokens.has(accessToken)) {
-    return res.status(403).json({
-      error: 'App access denied. Please enter the app password.'
-    });
-  }
-
   console.log('📁 File request:', req.path);
   next();
 }, express.static(uploadDir, {
