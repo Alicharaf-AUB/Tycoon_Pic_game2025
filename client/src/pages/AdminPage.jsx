@@ -5,6 +5,7 @@ import ActivityFeed from '../components/admin/ActivityFeed';
 import InvestmentCharts from '../components/admin/InvestmentCharts';
 import AuditTrail from '../components/admin/AuditTrail';
 import ErrorLogs from '../components/admin/ErrorLogs';
+import Toast from '../components/Toast';
 import { exportInvestorsToCSV, exportStartupsToCSV, exportInvestmentsToCSV, exportAllDataToCSV } from '../utils/adminExport';
 import { GAME_CONFIG } from '../config';
 
@@ -15,8 +16,13 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
 
   const { gameState } = useSocket();
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -169,6 +175,15 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen pb-8">
+      {/* Toast Notifications */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* 👑 GAME MASTER HEADER */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-950/95 via-yellow-950/95 to-amber-950/95 backdrop-blur-xl border-b-4 border-amber-900 shadow-[0_4px_0_0_rgba(120,53,15,1)] mb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -262,7 +277,7 @@ function GameLockButton({ username, password }) {
     try {
       await adminApi.toggleLock(username, password);
     } catch (err) {
-      alert('⚠️ Failed to toggle lock');
+      showToast('Failed to toggle lock', 'error');
     } finally {
       setLoading(false);
     }
@@ -406,7 +421,7 @@ function InvestorsTab({ username, password, gameState }) {
       setEditingCredit(null);
       setNewCredit('');
     } catch (err) {
-      alert('⚠️ Failed to update coins');
+      showToast('Failed to update coins', 'error');
     }
   };
 
@@ -416,7 +431,7 @@ function InvestorsTab({ username, password, gameState }) {
     try {
       await adminApi.deleteInvestor(username, password, investorId);
     } catch (err) {
-      alert('⚠️ Failed to delete player');
+      showToast('Failed to delete player', 'error');
     }
   };
 
@@ -663,9 +678,9 @@ function StartupsTab({ username, password, gameState }) {
       await adminApi.createStartup(username, password, newStartup);
       setNewStartup(emptyForm);
       setShowCreateForm(false);
-      alert('✅ Startup created successfully!');
+      showToast('Startup created successfully!');
     } catch (err) {
-      alert(err.response?.data?.error || '⚠️ Failed to create startup');
+      showToast(err.response?.data?.error || 'Failed to create startup', 'error');
     } finally {
       setCreating(false);
     }
@@ -698,9 +713,9 @@ function StartupsTab({ username, password, gameState }) {
     try {
       await adminApi.updateStartup(username, password, editingStartup.id, editForm);
       setEditingStartup(null);
-      alert('✅ Startup updated successfully!');
+      showToast('Startup updated successfully!');
     } catch (err) {
-      alert(err.response?.data?.error || '⚠️ Failed to update startup');
+      showToast(err.response?.data?.error || 'Failed to update startup', 'error');
     } finally {
       setUpdating(false);
     }
@@ -712,7 +727,7 @@ function StartupsTab({ username, password, gameState }) {
         isActive: !startup.is_active,
       });
     } catch (err) {
-      alert('⚠️ Failed to update startup');
+      showToast('Failed to update startup', 'error');
     }
   };
 
@@ -722,7 +737,7 @@ function StartupsTab({ username, password, gameState }) {
     try {
       await adminApi.deleteStartup(username, password, startupId);
     } catch (err) {
-      alert('⚠️ Failed to delete startup');
+      showToast('Failed to delete startup', 'error');
     }
   };
 
@@ -812,7 +827,7 @@ function StartupsTab({ username, password, gameState }) {
                             const result = await adminApi.uploadFile(username, password, file);
                             setNewStartup({ ...newStartup, logo: result.url });
                           } catch (err) {
-                            alert(err.response?.data?.error || '⚠️ Failed to upload logo');
+                            showToast(err.response?.data?.error || 'Failed to upload logo', 'error');
                           }
                         }
                       }}
@@ -854,7 +869,7 @@ function StartupsTab({ username, password, gameState }) {
                             const result = await adminApi.uploadFile(username, password, file);
                             setNewStartup({ ...newStartup, pitch_deck: result.url });
                           } catch (err) {
-                            alert(err.response?.data?.error || '⚠️ Failed to upload pitch deck');
+                            showToast(err.response?.data?.error || 'Failed to upload pitch deck', 'error');
                           }
                         }
                       }}
