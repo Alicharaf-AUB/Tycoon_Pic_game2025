@@ -473,7 +473,7 @@ function InvestorsTab({ username, password, gameState }) {
                       type="number"
                       value={newCredit}
                       onChange={(e) => setNewCredit(e.target.value)}
-                      className="w-32 px-3 py-1 text-right font-bold border-2 border-amber-900 rounded-lg"
+                      className="w-32 px-3 py-1 text-right font-bold bg-white dark:bg-amber-950/50 border-2 border-amber-900 dark:border-amber-600 rounded-lg text-amber-950 dark:text-amber-100"
                       autoFocus
                     />
                   ) : (
@@ -569,7 +569,7 @@ function InvestorsTab({ username, password, gameState }) {
                     type="number"
                     value={newCredit}
                     onChange={(e) => setNewCredit(e.target.value)}
-                    className="w-full px-3 py-2 text-sm font-bold border-2 border-amber-900 rounded-lg"
+                    className="w-full px-3 py-2 text-sm font-bold bg-white dark:bg-amber-950/50 border-2 border-amber-900 dark:border-amber-600 rounded-lg text-amber-950 dark:text-amber-100"
                     autoFocus
                   />
                 ) : (
@@ -769,7 +769,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="text"
                   value={newStartup.name}
                   onChange={(e) => setNewStartup({ ...newStartup, name: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   required
                 />
               </div>
@@ -781,7 +781,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="text"
                   value={newStartup.slug}
                   onChange={(e) => setNewStartup({ ...newStartup, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   required
                   placeholder="my-startup"
                 />
@@ -795,7 +795,7 @@ function StartupsTab({ username, password, gameState }) {
               <textarea
                 value={newStartup.description}
                 onChange={(e) => setNewStartup({ ...newStartup, description: e.target.value })}
-                className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                 rows="3"
               />
             </div>
@@ -810,7 +810,7 @@ function StartupsTab({ username, password, gameState }) {
                     type="text"
                     value={newStartup.logo}
                     onChange={(e) => setNewStartup({ ...newStartup, logo: e.target.value })}
-                    className="flex-1 px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                    className="flex-1 px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                     placeholder="/uploads/logo.png"
                     readOnly
                   />
@@ -852,7 +852,7 @@ function StartupsTab({ username, password, gameState }) {
                     type="text"
                     value={newStartup.pitch_deck}
                     onChange={(e) => setNewStartup({ ...newStartup, pitch_deck: e.target.value })}
-                    className="flex-1 px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                    className="flex-1 px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                     placeholder="/uploads/deck.pdf"
                     readOnly
                   />
@@ -893,7 +893,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="text"
                   value={newStartup.cohort}
                   onChange={(e) => setNewStartup({ ...newStartup, cohort: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   placeholder="B&A2024, B&A2025"
                 />
               </div>
@@ -905,7 +905,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="text"
                   value={newStartup.support_program}
                   onChange={(e) => setNewStartup({ ...newStartup, support_program: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   placeholder="IVP 2025 Finalists"
                 />
               </div>
@@ -920,7 +920,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="text"
                   value={newStartup.industry}
                   onChange={(e) => setNewStartup({ ...newStartup, industry: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   placeholder="AdTech, FinTech, etc."
                 />
               </div>
@@ -932,7 +932,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="email"
                   value={newStartup.email}
                   onChange={(e) => setNewStartup({ ...newStartup, email: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   placeholder="founder@startup.com"
                 />
               </div>
@@ -945,7 +945,7 @@ function StartupsTab({ username, password, gameState }) {
               <textarea
                 value={newStartup.team}
                 onChange={(e) => setNewStartup({ ...newStartup, team: e.target.value })}
-                className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                 rows="2"
                 placeholder="Founder Name - CEO, Co-founder Name - CTO"
               />
@@ -959,7 +959,7 @@ function StartupsTab({ username, password, gameState }) {
                 <select
                   value={newStartup.generating_revenue}
                   onChange={(e) => setNewStartup({ ...newStartup, generating_revenue: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                 >
                   <option value="">Select...</option>
                   <option value="Yes">Yes</option>
@@ -974,7 +974,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="text"
                   value={newStartup.ask}
                   onChange={(e) => setNewStartup({ ...newStartup, ask: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   placeholder="$250,000"
                 />
               </div>
@@ -986,7 +986,7 @@ function StartupsTab({ username, password, gameState }) {
                   type="text"
                   value={newStartup.legal_entity}
                   onChange={(e) => setNewStartup({ ...newStartup, legal_entity: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   placeholder="Yes (UK)"
                 />
               </div>
@@ -1013,7 +1013,7 @@ function StartupsTab({ username, password, gameState }) {
                     type="text"
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                    className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                     required
                   />
                 </div>
@@ -1023,7 +1023,7 @@ function StartupsTab({ username, password, gameState }) {
                     type="text"
                     value={editForm.slug}
                     onChange={(e) => setEditForm({ ...editForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
-                    className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                    className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                     required
                   />
                 </div>
@@ -1034,7 +1034,7 @@ function StartupsTab({ username, password, gameState }) {
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  className="w-full px-4 py-3 font-bold border-4 border-amber-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400"
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
                   rows="3"
                 />
               </div>

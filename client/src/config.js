@@ -55,7 +55,7 @@ export const GAME_CONFIG = {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   eventInfo: {
     enabled: true,
-    eventName: 'AUB PIC 2025 - Tycoon Investment Challenge',
+    eventName: 'Talal and Madiha Zein AUB PIC Demo Day 2026',
     eventDate: 'November 2025',
     eventLocation: 'American University of Beirut',
   },
