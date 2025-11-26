@@ -275,7 +275,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {rankedStartups.slice(0, 3).map((startup, idx) => {
+                {rankedStartups.map((startup, idx) => {
                   const currentVote = getVoteForStartup(startup.id);
                   const hasVoted = currentVote && currentVote.amount > 0;
                   const rank = idx + 1;
