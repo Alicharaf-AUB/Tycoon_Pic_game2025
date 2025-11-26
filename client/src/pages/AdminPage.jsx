@@ -202,7 +202,7 @@ export default function AdminPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <GameLockButton username={username} password={password} />
+              <GameLockButton username={username} password={password} showToast={showToast} />
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-red-600/80 hover:bg-red-500 border-2 border-red-900 rounded-xl font-black text-white text-sm transition-all"
@@ -239,10 +239,10 @@ export default function AdminPage() {
           <OverviewTab username={username} password={password} gameState={gameState} />
         )}
         {activeTab === 'investors' && (
-          <InvestorsTab username={username} password={password} gameState={gameState} />
+          <InvestorsTab username={username} password={password} gameState={gameState} showToast={showToast} />
         )}
         {activeTab === 'startups' && (
-          <StartupsTab username={username} password={password} gameState={gameState} />
+          <StartupsTab username={username} password={password} gameState={gameState} showToast={showToast} />
         )}
         {activeTab === 'investments' && (
           <InvestmentsTab gameState={gameState} />
@@ -268,7 +268,7 @@ export default function AdminPage() {
 }
 
 // Game Lock Button Component
-function GameLockButton({ username, password }) {
+function GameLockButton({ username, password, showToast }) {
   const { gameState } = useSocket();
   const [loading, setLoading] = useState(false);
 
@@ -406,7 +406,7 @@ function OverviewTab({ username, password, gameState }) {
 }
 
 // Investors Tab (now "Players")
-function InvestorsTab({ username, password, gameState }) {
+function InvestorsTab({ username, password, gameState, showToast }) {
   const [editingCredit, setEditingCredit] = useState(null);
   const [newCredit, setNewCredit] = useState('');
 
@@ -646,7 +646,7 @@ function InvestorsTab({ username, password, gameState }) {
 }
 
 // Startups Tab
-function StartupsTab({ username, password, gameState }) {
+function StartupsTab({ username, password, gameState, showToast }) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingStartup, setEditingStartup] = useState(null);
   const emptyForm = {
