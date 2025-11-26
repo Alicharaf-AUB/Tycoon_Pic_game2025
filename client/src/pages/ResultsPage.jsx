@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { GAME_CONFIG } from '../config';
+import { getFileUrl } from '../utils/api';
 
 export default function ResultsPage() {
   const { gameState, isConnected } = useSocket();
@@ -112,7 +113,7 @@ export default function ResultsPage() {
                         {top3[0].logo && (
                           <div className="flex justify-center mb-4">
                             <img
-                              src={top3[0].logo}
+                              src={getFileUrl(top3[0].logo)}
                               alt={top3[0].name}
                               className="w-24 h-24 object-contain rounded-2xl border-4 border-yellow-700 bg-white"
                             />
@@ -184,7 +185,7 @@ export default function ResultsPage() {
                       {top3[1].logo && (
                         <div className="flex justify-center mb-3">
                           <img
-                            src={top3[1].logo}
+                            src={getFileUrl(top3[1].logo)}
                             alt={top3[1].name}
                             className="w-16 h-16 object-contain rounded-xl border-3 border-gray-600 bg-white"
                           />
@@ -247,9 +248,9 @@ export default function ResultsPage() {
                       {top3[2].logo && (
                         <div className="flex justify-center mb-3">
                           <img
-                            src={top3[2].logo}
+                            src={getFileUrl(top3[2].logo)}
                             alt={top3[2].name}
-                            className="w-16 h-16 object-contain rounded-xl border-3 border-orange-700 bg-white"
+                            className="w-16 h-16 object-contain rounded-xl border-3 border-bronze-600 bg-white"
                           />
                         </div>
                       )}
