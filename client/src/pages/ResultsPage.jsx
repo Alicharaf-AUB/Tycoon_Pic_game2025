@@ -15,21 +15,21 @@ export default function ResultsPage() {
   const startups = gameState?.startups?.filter(s => s.is_active) || [];
   const allInvestments = gameState?.investments || [];
 
-  // Calculate total votes per startup
-  const getTotalVotesForStartup = (startupId) => {
+  // Calculate total coins per startup (LIVE!)
+  const getTotalCoinsForStartup = (startupId) => {
     return allInvestments
       .filter(inv => inv.startup_id === startupId)
       .reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
   };
 
-  // Get top 3 startups
+  // Get top 3 startups (LIVE!)
   const getTop3Startups = () => {
-    const startupsWithVotes = startups.map(s => ({
+    const startupsWithCoins = startups.map(s => ({
       ...s,
-      totalVotes: getTotalVotesForStartup(s.id)
+      totalCoins: getTotalCoinsForStartup(s.id)
     }));
-    return startupsWithVotes
-      .sort((a, b) => b.totalVotes - a.totalVotes)
+    return startupsWithCoins
+      .sort((a, b) => b.totalCoins - a.totalCoins)
       .slice(0, 3);
   };
 
@@ -62,10 +62,11 @@ export default function ResultsPage() {
             <p className="text-lg sm:text-xl font-bold text-amber-200">
               {GAME_CONFIG.eventName}
             </p>
+            <p className="text-sm text-amber-400 mt-2">Rankings update automatically as votes come in!</p>
             {isConnected ? (
               <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-900/50 border-2 border-green-600 rounded-full">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                <span className="text-sm font-black text-green-300 uppercase">Live Updates Active</span>
+                <span className="text-sm font-black text-green-300 uppercase">🔴 Live</span>
               </div>
             ) : (
               <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-red-900/50 border-2 border-red-600 rounded-full">
@@ -87,7 +88,7 @@ export default function ResultsPage() {
               No Votes Yet!
             </p>
             <p className="text-lg text-amber-700 dark:text-amber-400">
-              Results will appear here as votes come in...
+              Results will appear here as voting begins...
             </p>
           </div>
         ) : (
@@ -123,17 +124,17 @@ export default function ResultsPage() {
                           {top3[0].name}
                         </h2>
 
-                        {/* Vote Count */}
+                        {/* Coin Count */}
                         <div className="flex justify-center mb-6">
                           <div className="bg-gradient-to-r from-yellow-400 to-amber-500 border-6 border-yellow-800 rounded-2xl px-8 py-4 shadow-[0_6px_0_0_rgba(146,64,14,1)]">
                             <div className="flex items-center gap-3">
-                              <span className="text-4xl">🏆</span>
+                              <span className="text-4xl">🪙</span>
                               <div>
                                 <p className="text-5xl font-black text-yellow-950">
-                                  {top3[0].totalVotes}
+                                  {top3[0].totalCoins}
                                 </p>
                                 <p className="text-sm font-black text-yellow-800 uppercase tracking-wider">
-                                  Total Votes
+                                  {GAME_CONFIG.currencyName}
                                 </p>
                               </div>
                             </div>
@@ -195,17 +196,17 @@ export default function ResultsPage() {
                         {top3[1].name}
                       </h3>
 
-                      {/* Vote Count */}
+                      {/* Coin Count */}
                       <div className="flex justify-center mb-4">
                         <div className="bg-gradient-to-r from-gray-300 to-gray-400 border-4 border-gray-700 rounded-xl px-6 py-3 shadow-[0_4px_0_0_rgba(55,65,81,1)]">
                           <div className="flex items-center gap-2">
-                            <span className="text-2xl">🏆</span>
+                            <span className="text-2xl">🪙</span>
                             <div>
                               <p className="text-3xl font-black text-gray-900">
-                                {top3[1].totalVotes}
+                                {top3[1].totalCoins}
                               </p>
                               <p className="text-xs font-black text-gray-700 uppercase">
-                                Votes
+                                {GAME_CONFIG.currencyName}
                               </p>
                             </div>
                           </div>
@@ -258,17 +259,17 @@ export default function ResultsPage() {
                         {top3[2].name}
                       </h3>
 
-                      {/* Vote Count */}
+                      {/* Coin Count */}
                       <div className="flex justify-center mb-4">
                         <div className="bg-gradient-to-r from-orange-400 to-orange-500 border-4 border-orange-800 rounded-xl px-6 py-3 shadow-[0_4px_0_0_rgba(154,52,18,1)]">
                           <div className="flex items-center gap-2">
-                            <span className="text-2xl">🏆</span>
+                            <span className="text-2xl">🪙</span>
                             <div>
                               <p className="text-3xl font-black text-orange-950">
-                                {top3[2].totalVotes}
+                                {top3[2].totalCoins}
                               </p>
                               <p className="text-xs font-black text-orange-800 uppercase">
-                                Votes
+                                {GAME_CONFIG.currencyName}
                               </p>
                             </div>
                           </div>
@@ -300,7 +301,7 @@ export default function ResultsPage() {
             <div className="game-card bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-900">
               <div className="text-center">
                 <h3 className="text-2xl sm:text-3xl font-black text-purple-300 mb-6">
-                  📊 Competition Stats
+                  📊 Live Competition Stats
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-purple-950/30 border-2 border-purple-800 rounded-xl p-4">
@@ -308,9 +309,9 @@ export default function ResultsPage() {
                     <p className="text-4xl font-black text-purple-200">🚀 {startups.length}</p>
                   </div>
                   <div className="bg-purple-950/30 border-2 border-purple-800 rounded-xl p-4">
-                    <p className="text-sm font-bold text-purple-400 uppercase mb-2">Total Votes Cast</p>
+                    <p className="text-sm font-bold text-purple-400 uppercase mb-2">Total {GAME_CONFIG.currencyName}</p>
                     <p className="text-4xl font-black text-purple-200">
-                      🗳️ {allInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0)}
+                      🪙 {allInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0)}
                     </p>
                   </div>
                   <div className="bg-purple-950/30 border-2 border-purple-800 rounded-xl p-4">
