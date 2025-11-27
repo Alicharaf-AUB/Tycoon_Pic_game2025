@@ -1,0 +1,25 @@
+{
+  "name": "tycoon-pic-game-stress-test",
+  "version": "1.0.0",
+  "description": "Load testing suite for Tycoon PIC Game",
+  "main": "load-test.js",
+  "scripts": {
+    "test:local": "node load-test.js http://localhost:3001",
+    "test:production": "node load-test.js https://tycoonpicgame2025-production.up.railway.app",
+    "test:socket": "node socket-stress-test.js",
+    "test:full": "node full-simulation.js"
+  },
+  "keywords": [
+    "load-testing",
+    "stress-test",
+    "performance"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "autocannon": "^7.15.0",
+    "@faker-js/faker": "^8.4.1",
+    "socket.io-client": "^4.7.2",
+    "chalk": "^4.1.2"
+  }
+}
