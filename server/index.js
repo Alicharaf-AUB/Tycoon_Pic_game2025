@@ -64,8 +64,27 @@ if (process.env.NODE_ENV === 'production' && ADMIN_PASSWORD === 'demo123') {
   console.warn('⚠️  WARNING: Using default admin password in production! Please set ADMIN_PASSWORD environment variable.');
 }
 
+// Performance optimizations for high load
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+
+// Enable response compression
+app.use(compression());
+
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Rate limiting to prevent overload
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute per IP
+  message: 'Too many requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiting to API routes
+app.use('/api/', apiLimiter);
 
 // Use persistent storage for uploads
 // IMPORTANT: On Railway, configure a Volume with mount path: /app/data
@@ -219,6 +238,10 @@ const adminAuth = (req, res, next) => {
 // Helper: Broadcast game state to all clients (now async)
 const broadcastGameState = async () => {
   try {
+    // Invalidate cache when broadcasting updates
+    cachedGameState = null;
+    cacheTimestamp = 0;
+    
     const gameState = await getGameState();
     io.emit('gameStateUpdate', gameState);
   } catch (error) {
@@ -399,10 +422,26 @@ app.post('/api/find-investor', async (req, res) => {
   }
 });
 
-// Get game state (for all users)
+// Cache for game state (reduce database load)
+let cachedGameState = null;
+let cacheTimestamp = 0;
+const CACHE_TTL = 2000; // 2 seconds cache
+
+// Get game state (for all users) - with caching
 app.get('/api/game-state', async (req, res) => {
   try {
+    const now = Date.now();
+    
+    // Return cached version if still valid
+    if (cachedGameState && (now - cacheTimestamp) < CACHE_TTL) {
+      return res.json(cachedGameState);
+    }
+    
+    // Fetch fresh data
     const gameState = await getGameState();
+    cachedGameState = gameState;
+    cacheTimestamp = now;
+    
     res.json(gameState);
   } catch (error) {
     console.error('Error getting game state:', error);
