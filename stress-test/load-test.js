@@ -46,7 +46,8 @@ const scenarios = {
   gameState: {
     title: '🎮 Game State Retrieval',
     url: `${BASE_URL}/api/game-state`,
-    method: 'GET'
+    method: 'GET',
+    setupRequest: (req) => req
   },
 
   // 3. Investment (Voting)
