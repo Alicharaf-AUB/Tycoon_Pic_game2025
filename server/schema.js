@@ -121,18 +121,9 @@ async function initializeDatabase() {
       ON CONFLICT (id) DO NOTHING
     `);
 
-    // Create indexes for performance
+    // Create indexes for performance (inside transaction)
     await client.query('CREATE INDEX IF NOT EXISTS idx_investments_investor ON investments(investor_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_investments_startup ON investments(startup_id)');
-    
-    // Create ip_address index only if column exists
-    try {
-      await client.query('CREATE INDEX IF NOT EXISTS idx_investments_ip ON investments(ip_address)');
-    } catch (err) {
-      // Column doesn't exist yet - will be added by migration in index.js
-      console.log('⚠️  Skipping ip_address index (column will be added by migration)');
-    }
-    
     await client.query('CREATE INDEX IF NOT EXISTS idx_fund_requests_investor ON fund_requests(investor_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_fund_requests_status ON fund_requests(status)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_startups_active ON startups(is_active)');
@@ -142,6 +133,15 @@ async function initializeDatabase() {
 
     await client.query('COMMIT');
     console.log('✅ Database schema initialized successfully');
+    
+    // Create ip_address index outside transaction (may not exist yet)
+    try {
+      await client.query('CREATE INDEX IF NOT EXISTS idx_investments_ip ON investments(ip_address)');
+      console.log('✅ Created ip_address index');
+    } catch (err) {
+      // Column doesn't exist yet - will be added by migration in index.js
+      console.log('⚠️  Skipping ip_address index (column will be added by migration)');
+    }
 
     // Check if we need to seed
     const result = await client.query('SELECT COUNT(*) FROM startups');
