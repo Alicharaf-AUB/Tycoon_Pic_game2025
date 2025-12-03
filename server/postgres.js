@@ -4,7 +4,16 @@ if (!process.env.DATABASE_URL) {
   console.error('❌ DATABASE_URL environment variable is not set!');
   console.error('💡 Please set DATABASE_URL in your .env file');
   console.error('💡 Example: DATABASE_URL=postgresql://user:password@localhost:5432/investment_game');
-  process.exit(1);
+  
+  // In production (Railway), this should never happen
+  if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
+    console.error('❌ CRITICAL: DATABASE_URL missing in production!');
+    process.exit(1);
+  } else {
+    // In development, exit gracefully
+    console.error('❌ Exiting...');
+    process.exit(1);
+  }
 }
 
 // Log DATABASE_URL for debugging (hide password)
@@ -33,7 +42,8 @@ pool.on('connect', () => {
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle PostgreSQL client', err);
-  process.exit(-1);
+  // Don't exit on error - let the app handle it
+  console.error('⚠️  Database connection error - continuing...');
 });
 
 // Test connection

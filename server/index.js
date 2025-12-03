@@ -1499,6 +1499,9 @@ const initializeDatabaseOnStartup = async () => {
     console.log('✅ Database ready');
   } catch (error) {
     console.error('❌ Database initialization error:', error.message);
+    console.error('Stack:', error.stack);
+    // Don't throw - let the app continue even if init fails
+    console.error('⚠️  Continuing without full database initialization...');
   }
 };
 
