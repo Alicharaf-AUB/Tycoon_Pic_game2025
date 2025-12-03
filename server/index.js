@@ -559,8 +559,16 @@ app.post('/api/invest', async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Error making investment:', error);
-    res.status(500).json({ error: 'Failed to make investment' });
+    console.error('❌ Error making investment:', error);
+    console.error('Stack:', error.stack);
+    console.error('Details:', { investorId, startupId, amount, clientIp });
+    
+    // Return more specific error message
+    const errorMsg = error.message || 'Failed to make investment';
+    res.status(500).json({ 
+      error: 'Failed to make investment',
+      details: process.env.NODE_ENV === 'development' ? errorMsg : undefined
+    });
   }
 });
 
