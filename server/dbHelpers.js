@@ -92,17 +92,6 @@ async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress
   try {
     await client.query('BEGIN');
 
-    // Check which columns exist
-    const columnsCheck = await client.query(`
-      SELECT column_name
-      FROM information_schema.columns
-      WHERE table_name = 'investments'
-      AND column_name IN ('ip_address', 'device_fingerprint')
-    `);
-    
-    const hasIpColumn = columnsCheck.rows.some(row => row.column_name === 'ip_address');
-    const hasFpColumn = columnsCheck.rows.some(row => row.column_name === 'device_fingerprint');
-
     const existing = await client.query(
       'SELECT * FROM investments WHERE investor_id = $1 AND startup_id = $2',
       [investorId, startupId]
@@ -116,41 +105,42 @@ async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress
           [investorId, startupId]
         );
       } else {
-        // Build UPDATE query based on available columns
-        let updateQuery = 'UPDATE investments SET amount = $3, timestamp = CURRENT_TIMESTAMP';
-        const params = [investorId, startupId, amount];
-        
-        if (hasIpColumn && ipAddress) {
-          params.push(ipAddress);
-          updateQuery += `, ip_address = $${params.length}`;
+        // Try to update with all columns, fallback if columns don't exist
+        try {
+          await client.query(
+            'UPDATE investments SET amount = $3, ip_address = $4, device_fingerprint = $5, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
+            [investorId, startupId, amount, ipAddress, deviceFingerprint]
+          );
+        } catch (updateError) {
+          // If column doesn't exist, fall back to basic update
+          if (updateError.code === '42703') { // undefined_column
+            await client.query(
+              'UPDATE investments SET amount = $3, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
+              [investorId, startupId, amount]
+            );
+          } else {
+            throw updateError;
+          }
         }
-        if (hasFpColumn && deviceFingerprint) {
-          params.push(deviceFingerprint);
-          updateQuery += `, device_fingerprint = $${params.length}`;
-        }
-        
-        updateQuery += ' WHERE investor_id = $1 AND startup_id = $2';
-        await client.query(updateQuery, params);
       }
     } else {
-      // Build INSERT query based on available columns
-      let insertQuery = 'INSERT INTO investments (investor_id, startup_id, amount';
-      let valuePlaceholders = '($1, $2, $3';
-      const params = [investorId, startupId, amount];
-      
-      if (hasIpColumn && ipAddress) {
-        params.push(ipAddress);
-        insertQuery += ', ip_address';
-        valuePlaceholders += `, $${params.length}`;
+      // Try to insert with all columns, fallback if columns don't exist
+      try {
+        await client.query(
+          'INSERT INTO investments (investor_id, startup_id, amount, ip_address, device_fingerprint) VALUES ($1, $2, $3, $4, $5)',
+          [investorId, startupId, amount, ipAddress, deviceFingerprint]
+        );
+      } catch (insertError) {
+        // If column doesn't exist, fall back to basic insert
+        if (insertError.code === '42703') { // undefined_column
+          await client.query(
+            'INSERT INTO investments (investor_id, startup_id, amount) VALUES ($1, $2, $3)',
+            [investorId, startupId, amount]
+          );
+        } else {
+          throw insertError;
+        }
       }
-      if (hasFpColumn && deviceFingerprint) {
-        params.push(deviceFingerprint);
-        insertQuery += ', device_fingerprint';
-        valuePlaceholders += `, $${params.length}`;
-      }
-      
-      insertQuery += `) VALUES ${valuePlaceholders})`;
-      await client.query(insertQuery, params);
     }
 
     await client.query('COMMIT');
