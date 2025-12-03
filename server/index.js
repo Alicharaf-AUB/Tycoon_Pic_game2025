@@ -540,6 +540,13 @@ app.post('/api/invest', async (req, res) => {
       clientIp
     });
 
+    // Validate 50-coin increments
+    if (amount % 50 !== 0) {
+      return res.status(400).json({
+        error: 'Amount must be in increments of 50 coins'
+      });
+    }
+
     // Check if total investments would exceed starting credit
     const totalInvestments = parseFloat(investor.other_investments) + amount;
     if (totalInvestments > startingCredit) {
@@ -550,7 +557,7 @@ app.post('/api/invest', async (req, res) => {
     }
 
     // No startup limit - investors can invest in as many startups as they want
-    // Only requirement is 500€ increments (validated on frontend)
+    // Only requirement is 50-coin increments (validated above)
 
     // Use helper to create or update investment with IP address
     await dbHelpers.createOrUpdateInvestment(investorId, startupId, amount, clientIp);

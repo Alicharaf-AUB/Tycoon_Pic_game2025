@@ -87,6 +87,12 @@ export default function DashboardPage() {
       return;
     }
 
+    // Validate 50-coin increments
+    if (coins % 50 !== 0) {
+      setError('❌ Amount must be in increments of 50 coins!');
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
@@ -539,26 +545,13 @@ export default function DashboardPage() {
                          shadow-[4px_4px_0px_0px_rgba(120,53,15,0.6)]"
                 placeholder="0"
                 min="0"
+                step="50"
                 max={coinsLeft + (getVoteForStartup(selectedStartup.id)?.amount || 0)}
                 disabled={submitting}
               />
               <p className="text-xs sm:text-sm text-amber-700 dark:text-amber-400 mt-2 text-center font-bold">
-                You have 🪙 {coinsLeft} coins available
+                You have 🪙 {coinsLeft} coins available • Must be in increments of 50
               </p>
-            </div>
-
-            {/* Quick Select */}
-            <div className="grid grid-cols-4 gap-2 mb-6">
-              {[25, 50, 100, 250].map(amt => (
-                <button
-                  key={amt}
-                  onClick={() => setVoteAmount(amt.toString())}
-                  className="px-3 py-2 bg-amber-200 dark:bg-amber-800 border-2 border-amber-900 rounded-lg font-black text-amber-900 dark:text-amber-200 hover:bg-amber-300 dark:hover:bg-amber-700 transition-colors text-sm"
-                  disabled={submitting}
-                >
-                  {amt}
-                </button>
-              ))}
             </div>
 
             {/* Buttons */}
