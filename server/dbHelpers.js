@@ -86,7 +86,7 @@ async function getExistingInvestment(startupId, investorId) {
   return result.rows[0];
 }
 
-async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress = null) {
+async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress = null, deviceFingerprint = null) {
   const client = await pool.connect();
 
   try {
@@ -105,18 +105,42 @@ async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress
           [investorId, startupId]
         );
       } else {
-        // Update investment with IP address
-        await client.query(
-          'UPDATE investments SET amount = $3, ip_address = $4, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
-          [investorId, startupId, amount, ipAddress]
-        );
+        // Try to update with all columns, fallback if columns don't exist
+        try {
+          await client.query(
+            'UPDATE investments SET amount = $3, ip_address = $4, device_fingerprint = $5, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
+            [investorId, startupId, amount, ipAddress, deviceFingerprint]
+          );
+        } catch (updateError) {
+          // If column doesn't exist, fall back to basic update
+          if (updateError.code === '42703') { // undefined_column
+            await client.query(
+              'UPDATE investments SET amount = $3, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
+              [investorId, startupId, amount]
+            );
+          } else {
+            throw updateError;
+          }
+        }
       }
     } else {
-      // Create new investment with IP address
-      await client.query(
-        'INSERT INTO investments (investor_id, startup_id, amount, ip_address) VALUES ($1, $2, $3, $4)',
-        [investorId, startupId, amount, ipAddress]
-      );
+      // Try to insert with all columns, fallback if columns don't exist
+      try {
+        await client.query(
+          'INSERT INTO investments (investor_id, startup_id, amount, ip_address, device_fingerprint) VALUES ($1, $2, $3, $4, $5)',
+          [investorId, startupId, amount, ipAddress, deviceFingerprint]
+        );
+      } catch (insertError) {
+        // If column doesn't exist, fall back to basic insert
+        if (insertError.code === '42703') { // undefined_column
+          await client.query(
+            'INSERT INTO investments (investor_id, startup_id, amount) VALUES ($1, $2, $3)',
+            [investorId, startupId, amount]
+          );
+        } else {
+          throw insertError;
+        }
+      }
     }
 
     await client.query('COMMIT');
