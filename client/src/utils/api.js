@@ -158,6 +158,16 @@ export const adminApi = {
     return data;
   },
 
+  // Delete all investors (requires special password)
+  deleteAllInvestors: async (username, password, specialPassword) => {
+    const { data } = await axios.post(
+      `${API_BASE}/api/admin/investors/delete-all`,
+      { password: specialPassword },
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
+    return data;
+  },
+
   // Get all startups
   getStartups: async (username, password) => {
     const { data } = await axios.get(`${API_BASE}/api/admin/startups`, {

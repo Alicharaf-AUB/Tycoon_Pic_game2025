@@ -409,6 +409,9 @@ function OverviewTab({ username, password, gameState }) {
 function InvestorsTab({ username, password, gameState, showToast }) {
   const [editingCredit, setEditingCredit] = useState(null);
   const [newCredit, setNewCredit] = useState('');
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [deleteAllPassword, setDeleteAllPassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const investors = gameState?.investors || [];
 
@@ -435,8 +438,108 @@ function InvestorsTab({ username, password, gameState, showToast }) {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!deleteAllPassword) {
+      showToast('Please enter the password', 'error');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await adminApi.deleteAllInvestors(username, password, deleteAllPassword);
+      showToast(`Successfully deleted all ${investors.length} players!`, 'success');
+      setShowDeleteAllModal(false);
+      setDeleteAllPassword('');
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to delete all players', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Delete All Players Button */}
+      {investors.length > 0 && (
+        <div className="game-card bg-gradient-to-r from-red-900/20 to-orange-900/20 border-red-900">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-lg font-black text-red-300 mb-1">⚠️ Danger Zone</p>
+              <p className="text-sm text-red-400">Delete all players and their votes permanently</p>
+            </div>
+            <button
+              onClick={() => setShowDeleteAllModal(true)}
+              className="px-6 py-3 bg-gradient-to-b from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 border-4 border-red-900 rounded-xl font-black text-white uppercase shadow-[0_4px_0_0_rgba(127,29,29,1)] hover:shadow-[0_2px_0_0_rgba(127,29,29,1)] hover:translate-y-0.5 active:translate-y-1 transition-all whitespace-nowrap"
+            >
+              🗑️ Delete All Players
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete All Modal */}
+      {showDeleteAllModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+             onClick={() => setShowDeleteAllModal(false)}>
+          <div className="game-card max-w-md w-full pop-in bg-red-50 dark:bg-red-950/30 border-red-900" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400 mb-4">
+              ⚠️ DELETE ALL PLAYERS?
+            </h3>
+
+            <div className="bg-red-100 dark:bg-red-900/30 border-2 border-red-900 rounded-xl p-4 mb-6">
+              <p className="text-sm font-bold text-red-800 dark:text-red-300 mb-2">
+                ⚠️ THIS ACTION CANNOT BE UNDONE!
+              </p>
+              <p className="text-sm text-red-700 dark:text-red-400">
+                You are about to delete <span className="font-black">{investors.length} players</span> and all their votes.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-black text-red-900 dark:text-red-300 mb-2 uppercase">
+                🔐 Enter Special Password
+              </label>
+              <input
+                type="password"
+                value={deleteAllPassword}
+                onChange={(e) => setDeleteAllPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleDeleteAll()}
+                className="w-full px-4 py-3 text-lg font-bold text-center
+                         bg-white dark:bg-red-950/50
+                         border-4 border-red-900 dark:border-red-600 rounded-2xl
+                         focus:outline-none focus:ring-4 focus:ring-red-400
+                         text-red-950 dark:text-red-100"
+                placeholder="Enter password"
+                disabled={isDeleting}
+                autoFocus
+              />
+              <p className="text-xs text-red-600 dark:text-red-400 mt-2 text-center font-bold">
+                Contact Ali for the special password
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteAllModal(false);
+                  setDeleteAllPassword('');
+                }}
+                className="flex-1 px-6 py-3 bg-gray-400 hover:bg-gray-300 border-4 border-gray-700 rounded-xl font-black text-gray-900 uppercase transition-all"
+                disabled={isDeleting}
+              >
+                ❌ Cancel
+              </button>
+              <button
+                onClick={handleDeleteAll}
+                disabled={isDeleting || !deleteAllPassword}
+                className="flex-1 px-6 py-3 bg-gradient-to-b from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 border-4 border-red-900 rounded-xl font-black text-white uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? '⚡ DELETING...' : '🗑️ DELETE ALL'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Desktop Table View */}
       <div className="hidden lg:block game-card overflow-x-auto">
         <table className="w-full">

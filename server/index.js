@@ -905,6 +905,54 @@ app.delete('/api/admin/investors/:id', adminAuth, async (req, res) => {
   }
 });
 
+// Delete ALL investors (requires special password)
+app.post('/api/admin/investors/delete-all', adminAuth, async (req, res) => {
+  const { password } = req.body;
+  const SPECIAL_PASSWORD = 'onlyaliknowsit';
+
+  console.log('=== DELETE ALL INVESTORS REQUEST ===');
+  console.log('Admin IP:', req.adminIp);
+  console.log('Admin User:', req.adminUsername);
+
+  // Require special password for this dangerous operation
+  if (password !== SPECIAL_PASSWORD) {
+    console.log('ERROR: Invalid special password provided');
+    return res.status(403).json({ error: 'Invalid password for this operation' });
+  }
+
+  try {
+    // Get count before deletion
+    const countResult = await pool.query('SELECT COUNT(*) FROM investors');
+    const count = parseInt(countResult.rows[0].count);
+
+    console.log(`Deleting ${count} investors...`);
+
+    // Delete all investors (CASCADE will handle related investments)
+    await pool.query('DELETE FROM investors');
+
+    console.log(`Successfully deleted ${count} investors`);
+
+    // Log this critical action
+    await dbHelpers.createAdminLog(
+      'DELETE_ALL_INVESTORS',
+      `Deleted all ${count} investors from the system`,
+      req.adminIp
+    );
+
+    await broadcastGameState();
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${count} investors`,
+      count
+    });
+  } catch (error) {
+    console.error('ERROR deleting all investors:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to delete all investors: ' + error.message });
+  }
+});
+
 // Get all startups (admin)
 app.get('/api/admin/startups', adminAuth, async (req, res) => {
   try {
