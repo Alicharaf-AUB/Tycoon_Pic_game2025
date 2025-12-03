@@ -86,9 +86,9 @@ async function getExistingInvestment(startupId, investorId) {
   return result.rows[0];
 }
 
-async function createOrUpdateInvestment(investorId, startupId, amount) {
+async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress = null) {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
 
@@ -105,17 +105,17 @@ async function createOrUpdateInvestment(investorId, startupId, amount) {
           [investorId, startupId]
         );
       } else {
-        // Update investment
+        // Update investment with IP address
         await client.query(
-          'UPDATE investments SET amount = $3, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
-          [investorId, startupId, amount]
+          'UPDATE investments SET amount = $3, ip_address = $4, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
+          [investorId, startupId, amount, ipAddress]
         );
       }
     } else {
-      // Create new investment
+      // Create new investment with IP address
       await client.query(
-        'INSERT INTO investments (investor_id, startup_id, amount) VALUES ($1, $2, $3)',
-        [investorId, startupId, amount]
+        'INSERT INTO investments (investor_id, startup_id, amount, ip_address) VALUES ($1, $2, $3, $4)',
+        [investorId, startupId, amount, ipAddress]
       );
     }
 

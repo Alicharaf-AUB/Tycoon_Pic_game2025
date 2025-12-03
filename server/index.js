@@ -470,25 +470,48 @@ app.get('/api/investors/:id', async (req, res) => {
 // Make or update investment
 app.post('/api/invest', async (req, res) => {
   const { investorId, startupId, amount } = req.body;
-  
+
   try {
     // Check if game is locked
     const gameStateResult = await pool.query('SELECT is_locked FROM game_state WHERE id = 1');
     if (gameStateResult.rows.length > 0 && gameStateResult.rows[0].is_locked) {
       return res.status(403).json({ error: 'Game is locked. No more changes allowed.' });
     }
-    
+
     if (!investorId || !startupId || amount === undefined) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    
+
     if (amount < 0) {
       return res.status(400).json({ error: 'Amount cannot be negative' });
     }
-    
+
+    // Get client IP address
+    const clientIp = getClientIp(req);
+
+    // Check if this IP has already voted for this startup (from a different account)
+    const ipCheckQuery = await pool.query(`
+      SELECT inv.id, inv.investor_id, i.name as investor_name
+      FROM investments inv
+      JOIN investors i ON inv.investor_id = i.id
+      WHERE inv.startup_id = $1
+        AND inv.ip_address = $2
+        AND inv.investor_id != $3
+        AND inv.amount > 0
+      LIMIT 1
+    `, [startupId, clientIp, investorId]);
+
+    if (ipCheckQuery.rows.length > 0) {
+      const existingVote = ipCheckQuery.rows[0];
+      return res.status(403).json({
+        error: 'This device has already voted for this startup. Each device can only vote once per startup.',
+        details: 'IP-based vote limit reached'
+      });
+    }
+
     // Get investor's starting credit, current investments, and count of unique startups invested in
     const investorQuery = await pool.query(`
-      SELECT 
+      SELECT
         i.starting_credit,
         COALESCE(SUM(CASE WHEN inv.startup_id != $1 THEN inv.amount ELSE 0 END), 0) as other_investments,
         COUNT(DISTINCT CASE WHEN inv.startup_id != $1 AND inv.amount > 0 THEN inv.startup_id END) as unique_startups_count
@@ -497,15 +520,15 @@ app.post('/api/invest', async (req, res) => {
       WHERE i.id = $2
       GROUP BY i.id, i.starting_credit
     `, [startupId, investorId]);
-    
+
     if (investorQuery.rows.length === 0) {
       return res.status(404).json({ error: 'Investor not found' });
     }
-    
+
     const investor = investorQuery.rows[0];
     const startingCredit = parseFloat(investor.starting_credit);
     const currentUniqueStartups = parseInt(investor.unique_startups_count);
-    
+
     console.log('💰 Investment Check:', {
       investorId,
       startupId,
@@ -513,26 +536,27 @@ app.post('/api/invest', async (req, res) => {
       startingCredit,
       otherInvestments: parseFloat(investor.other_investments),
       available: startingCredit - parseFloat(investor.other_investments),
-      uniqueStartups: currentUniqueStartups
+      uniqueStartups: currentUniqueStartups,
+      clientIp
     });
-    
+
     // Check if total investments would exceed starting credit
     const totalInvestments = parseFloat(investor.other_investments) + amount;
     if (totalInvestments > startingCredit) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Insufficient funds',
         available: startingCredit - parseFloat(investor.other_investments)
       });
     }
-    
+
     // No startup limit - investors can invest in as many startups as they want
     // Only requirement is 500€ increments (validated on frontend)
-    
-    // Use helper to create or update investment
-    await dbHelpers.createOrUpdateInvestment(investorId, startupId, amount);
-    
+
+    // Use helper to create or update investment with IP address
+    await dbHelpers.createOrUpdateInvestment(investorId, startupId, amount, clientIp);
+
     await broadcastGameState();
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error making investment:', error);

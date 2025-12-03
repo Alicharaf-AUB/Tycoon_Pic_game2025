@@ -52,6 +52,7 @@ async function initializeDatabase() {
         investor_id INTEGER NOT NULL,
         startup_id INTEGER NOT NULL,
         amount INTEGER NOT NULL,
+        ip_address VARCHAR(45),
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (investor_id) REFERENCES investors(id) ON DELETE CASCADE,
         FOREIGN KEY (startup_id) REFERENCES startups(id) ON DELETE CASCADE
@@ -123,6 +124,7 @@ async function initializeDatabase() {
     // Create indexes for performance
     await client.query('CREATE INDEX IF NOT EXISTS idx_investments_investor ON investments(investor_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_investments_startup ON investments(startup_id)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_investments_ip ON investments(ip_address)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_fund_requests_investor ON fund_requests(investor_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_fund_requests_status ON fund_requests(status)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_startups_active ON startups(is_active)');
