@@ -81,6 +81,8 @@ const apiLimiter = rateLimit({
   message: 'Too many requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Trust Railway proxy for getting real IP
+  validate: { trustProxy: false },
 });
 
 // Apply rate limiting to API routes
@@ -489,24 +491,35 @@ app.post('/api/invest', async (req, res) => {
     // Get client IP address
     const clientIp = getClientIp(req);
 
-    // Check if this IP has already voted for this startup (from a different account)
-    const ipCheckQuery = await pool.query(`
-      SELECT inv.id, inv.investor_id, i.name as investor_name
-      FROM investments inv
-      JOIN investors i ON inv.investor_id = i.id
-      WHERE inv.startup_id = $1
-        AND inv.ip_address = $2
-        AND inv.investor_id != $3
-        AND inv.amount > 0
-      LIMIT 1
-    `, [startupId, clientIp, investorId]);
+    // Check if IP column exists before doing IP-based validation
+    const ipColumnCheck = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'investments'
+      AND column_name = 'ip_address'
+    `);
 
-    if (ipCheckQuery.rows.length > 0) {
-      const existingVote = ipCheckQuery.rows[0];
-      return res.status(403).json({
-        error: 'This device has already voted for this startup. Each device can only vote once per startup.',
-        details: 'IP-based vote limit reached'
-      });
+    // Only check IP-based voting limit if column exists
+    if (ipColumnCheck.rows.length > 0) {
+      // Check if this IP has already voted for this startup (from a different account)
+      const ipCheckQuery = await pool.query(`
+        SELECT inv.id, inv.investor_id, i.name as investor_name
+        FROM investments inv
+        JOIN investors i ON inv.investor_id = i.id
+        WHERE inv.startup_id = $1
+          AND inv.ip_address = $2
+          AND inv.investor_id != $3
+          AND inv.amount > 0
+        LIMIT 1
+      `, [startupId, clientIp, investorId]);
+
+      if (ipCheckQuery.rows.length > 0) {
+        const existingVote = ipCheckQuery.rows[0];
+        return res.status(403).json({
+          error: 'This device has already voted for this startup. Each device can only vote once per startup.',
+          details: 'IP-based vote limit reached'
+        });
+      }
     }
 
     // Get investor's starting credit, current investments, and count of unique startups invested in
