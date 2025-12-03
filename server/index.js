@@ -1382,6 +1382,29 @@ const initializeDatabaseOnStartup = async () => {
       `);
       console.log('✅ Added ip_address column to admin_logs for tracking admin actions by IP');
     }
+
+    // Check if ip_address column exists in investments
+    const investmentsIpCheck = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'investments'
+      AND column_name = 'ip_address'
+    `);
+
+    if (investmentsIpCheck.rows.length === 0) {
+      console.log('⚠️  Adding missing ip_address column to investments...');
+      await pool.query(`
+        ALTER TABLE investments
+        ADD COLUMN ip_address VARCHAR(45)
+      `);
+      // Create index for performance
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_investments_ip
+        ON investments(ip_address)
+      `);
+      console.log('✅ Added ip_address column to investments for IP-based vote limiting');
+      console.log('✅ Created index on ip_address for query performance');
+    }
     
     console.log('✅ Database ready');
   } catch (error) {
