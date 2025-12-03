@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getDeviceFingerprint } from './deviceFingerprint';
 
 // Use relative path in production (same domain), localhost in development
 // Check if we're in production by looking at the hostname
@@ -72,10 +73,12 @@ export const api = {
 
   // Make investment
   invest: async (investorId, startupId, amount) => {
+    const deviceFingerprint = getDeviceFingerprint();
     const { data } = await axios.post(`${API_BASE}/api/invest`, {
       investorId,
       startupId,
       amount,
+      deviceFingerprint,
     }, { headers: getHeaders() });
     return data;
   },

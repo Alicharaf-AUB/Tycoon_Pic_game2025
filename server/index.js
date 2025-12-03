@@ -471,7 +471,7 @@ app.get('/api/investors/:id', async (req, res) => {
 
 // Make or update investment
 app.post('/api/invest', async (req, res) => {
-  const { investorId, startupId, amount } = req.body;
+  const { investorId, startupId, amount, deviceFingerprint } = req.body;
 
   try {
     // Check if game is locked
@@ -491,6 +491,46 @@ app.post('/api/invest', async (req, res) => {
     // Get client IP address
     const clientIp = getClientIp(req);
 
+    // DEVICE FINGERPRINT CHECK (primary vote integrity mechanism)
+    if (deviceFingerprint) {
+      // Check if device_fingerprint column exists
+      const fpColumnCheck = await pool.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'investments'
+        AND column_name = 'device_fingerprint'
+      `);
+
+      if (fpColumnCheck.rows.length > 0) {
+        // Check if this device has already voted for this startup (from a different account)
+        const fpCheckQuery = await pool.query(`
+          SELECT inv.id, inv.investor_id, i.name as investor_name
+          FROM investments inv
+          JOIN investors i ON inv.investor_id = i.id
+          WHERE inv.startup_id = $1
+            AND inv.device_fingerprint = $2
+            AND inv.investor_id != $3
+            AND inv.amount > 0
+          LIMIT 1
+        `, [startupId, deviceFingerprint, investorId]);
+
+        if (fpCheckQuery.rows.length > 0) {
+          const existingVote = fpCheckQuery.rows[0];
+          console.log('🚫 Device fingerprint vote limit:', {
+            startupId,
+            deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
+            existingInvestor: existingVote.investor_name,
+            attemptedInvestor: investorId
+          });
+          return res.status(403).json({
+            error: 'This device has already voted for this startup. Each device can only vote once per startup.',
+            details: 'Device-based vote limit reached'
+          });
+        }
+      }
+    }
+
+    // IP CHECK (backup vote integrity mechanism)
     // Check if IP column exists before doing IP-based validation
     const ipColumnCheck = await pool.query(`
       SELECT column_name
@@ -515,6 +555,12 @@ app.post('/api/invest', async (req, res) => {
 
       if (ipCheckQuery.rows.length > 0) {
         const existingVote = ipCheckQuery.rows[0];
+        console.log('🚫 IP vote limit:', {
+          startupId,
+          clientIp,
+          existingInvestor: existingVote.investor_name,
+          attemptedInvestor: investorId
+        });
         return res.status(403).json({
           error: 'This device has already voted for this startup. Each device can only vote once per startup.',
           details: 'IP-based vote limit reached'
@@ -565,8 +611,8 @@ app.post('/api/invest', async (req, res) => {
     // No startup limit - investors can invest in as many startups as they want
     // Only requirement is 500€ increments (validated on frontend)
 
-    // Use helper to create or update investment with IP address
-    await dbHelpers.createOrUpdateInvestment(investorId, startupId, amount, clientIp);
+    // Use helper to create or update investment with IP address and device fingerprint
+    await dbHelpers.createOrUpdateInvestment(investorId, startupId, amount, clientIp, deviceFingerprint);
 
     await broadcastGameState();
 
@@ -1425,6 +1471,29 @@ const initializeDatabaseOnStartup = async () => {
       `);
       console.log('✅ Added ip_address column to investments for IP-based vote limiting');
       console.log('✅ Created index on ip_address for query performance');
+    }
+
+    // Check if device_fingerprint column exists in investments
+    const deviceFingerprintCheck = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'investments'
+      AND column_name = 'device_fingerprint'
+    `);
+
+    if (deviceFingerprintCheck.rows.length === 0) {
+      console.log('⚠️  Adding missing device_fingerprint column to investments...');
+      await pool.query(`
+        ALTER TABLE investments
+        ADD COLUMN device_fingerprint VARCHAR(255)
+      `);
+      // Create index for performance
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_investments_device
+        ON investments(device_fingerprint)
+      `);
+      console.log('✅ Added device_fingerprint column to investments for device-based vote limiting');
+      console.log('✅ Created index on device_fingerprint for query performance');
     }
     
     console.log('✅ Database ready');

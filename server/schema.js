@@ -53,6 +53,7 @@ async function initializeDatabase() {
         startup_id INTEGER NOT NULL,
         amount INTEGER NOT NULL,
         ip_address VARCHAR(45),
+        device_fingerprint VARCHAR(255),
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (investor_id) REFERENCES investors(id) ON DELETE CASCADE,
         FOREIGN KEY (startup_id) REFERENCES startups(id) ON DELETE CASCADE

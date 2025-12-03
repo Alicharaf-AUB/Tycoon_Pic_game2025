@@ -86,7 +86,7 @@ async function getExistingInvestment(startupId, investorId) {
   return result.rows[0];
 }
 
-async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress = null) {
+async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress = null, deviceFingerprint = null) {
   const client = await pool.connect();
 
   try {
@@ -105,17 +105,17 @@ async function createOrUpdateInvestment(investorId, startupId, amount, ipAddress
           [investorId, startupId]
         );
       } else {
-        // Update investment with IP address
+        // Update investment with IP address and device fingerprint
         await client.query(
-          'UPDATE investments SET amount = $3, ip_address = $4, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
-          [investorId, startupId, amount, ipAddress]
+          'UPDATE investments SET amount = $3, ip_address = $4, device_fingerprint = $5, timestamp = CURRENT_TIMESTAMP WHERE investor_id = $1 AND startup_id = $2',
+          [investorId, startupId, amount, ipAddress, deviceFingerprint]
         );
       }
     } else {
-      // Create new investment with IP address
+      // Create new investment with IP address and device fingerprint
       await client.query(
-        'INSERT INTO investments (investor_id, startup_id, amount, ip_address) VALUES ($1, $2, $3, $4)',
-        [investorId, startupId, amount, ipAddress]
+        'INSERT INTO investments (investor_id, startup_id, amount, ip_address, device_fingerprint) VALUES ($1, $2, $3, $4, $5)',
+        [investorId, startupId, amount, ipAddress, deviceFingerprint]
       );
     }
 
