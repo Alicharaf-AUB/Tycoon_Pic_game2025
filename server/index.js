@@ -501,7 +501,7 @@ app.post('/api/invest', async (req, res) => {
     const clientIp = getClientIp(req);
 
     // DEVICE FINGERPRINT CHECK (primary vote integrity mechanism)
-    if (deviceFingerprint) {
+    if (deviceFingerprint && deviceFingerprint.length > 10) {
       // Check if device_fingerprint column exists
       const fpColumnCheck = await pool.query(`
         SELECT column_name
@@ -520,6 +520,9 @@ app.post('/api/invest', async (req, res) => {
           INNER JOIN investors i ON inv.investor_id = i.id
           WHERE inv.startup_id = $1
             AND inv.device_fingerprint = $2
+            AND inv.device_fingerprint IS NOT NULL
+            AND inv.device_fingerprint != ''
+            AND LENGTH(inv.device_fingerprint) > 10
             AND inv.investor_id != $3
             AND inv.amount > 0
           LIMIT 1
@@ -547,6 +550,13 @@ app.post('/api/invest', async (req, res) => {
           });
         }
       }
+    } else {
+      console.log('⚠️  Device fingerprint missing or too short:', {
+        investorId,
+        startupId,
+        fingerprintLength: deviceFingerprint ? deviceFingerprint.length : 0,
+        fingerprint: deviceFingerprint ? deviceFingerprint.substring(0, 20) + '...' : 'null'
+      });
     }
 
     // IP CHECK (backup vote integrity mechanism)
