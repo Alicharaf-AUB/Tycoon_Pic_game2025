@@ -1218,7 +1218,7 @@ function StartupsTab({ username, password, gameState, showToast }) {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => handleEdit(startup)}
                 className="px-3 py-2 bg-gradient-to-b from-blue-400 to-blue-600 border-2 border-blue-900 rounded-lg font-black text-white text-sm hover:from-blue-300 hover:to-blue-500 transition-all"
@@ -1226,8 +1226,23 @@ function StartupsTab({ username, password, gameState, showToast }) {
                 ✏️ Edit
               </button>
               <button
-                onClick={() => handleToggleActive(startup)}
+                onClick={async () => {
+                  if (!confirm(`Clean up orphaned votes for "${startup.name}"?`)) return;
+                  try {
+                    const result = await adminApi.cleanupStartupVotes(username, password, startup.id);
+                    showToast(result.message || `Cleaned up ${result.deleted} orphaned votes`, 'success');
+                  } catch (err) {
+                    showToast(err.response?.data?.error || 'Cleanup failed', 'error');
+                  }
+                }}
                 className="px-3 py-2 bg-gradient-to-b from-yellow-400 to-yellow-600 border-2 border-yellow-900 rounded-lg font-black text-yellow-950 text-sm hover:from-yellow-300 hover:to-yellow-500 transition-all"
+                title="Clean orphaned votes"
+              >
+                🧹
+              </button>
+              <button
+                onClick={() => handleToggleActive(startup)}
+                className="px-3 py-2 bg-gradient-to-b from-green-400 to-green-600 border-2 border-green-900 rounded-lg font-black text-white text-sm hover:from-green-300 hover:to-green-500 transition-all"
               >
                 {startup.is_active ? '❌' : '✓'}
               </button>

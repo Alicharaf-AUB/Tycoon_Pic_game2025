@@ -1054,6 +1054,67 @@ app.post('/api/admin/check-device-fingerprint', adminAuth, async (req, res) => {
   }
 });
 
+// Clean up orphaned investments for a specific startup (admin endpoint)
+app.post('/api/admin/cleanup-startup-votes', adminAuth, async (req, res) => {
+  const { startupId } = req.body;
+  
+  console.log('=== CLEANUP STARTUP VOTES ===');
+  console.log('Startup ID:', startupId);
+  
+  try {
+    // Find orphaned investments for this startup
+    const orphanedCheck = await pool.query(`
+      SELECT inv.id, inv.investor_id, inv.amount, inv.device_fingerprint
+      FROM investments inv
+      LEFT JOIN investors i ON inv.investor_id = i.id
+      WHERE inv.startup_id = $1 AND i.id IS NULL
+    `, [startupId]);
+    
+    const orphanedCount = orphanedCheck.rows.length;
+    
+    if (orphanedCount === 0) {
+      console.log('✅ No orphaned votes found for this startup');
+      return res.json({
+        success: true,
+        message: 'No orphaned votes found for this startup',
+        deleted: 0
+      });
+    }
+    
+    console.log(`Found ${orphanedCount} orphaned votes for startup ${startupId}:`);
+    orphanedCheck.rows.forEach(row => {
+      console.log(`  - Investment ID ${row.id}: investor_id=${row.investor_id} (deleted), amount=${row.amount}`);
+    });
+    
+    // Delete orphaned investments for this startup
+    const deleteResult = await pool.query(`
+      DELETE FROM investments
+      WHERE startup_id = $1 
+        AND investor_id NOT IN (SELECT id FROM investors)
+      RETURNING id
+    `, [startupId]);
+    
+    console.log(`✅ Deleted ${deleteResult.rowCount} orphaned votes for startup ${startupId}`);
+    
+    await dbHelpers.createAdminLog(
+      'CLEANUP_STARTUP_VOTES',
+      `Cleaned up ${deleteResult.rowCount} orphaned votes for startup ${startupId}`,
+      req.adminIp
+    );
+    
+    await broadcastGameState();
+    
+    res.json({
+      success: true,
+      message: `Cleaned up ${deleteResult.rowCount} orphaned votes for this startup`,
+      deleted: deleteResult.rowCount
+    });
+  } catch (error) {
+    console.error('ERROR cleaning up startup votes:', error);
+    res.status(500).json({ error: 'Failed to cleanup: ' + error.message });
+  }
+});
+
 // Clean up orphaned investments (admin endpoint)
 app.post('/api/admin/cleanup-orphaned-investments', adminAuth, async (req, res) => {
   console.log('=== CLEANUP ORPHANED INVESTMENTS ===');

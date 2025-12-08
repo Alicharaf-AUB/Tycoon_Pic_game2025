@@ -207,6 +207,16 @@ export const adminApi = {
     return data;
   },
 
+  // Cleanup orphaned votes for specific startup
+  cleanupStartupVotes: async (username, password, startupId) => {
+    const { data } = await axios.post(
+      `${API_BASE}/api/admin/cleanup-startup-votes`,
+      { startupId },
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
+    return data;
+  },
+
   // Get all startups
   getStartups: async (username, password) => {
     const { data } = await axios.get(`${API_BASE}/api/admin/startups`, {
