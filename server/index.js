@@ -521,6 +521,24 @@ app.post('/api/invest', async (req, res) => {
           fingerprintPreview: deviceFingerprint.substring(0, 20) + '...'
         });
         
+        // DEBUG: Show ALL votes for this startup
+        const allVotesForStartup = await pool.query(`
+          SELECT 
+            inv.id, 
+            inv.investor_id, 
+            inv.amount,
+            inv.device_fingerprint,
+            i.name as investor_name,
+            i.email as investor_email,
+            CASE WHEN i.id IS NULL THEN 'DELETED' ELSE 'ACTIVE' END as investor_status
+          FROM investments inv
+          LEFT JOIN investors i ON inv.investor_id = i.id
+          WHERE inv.startup_id = $1
+          ORDER BY inv.timestamp DESC
+        `, [startupId]);
+        
+        console.log(`📊 All votes for startup ${startupId}:`, allVotesForStartup.rows);
+        
         const fpCheckQuery = await pool.query(`
           SELECT inv.id, inv.investor_id, i.name as investor_name, i.id as investor_exists
           FROM investments inv
@@ -539,18 +557,37 @@ app.post('/api/invest', async (req, res) => {
 
         if (fpCheckQuery.rows.length > 0) {
           const existingVote = fpCheckQuery.rows[0];
+          
+          // EXTRA DEBUG: Check if this investor actually exists
+          const investorCheck = await pool.query(
+            'SELECT id, name, email FROM investors WHERE id = $1',
+            [existingVote.investor_id]
+          );
+          
           console.log('🚫 Device fingerprint vote limit:', {
             startupId,
             deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
             existingInvestor: existingVote.investor_name,
             existingInvestorId: existingVote.investor_id,
+            investorStillExists: investorCheck.rows.length > 0,
+            investorData: investorCheck.rows[0],
             attemptedInvestor: investorId,
             message: 'Another active account from this device has already voted'
           });
-          return res.status(403).json({
-            error: 'This device has already voted for this startup. Each device can only vote once per startup.',
-            details: 'Device-based vote limit reached'
-          });
+          
+          // CRITICAL: If investor doesn't exist, this is a bug - delete the orphaned vote and allow
+          if (investorCheck.rows.length === 0) {
+            console.error('🐛 BUG DETECTED: Found vote from non-existent investor! Deleting orphaned vote...');
+            await pool.query('DELETE FROM investments WHERE id = $1', [existingVote.id]);
+            console.log('✅ Deleted orphaned vote, allowing this vote to proceed');
+            // Don't return error, let the vote continue
+          } else {
+            return res.status(403).json({
+              error: 'This device has already voted for this startup. Each device can only vote once per startup.',
+              details: 'Device-based vote limit reached',
+              existingInvestor: existingVote.investor_name
+            });
+          }
         } else {
           console.log('✅ Device fingerprint check passed:', {
             startupId,
@@ -594,16 +631,35 @@ app.post('/api/invest', async (req, res) => {
 
       if (ipCheckQuery.rows.length > 0) {
         const existingVote = ipCheckQuery.rows[0];
+        
+        // EXTRA DEBUG: Check if this investor actually exists
+        const investorCheck = await pool.query(
+          'SELECT id, name, email FROM investors WHERE id = $1',
+          [existingVote.investor_id]
+        );
+        
         console.log('🚫 IP vote limit:', {
           startupId,
           clientIp,
           existingInvestor: existingVote.investor_name,
+          existingInvestorId: existingVote.investor_id,
+          investorStillExists: investorCheck.rows.length > 0,
           attemptedInvestor: investorId
         });
-        return res.status(403).json({
-          error: 'This device has already voted for this startup. Each device can only vote once per startup.',
-          details: 'IP-based vote limit reached'
-        });
+        
+        // CRITICAL: If investor doesn't exist, delete the orphaned vote and allow
+        if (investorCheck.rows.length === 0) {
+          console.error('🐛 BUG DETECTED: IP check found vote from non-existent investor! Deleting...');
+          await pool.query('DELETE FROM investments WHERE id = $1', [existingVote.id]);
+          console.log('✅ Deleted orphaned IP vote, allowing this vote to proceed');
+          // Don't return error, let the vote continue
+        } else {
+          return res.status(403).json({
+            error: 'This device has already voted for this startup. Each device can only vote once per startup.',
+            details: 'IP-based vote limit reached',
+            existingInvestor: existingVote.investor_name
+          });
+        }
       }
     }
 
