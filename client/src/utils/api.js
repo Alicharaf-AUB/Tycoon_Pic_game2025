@@ -89,6 +89,11 @@ export const api = {
       }, { headers: getHeaders() });
       return data;
     } catch (error) {
+      console.error('🚨 API invest error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
       // Retry on 502 (server restart) up to 2 times with exponential backoff
       if (error.response?.status === 502 && retryCount < 2) {
         const delay = (retryCount + 1) * 2000; // 2s, 4s
@@ -101,6 +106,8 @@ export const api = {
         await new Promise(resolve => setTimeout(resolve, delay));
         return api.invest(investorId, startupId, amount, nextRetry, onRetry);
       }
+      
+      console.error('🔥 Throwing error after retry logic');
       throw error;
     }
   },

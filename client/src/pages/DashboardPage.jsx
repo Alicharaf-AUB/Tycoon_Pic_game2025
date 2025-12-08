@@ -132,7 +132,26 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error('❌ Vote failed:', err);
-      const errorMsg = err.response?.data?.error || err.message || '⚠️ Vote failed! Please try again.';
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response,
+        responseData: err.response?.data,
+        status: err.response?.status,
+        stack: err.stack
+      });
+      
+      let errorMsg = '⚠️ Vote failed! Please try again.';
+      
+      if (err.response?.data?.error) {
+        errorMsg = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      } else if (err.message) {
+        errorMsg = err.message;
+      } else if (err.response?.status) {
+        errorMsg = `Server error (${err.response.status})`;
+      }
+      
       setError(errorMsg);
       alert(`❌ ${errorMsg}`);
     } finally {
