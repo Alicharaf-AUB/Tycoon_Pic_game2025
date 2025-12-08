@@ -513,15 +513,15 @@ app.post('/api/invest', async (req, res) => {
       if (fpColumnCheck.rows.length > 0) {
         // Check if this device has already voted for this startup (from a different account)
         // Only check for votes from EXISTING investors (not deleted ones)
+        // The JOIN ensures we only get investments from investors that still exist
         const fpCheckQuery = await pool.query(`
-          SELECT inv.id, inv.investor_id, i.name as investor_name
+          SELECT inv.id, inv.investor_id, i.name as investor_name, i.id as investor_exists
           FROM investments inv
-          JOIN investors i ON inv.investor_id = i.id
+          INNER JOIN investors i ON inv.investor_id = i.id
           WHERE inv.startup_id = $1
             AND inv.device_fingerprint = $2
             AND inv.investor_id != $3
             AND inv.amount > 0
-            AND i.id IS NOT NULL
           LIMIT 1
         `, [startupId, deviceFingerprint, investorId]);
 
@@ -561,10 +561,11 @@ app.post('/api/invest', async (req, res) => {
     // Only check IP-based voting limit if column exists
     if (ipColumnCheck.rows.length > 0) {
       // Check if this IP has already voted for this startup (from a different account)
+      // The INNER JOIN ensures we only get investments from investors that still exist
       const ipCheckQuery = await pool.query(`
         SELECT inv.id, inv.investor_id, i.name as investor_name
         FROM investments inv
-        JOIN investors i ON inv.investor_id = i.id
+        INNER JOIN investors i ON inv.investor_id = i.id
         WHERE inv.startup_id = $1
           AND inv.ip_address = $2
           AND inv.investor_id != $3
@@ -618,8 +619,8 @@ app.post('/api/invest', async (req, res) => {
       clientIp
     });
 
-    // Validate 50-coin increments
-    if (amount % 50 !== 0) {
+    // Validate 50-coin increments (0 is allowed to remove vote)
+    if (amount !== 0 && amount % 50 !== 0) {
       return res.status(400).json({
         error: 'Amount must be in increments of 50 coins'
       });
