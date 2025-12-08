@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { api, formatCurrency } from '../utils/api';
+import { api, formatCurrency, getFileUrl } from '../utils/api';
 import { GAME_CONFIG } from '../config';
 
 export default function DashboardPage() {
@@ -43,6 +43,14 @@ export default function DashboardPage() {
   const startups = gameState?.startups?.filter(s => s.is_active) || [];
   const allInvestments = gameState?.investments || [];
   const myVotes = allInvestments.filter(inv => inv.investor_id === parseInt(investorId));
+
+  // Debug: Log startup data to see what fields are available
+  useEffect(() => {
+    if (startups.length > 0) {
+      console.log('📊 Startups data:', startups[0]);
+      console.log('📋 Available fields:', Object.keys(startups[0]));
+    }
+  }, [startups]);
 
   const getVoteForStartup = (startupId) => {
     return myVotes.find(v => v.startup_id === startupId);
