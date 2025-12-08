@@ -606,6 +606,9 @@ app.post('/api/invest', async (req, res) => {
     }
 
     // IP CHECK (backup vote integrity mechanism)
+    // DISABLED: IP checking causes false positives for users on same network
+    // Device fingerprinting is the primary and more accurate method
+    /*
     // Check if IP column exists before doing IP-based validation
     const ipColumnCheck = await pool.query(`
       SELECT column_name
@@ -683,6 +686,8 @@ app.post('/api/invest', async (req, res) => {
         }
       }
     }
+    */
+    console.log('ℹ️  IP-based vote checking is disabled - using device fingerprint only');
 
     // Get investor's starting credit, current investments, and count of unique startups invested in
     const investorQuery = await pool.query(`
