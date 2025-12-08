@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showFinalizePopup, setShowFinalizePopup] = useState(false);
   const [activeTab, setActiveTab] = useState('vote'); // vote, portfolio
 
   // Load investor data
@@ -113,6 +114,13 @@ export default function DashboardPage() {
       setTimeout(() => setShowSuccess(false), 3000);
       setSelectedStartup(null);
       setVoteAmount('');
+      
+      // Show finalize popup if all coins are spent
+      const newCoinsSpent = myVotes.reduce((sum, v) => sum + parseFloat(v.amount || 0), 0) + coins;
+      const newCoinsLeft = parseFloat(investor?.starting_credit || 0) - newCoinsSpent;
+      if (newCoinsLeft === 0) {
+        setTimeout(() => setShowFinalizePopup(true), 3500);
+      }
     } catch (err) {
       console.error('❌ Vote failed:', err);
       const errorMsg = err.response?.data?.error || err.message || '⚠️ Vote failed! Please try again.';
@@ -125,20 +133,21 @@ export default function DashboardPage() {
 
   const handleSubmitPortfolio = async () => {
     if (coinsLeft > 0) {
-      alert(`⚠️ You have ${coinsLeft} 🪙 coins left!\n\nSpend all your coins before locking in!`);
+      alert(`⚠️ You have ${coinsLeft} 🪙 coins left!\n\nSpend all your coins before finalizing!`);
       return;
     }
 
-    if (!confirm('🔒 Lock in your votes? This cannot be undone!')) return;
+    if (!confirm('🎯 Finalize your votes? This cannot be undone!')) return;
+    setShowFinalizePopup(false);
 
     setSubmitting(true);
     try {
       await api.submit(investorId);
       const { investor: updated } = await api.getInvestor(investorId);
       setInvestor(updated);
-      alert('✅ VOTES LOCKED! 🏆 Good luck!');
+      alert('✅ VOTES FINALIZED! 🏆 Good luck!');');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to lock votes');
+      setError(err.response?.data?.error || 'Failed to finalize votes');
     } finally {
       setSubmitting(false);
     }
@@ -396,12 +405,12 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Lock Votes Button - Available in VOTE tab */}
+            {/* Finalize Votes Button - Available in VOTE tab */}
             {!isLocked && myVotes.length > 0 && (
               <div className="game-card bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-900 mt-8">
                 <div className="text-center">
                   <p className="text-xl sm:text-2xl font-black text-purple-300 mb-2">
-                    🔒 Ready to Lock In Your Votes?
+                    🎯 Ready to Finalize Your Votes?
                   </p>
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <div className="bg-purple-950/30 border border-purple-800 rounded-lg p-2">
@@ -419,8 +428,8 @@ export default function DashboardPage() {
                   </div>
                   <p className="text-sm sm:text-base text-purple-400 mb-6">
                     {coinsLeft > 0
-                      ? `⚠️ You still have ${coinsLeft} coins left! Spend them all before locking.`
-                      : '✅ All coins spent! You can lock your votes now.'
+                      ? `⚠️ You still have ${coinsLeft} coins left! Spend them all before finalizing.`
+                      : '✅ All coins spent! You can finalize your votes now.'
                     }
                   </p>
                   <button
@@ -428,7 +437,7 @@ export default function DashboardPage() {
                     disabled={submitting}
                     className="btn-game w-full sm:w-auto px-12 disabled:opacity-50"
                   >
-                    {submitting ? '⚡ LOCKING...' : '🔒 LOCK MY VOTES NOW'}
+                    {submitting ? '⚡ FINALIZING...' : '🎯 FINALIZE MY VOTES NOW'}
                   </button>
                 </div>
               </div>
@@ -505,12 +514,12 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Lock Portfolio Button */}
+            {/* Finalize Portfolio Button */}
             {!isLocked && myVotes.length > 0 && (
               <div className="game-card bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-900">
                 <div className="text-center">
                   <p className="text-xl sm:text-2xl font-black text-purple-300 mb-4">
-                    🔒 Ready to Lock In Your Votes?
+                    🎯 Ready to Finalize Your Votes?
                   </p>
                   <p className="text-sm sm:text-base text-purple-400 mb-6">
                     Make sure you've spent all your coins! This action is final.
@@ -520,7 +529,7 @@ export default function DashboardPage() {
                     disabled={submitting}
                     className="btn-game w-full sm:w-auto px-12 disabled:opacity-50"
                   >
-                    {submitting ? '⚡ LOCKING...' : '🔒 LOCK MY VOTES'}
+                    {submitting ? '⚡ FINALIZING...' : '🎯 FINALIZE MY VOTES'}
                   </button>
                 </div>
               </div>
@@ -666,6 +675,55 @@ export default function DashboardPage() {
               >
                 {submitting ? '⚡ VOTING...' : '✅ CONFIRM'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Finalize Votes Popup */}
+      {showFinalizePopup && !isLocked && coinsLeft === 0 && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+             onClick={() => setShowFinalizePopup(false)}>
+          <div className="game-card max-w-md w-full pop-in bg-gradient-to-br from-purple-900/95 to-pink-900/95 border-purple-700" 
+               onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="text-6xl mb-4 animate-bounce">🎯</div>
+              <h2 className="text-3xl font-black text-purple-100 mb-4">
+                ALL COINS SPENT!
+              </h2>
+              <p className="text-xl font-bold text-purple-200 mb-2">
+                You've allocated all {investor?.starting_credit} coins
+              </p>
+              <p className="text-base text-purple-300 mb-6">
+                Ready to finalize your votes?
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="bg-purple-950/50 border-2 border-purple-600 rounded-xl p-3">
+                  <p className="text-xs font-bold text-purple-400 uppercase">Startups Voted</p>
+                  <p className="text-2xl font-black text-purple-100">🚀 {myVotes.length}</p>
+                </div>
+                <div className="bg-purple-950/50 border-2 border-purple-600 rounded-xl p-3">
+                  <p className="text-xs font-bold text-purple-400 uppercase">Total Spent</p>
+                  <p className="text-2xl font-black text-purple-100">🪙 {coinsSpent}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowFinalizePopup(false)}
+                  className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-500 border-4 border-gray-800 rounded-xl font-black text-white uppercase transition-all"
+                >
+                  ↩️ Review
+                </button>
+                <button
+                  onClick={handleSubmitPortfolio}
+                  disabled={submitting}
+                  className="flex-1 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 border-4 border-green-900 rounded-xl font-black text-white uppercase transition-all shadow-lg disabled:opacity-50"
+                >
+                  {submitting ? '⚡ FINALIZING...' : '🎯 FINALIZE'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
