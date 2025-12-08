@@ -71,8 +71,8 @@ export const api = {
     return data;
   },
 
-  // Make investment
-  invest: async (investorId, startupId, amount) => {
+  // Make investment (with retry on 502)
+  invest: async (investorId, startupId, amount, retryCount = 0) => {
     let deviceFingerprint = null;
     try {
       deviceFingerprint = await getDeviceFingerprint();
@@ -80,13 +80,24 @@ export const api = {
       console.warn('Failed to get device fingerprint, continuing without it:', err);
     }
     
-    const { data } = await axios.post(`${API_BASE}/api/invest`, {
-      investorId,
-      startupId,
-      amount,
-      deviceFingerprint,
-    }, { headers: getHeaders() });
-    return data;
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/invest`, {
+        investorId,
+        startupId,
+        amount,
+        deviceFingerprint,
+      }, { headers: getHeaders() });
+      return data;
+    } catch (error) {
+      // Retry on 502 (server restart) up to 2 times with exponential backoff
+      if (error.response?.status === 502 && retryCount < 2) {
+        const delay = (retryCount + 1) * 2000; // 2s, 4s
+        console.log(`⏳ Server restarting (502), retrying in ${delay/1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return api.invest(investorId, startupId, amount, retryCount + 1);
+      }
+      throw error;
+    }
   },
 
   // Submit investments (finalize choices)
