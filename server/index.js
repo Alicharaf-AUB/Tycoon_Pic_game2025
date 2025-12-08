@@ -416,11 +416,20 @@ app.post('/api/find-investor', async (req, res) => {
     console.log(`Investor found: ${investor.name} (${investor.email})`);
     res.json({ investor, newAccount: false });
   } catch (error) {
-    console.error('Error finding/creating investor:', error);
-    if (error.message && error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+    console.error('❌ Error finding/creating investor:', error);
+    console.error('Stack trace:', error.stack);
+    console.error('Error details:', { email: trimmedEmail, name: trimmedName });
+    
+    if (error.message && (error.message.includes('duplicate key') || error.message.includes('unique constraint'))) {
       return res.status(400).json({ error: 'An account with this email already exists with a different name' });
     }
-    res.status(500).json({ error: 'Failed to find or create investor' });
+    
+    // Return more specific error message
+    const errorMsg = error.message || 'Failed to find or create investor';
+    res.status(500).json({ 
+      error: 'Failed to join game',
+      details: process.env.NODE_ENV === 'development' ? errorMsg : undefined
+    });
   }
 });
 

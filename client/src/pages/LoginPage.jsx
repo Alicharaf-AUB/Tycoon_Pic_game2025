@@ -73,7 +73,10 @@ export default function LoginPage() {
 
       navigate(`/dashboard/${investor.id}`);
     } catch (err) {
-      setError(err.response?.data?.error || '⚠️ Failed to join game');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.error || '⚠️ Failed to join game';
+      const errorDetails = err.response?.data?.details;
+      setError(errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage);
     } finally {
       setLoading(false);
     }

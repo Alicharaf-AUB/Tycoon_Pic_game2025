@@ -30,12 +30,17 @@ async function getInvestorById(id) {
 }
 
 async function createInvestor(name, email) {
-  const result = await pool.query(
-    'INSERT INTO investors (name, email, starting_credit) VALUES ($1, $2, 500) RETURNING id',
-    [name, email]
-  );
-  const id = result.rows[0].id;
-  return await getInvestorById(id);
+  try {
+    const result = await pool.query(
+      'INSERT INTO investors (name, email, starting_credit) VALUES ($1, $2, 500) RETURNING id',
+      [name, email]
+    );
+    const id = result.rows[0].id;
+    return await getInvestorById(id);
+  } catch (error) {
+    console.error('❌ Error creating investor:', error.message);
+    throw error;
+  }
 }
 
 async function getInvestorByEmailOrName(email, name) {
