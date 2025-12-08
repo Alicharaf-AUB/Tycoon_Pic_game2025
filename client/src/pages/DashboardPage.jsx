@@ -90,7 +90,8 @@ export default function DashboardPage() {
       return;
     }
 
-    const coins = parseInt(amount);
+    // Handle empty input as 0
+    const coins = amount === '' || amount === null || amount === undefined ? 0 : parseInt(amount);
     if (isNaN(coins) || coins < 0) {
       setError('❌ Invalid coin amount!');
       return;
