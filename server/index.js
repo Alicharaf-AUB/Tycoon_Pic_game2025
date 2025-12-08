@@ -917,11 +917,30 @@ app.delete('/api/admin/investors/:id', adminAuth, async (req, res) => {
     );
     console.log(`This will CASCADE delete ${investmentsCount.rows[0].count} investments`);
 
-    // Delete the investor using helper (CASCADE will handle related records)
+    // EXPLICITLY delete investments first (don't rely on CASCADE)
+    // This ensures device fingerprints are removed even if CASCADE fails
+    const deleteResult = await pool.query(
+      'DELETE FROM investments WHERE investor_id = $1 RETURNING id',
+      [id]
+    );
+    console.log(`✅ Explicitly deleted ${deleteResult.rowCount} investment records`);
+
+    // Delete the investor
     await dbHelpers.deleteInvestor(id);
 
     console.log('Successfully deleted investor:', investor.name);
-    console.log('✅ CASCADE should have deleted all related investments');
+    
+    // Verify investments were actually deleted
+    const remainingInvestments = await pool.query(
+      'SELECT COUNT(*) FROM investments WHERE investor_id = $1',
+      [id]
+    );
+    
+    if (parseInt(remainingInvestments.rows[0].count) > 0) {
+      console.error(`⚠️ WARNING: Found ${remainingInvestments.rows[0].count} orphaned investments for deleted investor ${id}!`);
+    } else {
+      console.log('✅ Verified: All investments deleted successfully');
+    }
 
     await broadcastGameState();
 
@@ -1594,6 +1613,44 @@ const initializeDatabaseOnStartup = async () => {
       `);
       console.log('✅ Added device_fingerprint column to investments for device-based vote limiting');
       console.log('✅ Created index on device_fingerprint for query performance');
+    }
+    
+    // CRITICAL: Verify and fix CASCADE DELETE constraint
+    console.log('🔍 Verifying CASCADE DELETE constraint on investments...');
+    const cascadeCheck = await pool.query(`
+      SELECT 
+        tc.constraint_name, 
+        rc.delete_rule
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.referential_constraints rc 
+        ON tc.constraint_name = rc.constraint_name
+      WHERE tc.table_name = 'investments'
+        AND tc.constraint_type = 'FOREIGN KEY'
+        AND rc.delete_rule = 'CASCADE'
+        AND tc.constraint_name LIKE '%investor%'
+    `);
+    
+    if (cascadeCheck.rows.length === 0) {
+      console.log('⚠️  CASCADE DELETE constraint missing! Fixing now...');
+      
+      // Drop existing foreign key constraint
+      await pool.query(`
+        ALTER TABLE investments 
+        DROP CONSTRAINT IF EXISTS investments_investor_id_fkey
+      `);
+      
+      // Add CASCADE constraint
+      await pool.query(`
+        ALTER TABLE investments 
+        ADD CONSTRAINT investments_investor_id_fkey 
+        FOREIGN KEY (investor_id) 
+        REFERENCES investors(id) 
+        ON DELETE CASCADE
+      `);
+      
+      console.log('✅ CASCADE DELETE constraint added! Investments will now auto-delete when investor is deleted');
+    } else {
+      console.log('✅ CASCADE DELETE constraint verified:', cascadeCheck.rows[0].constraint_name);
     }
     
     console.log('✅ Database ready');
