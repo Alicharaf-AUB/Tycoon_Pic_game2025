@@ -197,6 +197,16 @@ export const adminApi = {
     return data;
   },
 
+  // Cleanup orphaned investments
+  cleanupOrphanedInvestments: async (username, password) => {
+    const { data } = await axios.post(
+      `${API_BASE}/api/admin/cleanup-orphaned-investments`,
+      {},
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
+    return data;
+  },
+
   // Get all startups
   getStartups: async (username, password) => {
     const { data } = await axios.get(`${API_BASE}/api/admin/startups`, {

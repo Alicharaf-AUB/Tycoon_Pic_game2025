@@ -1010,6 +1010,66 @@ app.post('/api/admin/investors/delete-all', adminAuth, async (req, res) => {
   }
 });
 
+// Clean up orphaned investments (admin endpoint)
+app.post('/api/admin/cleanup-orphaned-investments', adminAuth, async (req, res) => {
+  console.log('=== CLEANUP ORPHANED INVESTMENTS ===');
+  console.log('Admin IP:', req.adminIp);
+  console.log('Admin User:', req.adminUsername);
+
+  try {
+    // Find orphaned investments (investments without matching investor)
+    const orphanedCheck = await pool.query(`
+      SELECT inv.id, inv.investor_id, inv.startup_id, inv.amount, inv.device_fingerprint
+      FROM investments inv
+      LEFT JOIN investors i ON inv.investor_id = i.id
+      WHERE i.id IS NULL
+    `);
+
+    const orphanedCount = orphanedCheck.rows.length;
+    
+    if (orphanedCount === 0) {
+      console.log('✅ No orphaned investments found');
+      return res.json({
+        success: true,
+        message: 'No orphaned investments found',
+        deleted: 0
+      });
+    }
+
+    console.log(`Found ${orphanedCount} orphaned investments:`);
+    orphanedCheck.rows.forEach(row => {
+      console.log(`  - Investment ID ${row.id}: investor_id=${row.investor_id} (deleted), startup_id=${row.startup_id}, amount=${row.amount}`);
+    });
+
+    // Delete orphaned investments
+    const deleteResult = await pool.query(`
+      DELETE FROM investments
+      WHERE investor_id NOT IN (SELECT id FROM investors)
+      RETURNING id
+    `);
+
+    console.log(`✅ Deleted ${deleteResult.rowCount} orphaned investments`);
+
+    // Log this action
+    await dbHelpers.createAdminLog(
+      'CLEANUP_ORPHANED_INVESTMENTS',
+      `Cleaned up ${deleteResult.rowCount} orphaned investment records`,
+      req.adminIp
+    );
+
+    await broadcastGameState();
+
+    res.json({
+      success: true,
+      message: `Cleaned up ${deleteResult.rowCount} orphaned investments`,
+      deleted: deleteResult.rowCount
+    });
+  } catch (error) {
+    console.error('ERROR cleaning up orphaned investments:', error);
+    res.status(500).json({ error: 'Failed to cleanup: ' + error.message });
+  }
+});
+
 // Get all startups (admin)
 app.get('/api/admin/startups', adminAuth, async (req, res) => {
   try {

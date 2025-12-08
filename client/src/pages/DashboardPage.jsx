@@ -139,6 +139,7 @@ export default function DashboardPage() {
         status: err.response?.status,
         stack: err.stack
       });
+      console.error('Response data JSON:', JSON.stringify(err.response?.data, null, 2));
       
       let errorMsg = '⚠️ Vote failed! Please try again.';
       
@@ -152,6 +153,7 @@ export default function DashboardPage() {
         errorMsg = `Server error (${err.response.status})`;
       }
       
+      console.error('Final error message:', errorMsg);
       setError(errorMsg);
       alert(`❌ ${errorMsg}`);
     } finally {

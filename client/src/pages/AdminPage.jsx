@@ -459,6 +459,30 @@ function InvestorsTab({ username, password, gameState, showToast }) {
 
   return (
     <div className="space-y-4">
+      {/* Cleanup Orphaned Investments Button */}
+      <div className="game-card bg-gradient-to-r from-yellow-900/20 to-amber-900/20 border-yellow-900">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-lg font-black text-yellow-300 mb-1">🧹 Cleanup</p>
+            <p className="text-sm text-yellow-400">Remove orphaned votes from deleted users</p>
+          </div>
+          <button
+            onClick={async () => {
+              if (!confirm('Clean up orphaned investments?\\n\\nThis will remove votes from deleted users.')) return;
+              try {
+                const result = await adminApi.cleanupOrphanedInvestments(username, password);
+                showToast(result.message, 'success');
+              } catch (err) {
+                showToast(err.response?.data?.error || 'Cleanup failed', 'error');
+              }
+            }}
+            className="px-6 py-3 bg-gradient-to-b from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 border-4 border-yellow-900 rounded-xl font-black text-white uppercase shadow-[0_4px_0_0_rgba(113,63,18,1)] hover:shadow-[0_2px_0_0_rgba(113,63,18,1)] hover:translate-y-0.5 active:translate-y-1 transition-all whitespace-nowrap"
+          >
+            🧹 Cleanup Orphaned Votes
+          </button>
+        </div>
+      </div>
+
       {/* Delete All Players Button */}
       {investors.length > 0 && (
         <div className="game-card bg-gradient-to-r from-red-900/20 to-orange-900/20 border-red-900">
