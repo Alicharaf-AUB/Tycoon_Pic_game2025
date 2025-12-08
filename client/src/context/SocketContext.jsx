@@ -65,6 +65,12 @@ export const SocketProvider = ({ children }) => {
         description: error.description,
         context: error.context
       });
+      
+      // Special handling for 502 errors (server down/restarting)
+      if (error.description === 502) {
+        console.warn('🔄 Server is restarting or temporarily unavailable. Will retry automatically...');
+      }
+      
       // Only show warning on first error, not every retry
       if (!isConnected) {
         console.warn('💡 App will continue to work, but real-time updates are disabled');
