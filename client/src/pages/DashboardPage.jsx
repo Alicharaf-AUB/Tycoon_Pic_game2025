@@ -96,8 +96,8 @@ export default function DashboardPage() {
       return;
     }
 
-    // Validate 50-coin increments
-    if (coins % 50 !== 0) {
+    // Validate 50-coin increments (0 is allowed to remove vote)
+    if (coins !== 0 && coins % 50 !== 0) {
       setError('❌ Amount must be in increments of 50 coins!');
       return;
     }
@@ -110,8 +110,14 @@ export default function DashboardPage() {
       const result = await api.invest(investorId, startup.id, coins);
       console.log('✅ Vote successful:', result);
       
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      // Show appropriate success message
+      if (coins === 0) {
+        setError('✅ Vote removed!');
+        setTimeout(() => setError(''), 2000);
+      } else {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
       setSelectedStartup(null);
       setVoteAmount('');
       
@@ -652,7 +658,7 @@ export default function DashboardPage() {
                 disabled={submitting}
               />
               <p className="text-xs sm:text-sm text-amber-700 dark:text-amber-400 mt-2 text-center font-bold">
-                You have 🪙 {coinsLeft} coins available • Must be in increments of 50
+                You have 🪙 {coinsLeft} coins available • Must be in increments of 50 • Set to 0 to remove vote
               </p>
             </div>
 
@@ -673,7 +679,7 @@ export default function DashboardPage() {
                 disabled={submitting}
                 className="flex-1 btn-game disabled:opacity-50"
               >
-                {submitting ? '⚡ VOTING...' : '✅ CONFIRM'}
+                {submitting ? '⚡ VOTING...' : (parseInt(voteAmount || 0) === 0 && getVoteForStartup(selectedStartup.id) ? '🗑️ REMOVE VOTE' : '✅ CONFIRM')}
               </button>
             </div>
           </div>
