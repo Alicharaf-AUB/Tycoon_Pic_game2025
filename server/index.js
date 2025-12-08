@@ -514,6 +514,13 @@ app.post('/api/invest', async (req, res) => {
         // Check if this device has already voted for this startup (from a different account)
         // Only check for votes from EXISTING investors (not deleted ones)
         // The JOIN ensures we only get investments from investors that still exist
+        
+        console.log('🔍 Checking device fingerprint:', {
+          startupId,
+          investorId,
+          fingerprintPreview: deviceFingerprint.substring(0, 20) + '...'
+        });
+        
         const fpCheckQuery = await pool.query(`
           SELECT inv.id, inv.investor_id, i.name as investor_name, i.id as investor_exists
           FROM investments inv
@@ -527,6 +534,8 @@ app.post('/api/invest', async (req, res) => {
             AND inv.amount > 0
           LIMIT 1
         `, [startupId, deviceFingerprint, investorId]);
+        
+        console.log(`Found ${fpCheckQuery.rows.length} matching votes from other active investors`);
 
         if (fpCheckQuery.rows.length > 0) {
           const existingVote = fpCheckQuery.rows[0];
@@ -1007,6 +1016,41 @@ app.post('/api/admin/investors/delete-all', adminAuth, async (req, res) => {
     console.error('ERROR deleting all investors:', error);
     console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to delete all investors: ' + error.message });
+  }
+});
+
+// Debug endpoint to check device fingerprint (admin only)
+app.post('/api/admin/check-device-fingerprint', adminAuth, async (req, res) => {
+  const { deviceFingerprint } = req.body;
+  
+  try {
+    // Find all investments with this fingerprint
+    const investments = await pool.query(`
+      SELECT 
+        inv.id,
+        inv.investor_id,
+        inv.startup_id,
+        inv.amount,
+        inv.device_fingerprint,
+        i.name as investor_name,
+        i.email as investor_email,
+        s.name as startup_name,
+        CASE WHEN i.id IS NULL THEN true ELSE false END as investor_deleted
+      FROM investments inv
+      LEFT JOIN investors i ON inv.investor_id = i.id
+      LEFT JOIN startups s ON inv.startup_id = s.id
+      WHERE inv.device_fingerprint = $1
+      ORDER BY inv.timestamp DESC
+    `, [deviceFingerprint]);
+    
+    res.json({
+      fingerprint: deviceFingerprint.substring(0, 20) + '...',
+      totalInvestments: investments.rows.length,
+      investments: investments.rows
+    });
+  } catch (error) {
+    console.error('Error checking device fingerprint:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
