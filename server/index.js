@@ -616,6 +616,12 @@ app.post('/api/invest', async (req, res) => {
 
     // Only check IP-based voting limit if column exists
     if (ipColumnCheck.rows.length > 0) {
+      console.log('🔍 Checking IP-based vote limit:', {
+        startupId,
+        clientIp,
+        currentInvestorId: investorId
+      });
+      
       // Check if this IP has already voted for this startup (from a different account)
       // The INNER JOIN ensures we only get investments from investors that still exist
       const ipCheckQuery = await pool.query(`
@@ -628,6 +634,8 @@ app.post('/api/invest', async (req, res) => {
           AND inv.amount > 0
         LIMIT 1
       `, [startupId, clientIp, investorId]);
+      
+      console.log(`Found ${ipCheckQuery.rows.length} IP-based votes from other active investors`);
 
       if (ipCheckQuery.rows.length > 0) {
         const existingVote = ipCheckQuery.rows[0];
@@ -644,7 +652,20 @@ app.post('/api/invest', async (req, res) => {
           existingInvestor: existingVote.investor_name,
           existingInvestorId: existingVote.investor_id,
           investorStillExists: investorCheck.rows.length > 0,
-          attemptedInvestor: investorId
+          attemptedInvestor: investorId,
+          attemptedInvestorName: '(will fetch)'
+        });
+        
+        // Get current investor name for logging
+        const currentInvestor = await pool.query(
+          'SELECT name, email FROM investors WHERE id = $1',
+          [investorId]
+        );
+        
+        console.log('👤 Vote attempt details:', {
+          blockingUser: `${existingVote.investor_name} (ID: ${existingVote.investor_id})`,
+          attemptingUser: currentInvestor.rows[0] ? `${currentInvestor.rows[0].name} (ID: ${investorId})` : 'Unknown',
+          sameUser: existingVote.investor_id === parseInt(investorId)
         });
         
         // CRITICAL: If investor doesn't exist, delete the orphaned vote and allow
