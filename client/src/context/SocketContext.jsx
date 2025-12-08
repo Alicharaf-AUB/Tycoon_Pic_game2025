@@ -35,10 +35,13 @@ export const SocketProvider = ({ children }) => {
       path: '/socket.io/',
       transports: ['polling', 'websocket'], // Try polling first for Railway
       reconnection: true,
-      reconnectionAttempts: 3, // Reduced from 10
-      reconnectionDelay: 2000,
-      timeout: 10000, // Reduced from 20000
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 30000, // Increased to 30 seconds for Railway
       forceNew: true,
+      autoConnect: true,
+      withCredentials: false,
       auth: {
         accessToken: accessToken
       }
@@ -62,7 +65,10 @@ export const SocketProvider = ({ children }) => {
         description: error.description,
         context: error.context
       });
-      console.warn('💡 App will continue to work, but real-time updates are disabled');
+      // Only show warning on first error, not every retry
+      if (!isConnected) {
+        console.warn('💡 App will continue to work, but real-time updates are disabled');
+      }
       setIsConnected(false);
       // Don't throw - let the app work without real-time updates
     });
@@ -71,8 +77,14 @@ export const SocketProvider = ({ children }) => {
       console.log(`🔄 Reconnection attempt ${attemptNumber}...`);
     });
     
+    socketInstance.on('reconnect', (attemptNumber) => {
+      console.log(`✅ Reconnected successfully after ${attemptNumber} attempts`);
+      setIsConnected(true);
+    });
+    
     socketInstance.on('reconnect_failed', () => {
       console.error('❌ All reconnection attempts failed');
+      console.error('💡 Reload the page to try connecting again');
     });
 
     socketInstance.on('gameStateUpdate', (state) => {
