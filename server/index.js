@@ -1003,8 +1003,8 @@ app.post('/api/admin/startups', adminAuth, async (req, res) => {
     description: description?.substring(0, 50) + '...'
   });
   
-  if (!name || !slug) {
-    return res.status(400).json({ error: 'Name and slug are required' });
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
   }
   
   try {

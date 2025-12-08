@@ -774,7 +774,7 @@ function StartupsTab({ username, password, gameState, showToast }) {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!newStartup.name || !newStartup.slug) return;
+    if (!newStartup.name) return;
 
     setCreating(true);
     try {
@@ -810,7 +810,7 @@ function StartupsTab({ username, password, gameState, showToast }) {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!editForm.name || !editForm.slug) return;
+    if (!editForm.name) return;
 
     setUpdating(true);
     try {
@@ -879,14 +879,13 @@ function StartupsTab({ username, password, gameState, showToast }) {
               </div>
               <div>
                 <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase tracking-wide">
-                  Slug * (URL-friendly)
+                  Slug (URL-friendly)
                 </label>
                 <input
                   type="text"
                   value={newStartup.slug}
                   onChange={(e) => setNewStartup({ ...newStartup, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
                   className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
-                  required
                   placeholder="my-startup"
                 />
               </div>
@@ -1122,13 +1121,12 @@ function StartupsTab({ username, password, gameState, showToast }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase">Slug *</label>
+                  <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase">Slug</label>
                   <input
                     type="text"
                     value={editForm.slug}
                     onChange={(e) => setEditForm({ ...editForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
                     className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100"
-                    required
                   />
                 </div>
               </div>
