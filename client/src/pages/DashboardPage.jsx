@@ -105,13 +105,19 @@ export default function DashboardPage() {
     setError('');
 
     try {
-      await api.invest(investorId, startup.id, coins);
+      console.log('💰 Submitting vote:', { investorId, startupId: startup.id, amount: coins });
+      const result = await api.invest(investorId, startup.id, coins);
+      console.log('✅ Vote successful:', result);
+      
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
+      setTimeout(() => setShowSuccess(false), 3000);
       setSelectedStartup(null);
       setVoteAmount('');
     } catch (err) {
-      setError(err.response?.data?.error || '⚠️ Vote failed!');
+      console.error('❌ Vote failed:', err);
+      const errorMsg = err.response?.data?.error || err.message || '⚠️ Vote failed! Please try again.';
+      setError(errorMsg);
+      alert(`❌ ${errorMsg}`);
     } finally {
       setSubmitting(false);
     }
@@ -206,10 +212,10 @@ export default function DashboardPage() {
 
       {/* Success Toast */}
       {showSuccess && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 pop-in">
-          <div className="game-alert">
-            <span className="text-2xl mr-2">🎉</span>
-            {GAME_CONFIG.messages.investmentSuccess}
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] pop-in">
+          <div className="game-alert bg-gradient-to-r from-green-500 to-emerald-600 border-green-900 shadow-2xl">
+            <span className="text-3xl mr-3 animate-bounce">🎉</span>
+            <span className="text-xl font-black">VOTE RECORDED!</span>
           </div>
         </div>
       )}

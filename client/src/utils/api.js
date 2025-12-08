@@ -73,7 +73,13 @@ export const api = {
 
   // Make investment
   invest: async (investorId, startupId, amount) => {
-    const deviceFingerprint = getDeviceFingerprint();
+    let deviceFingerprint = null;
+    try {
+      deviceFingerprint = await getDeviceFingerprint();
+    } catch (err) {
+      console.warn('Failed to get device fingerprint, continuing without it:', err);
+    }
+    
     const { data } = await axios.post(`${API_BASE}/api/invest`, {
       investorId,
       startupId,

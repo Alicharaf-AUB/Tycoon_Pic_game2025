@@ -512,6 +512,7 @@ app.post('/api/invest', async (req, res) => {
 
       if (fpColumnCheck.rows.length > 0) {
         // Check if this device has already voted for this startup (from a different account)
+        // Only check for votes from EXISTING investors (not deleted ones)
         const fpCheckQuery = await pool.query(`
           SELECT inv.id, inv.investor_id, i.name as investor_name
           FROM investments inv
@@ -520,6 +521,7 @@ app.post('/api/invest', async (req, res) => {
             AND inv.device_fingerprint = $2
             AND inv.investor_id != $3
             AND inv.amount > 0
+            AND i.id IS NOT NULL
           LIMIT 1
         `, [startupId, deviceFingerprint, investorId]);
 
@@ -529,11 +531,19 @@ app.post('/api/invest', async (req, res) => {
             startupId,
             deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
             existingInvestor: existingVote.investor_name,
-            attemptedInvestor: investorId
+            existingInvestorId: existingVote.investor_id,
+            attemptedInvestor: investorId,
+            message: 'Another active account from this device has already voted'
           });
           return res.status(403).json({
             error: 'This device has already voted for this startup. Each device can only vote once per startup.',
             details: 'Device-based vote limit reached'
+          });
+        } else {
+          console.log('✅ Device fingerprint check passed:', {
+            startupId,
+            deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
+            investorId
           });
         }
       }
@@ -899,10 +909,18 @@ app.delete('/api/admin/investors/:id', adminAuth, async (req, res) => {
 
     console.log('Found investor to delete:', investor);
 
+    // Check how many investments will be deleted
+    const investmentsCount = await pool.query(
+      'SELECT COUNT(*) FROM investments WHERE investor_id = $1',
+      [id]
+    );
+    console.log(`This will CASCADE delete ${investmentsCount.rows[0].count} investments`);
+
     // Delete the investor using helper (CASCADE will handle related records)
     await dbHelpers.deleteInvestor(id);
 
     console.log('Successfully deleted investor:', investor.name);
+    console.log('✅ CASCADE should have deleted all related investments');
 
     await broadcastGameState();
 
