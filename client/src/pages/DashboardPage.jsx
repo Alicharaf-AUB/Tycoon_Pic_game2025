@@ -680,7 +680,18 @@ export default function DashboardPage() {
                 disabled={submitting}
                 className="flex-1 btn-game disabled:opacity-50"
               >
-                {submitting ? '⚡ VOTING...' : (parseInt(voteAmount || 0) === 0 && getVoteForStartup(selectedStartup.id) ? '🗑️ REMOVE VOTE' : '✅ CONFIRM')}
+                {submitting ? '⚡ VOTING...' : (() => {
+                  const currentAmount = parseInt(voteAmount === '' ? 0 : (voteAmount || getVoteForStartup(selectedStartup.id)?.amount || 0));
+                  const hasExistingVote = getVoteForStartup(selectedStartup.id);
+                  
+                  if (currentAmount === 0 && hasExistingVote) {
+                    return '🗑️ REMOVE VOTE';
+                  } else if (hasExistingVote && currentAmount > 0) {
+                    return '✏️ EDIT VOTE';
+                  } else {
+                    return '✅ CONFIRM';
+                  }
+                })()}
               </button>
             </div>
           </div>
