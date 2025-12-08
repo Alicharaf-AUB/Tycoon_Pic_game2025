@@ -145,7 +145,7 @@ export default function DashboardPage() {
       await api.submit(investorId);
       const { investor: updated } = await api.getInvestor(investorId);
       setInvestor(updated);
-      alert('✅ VOTES FINALIZED! 🏆 Good luck!');');
+      alert('✅ VOTES FINALIZED! 🏆 Good luck!');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to finalize votes');
     } finally {
