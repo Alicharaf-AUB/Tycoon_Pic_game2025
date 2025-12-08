@@ -72,7 +72,7 @@ export const api = {
   },
 
   // Make investment (with retry on 502)
-  invest: async (investorId, startupId, amount, retryCount = 0) => {
+  invest: async (investorId, startupId, amount, retryCount = 0, onRetry = null) => {
     let deviceFingerprint = null;
     try {
       deviceFingerprint = await getDeviceFingerprint();
@@ -92,9 +92,14 @@ export const api = {
       // Retry on 502 (server restart) up to 2 times with exponential backoff
       if (error.response?.status === 502 && retryCount < 2) {
         const delay = (retryCount + 1) * 2000; // 2s, 4s
-        console.log(`⏳ Server restarting (502), retrying in ${delay/1000}s...`);
+        const nextRetry = retryCount + 1;
+        console.log(`⏳ Server restarting (502), retrying in ${delay/1000}s... (attempt ${nextRetry + 1}/3)`);
+        
+        // Notify parent component of retry
+        if (onRetry) onRetry(nextRetry);
+        
         await new Promise(resolve => setTimeout(resolve, delay));
-        return api.invest(investorId, startupId, amount, retryCount + 1);
+        return api.invest(investorId, startupId, amount, nextRetry, onRetry);
       }
       throw error;
     }

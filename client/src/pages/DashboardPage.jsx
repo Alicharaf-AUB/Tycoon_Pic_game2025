@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFinalizePopup, setShowFinalizePopup] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [activeTab, setActiveTab] = useState('vote'); // vote, portfolio
 
   // Load investor data
@@ -105,10 +106,11 @@ export default function DashboardPage() {
 
     setSubmitting(true);
     setError('');
+    setRetryAttempt(0);
 
     try {
       console.log('💰 Submitting vote:', { investorId, startupId: startup.id, amount: coins });
-      const result = await api.invest(investorId, startup.id, coins);
+      const result = await api.invest(investorId, startup.id, coins, 0, setRetryAttempt);
       console.log('✅ Vote successful:', result);
       
       // Show appropriate success message
@@ -135,6 +137,7 @@ export default function DashboardPage() {
       alert(`❌ ${errorMsg}`);
     } finally {
       setSubmitting(false);
+      setRetryAttempt(0);
     }
   };
 
@@ -743,6 +746,31 @@ export default function DashboardPage() {
                   {submitting ? '⚡ FINALIZING...' : '🎯 FINALIZE'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {submitting && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="game-card max-w-md w-full text-center bg-gradient-to-br from-amber-900/95 to-yellow-900/95 border-amber-700">
+            <div className="text-6xl mb-4 animate-spin">⚡</div>
+            <h3 className="text-2xl font-black text-amber-100 mb-2">
+              {retryAttempt > 0 ? 'RETRYING...' : 'PROCESSING...'}
+            </h3>
+            {retryAttempt > 0 && (
+              <p className="text-lg text-amber-300 mb-2">
+                Server is restarting, please wait...
+              </p>
+            )}
+            <p className="text-base text-amber-400">
+              {retryAttempt > 0 ? `Attempt ${retryAttempt + 1} of 3` : 'Submitting your vote...'}
+            </p>
+            <div className="mt-4 flex justify-center gap-2">
+              <div className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
             </div>
           </div>
         </div>
