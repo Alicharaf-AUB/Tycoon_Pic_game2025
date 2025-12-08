@@ -517,16 +517,95 @@ export default function DashboardPage() {
 
       {/* Voting Modal */}
       {selectedStartup && !isLocked && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto"
              onClick={() => setSelectedStartup(null)}>
-          <div className="game-card max-w-md w-full pop-in" onClick={(e) => e.stopPropagation()}>
+          <div className="game-card max-w-2xl w-full my-8 pop-in" onClick={(e) => e.stopPropagation()}>
+            {/* Logo */}
+            {selectedStartup.logo && (
+              <div className="flex justify-center mb-4">
+                <img
+                  src={getFileUrl(selectedStartup.logo)}
+                  alt={selectedStartup.name}
+                  className="h-24 w-24 object-contain border-4 border-amber-900 rounded-xl bg-white p-2"
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+              </div>
+            )}
+            
             <h3 className="text-2xl sm:text-3xl font-black text-amber-900 dark:text-amber-100 mb-4">
               🗳️ Vote for {selectedStartup.name}
             </h3>
 
-            <p className="text-sm sm:text-base text-amber-800 dark:text-amber-300 mb-6">
+            {/* Description */}
+            <p className="text-sm sm:text-base text-amber-800 dark:text-amber-300 mb-4">
               {selectedStartup.description}
             </p>
+
+            {/* Startup Details Grid */}
+            <div className="grid md:grid-cols-2 gap-4 mb-6 p-4 bg-amber-400/10 rounded-xl border-2 border-amber-900/30">
+              {selectedStartup.industry && (
+                <div>
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Industry</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.industry}</p>
+                </div>
+              )}
+              {selectedStartup.cohort && (
+                <div>
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Cohort</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.cohort}</p>
+                </div>
+              )}
+              {selectedStartup.support_program && (
+                <div>
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Support Program</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.support_program}</p>
+                </div>
+              )}
+              {selectedStartup.team && (
+                <div className="md:col-span-2">
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Team</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.team}</p>
+                </div>
+              )}
+              {selectedStartup.generating_revenue && (
+                <div>
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Generating Revenue</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.generating_revenue}</p>
+                </div>
+              )}
+              {selectedStartup.ask && (
+                <div>
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Ask</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.ask}</p>
+                </div>
+              )}
+              {selectedStartup.legal_entity && (
+                <div>
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Legal Entity</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.legal_entity}</p>
+                </div>
+              )}
+              {selectedStartup.email && (
+                <div>
+                  <p className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase mb-1">Contact</p>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{selectedStartup.email}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Pitch Deck Link */}
+            {selectedStartup.pitch_deck && (
+              <div className="mb-6">
+                <a
+                  href={getFileUrl(selectedStartup.pitch_deck)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-blue-400 to-blue-600 border-2 border-blue-900 rounded-lg font-black text-white text-sm hover:from-blue-300 hover:to-blue-500 transition-all"
+                >
+                  📄 View Pitch Deck
+                </a>
+              </div>
+            )}
 
             {/* Coin Input */}
             <div className="mb-6">
