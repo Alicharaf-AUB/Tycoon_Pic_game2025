@@ -681,7 +681,8 @@ export default function DashboardPage() {
                 className="flex-1 btn-game disabled:opacity-50"
               >
                 {submitting ? '⚡ VOTING...' : (() => {
-                  const currentAmount = parseInt(voteAmount === '' ? 0 : (voteAmount || getVoteForStartup(selectedStartup.id)?.amount || 0));
+                  // Use same logic as onClick to determine current amount
+                  const currentAmount = parseInt(voteAmount !== '' ? voteAmount : (getVoteForStartup(selectedStartup.id)?.amount || 0));
                   const hasExistingVote = getVoteForStartup(selectedStartup.id);
                   
                   if (currentAmount === 0 && hasExistingVote) {
