@@ -274,7 +274,8 @@ const getGameState = async () => {
     const isLocked = lockResult.rows[0]?.is_locked || false;
     
     // Get all active startups with investment totals
-    // Use stored total_raised if exists (for manual admin edits), otherwise calculate from investments
+    // Strategy: Always calculate from investments, but manual edits can still be made via total_raised
+    // This ensures dynamic updates continue working
     const startupsResult = await pool.query(`
       SELECT 
         s.id,
@@ -292,16 +293,13 @@ const getGameState = async () => {
         s.ask,
         s.legal_entity,
         s.is_active,
-        CASE 
-          WHEN s.total_raised IS NOT NULL AND s.total_raised > 0 THEN s.total_raised
-          ELSE COALESCE(SUM(i.amount), 0)
-        END as total_raised
+        COALESCE(SUM(i.amount), 0) as total_raised
       FROM startups s
       LEFT JOIN investments i ON s.id = i.startup_id
       WHERE s.is_active = true
       GROUP BY s.id, s.name, s.slug, s.description, s.logo, s.pitch_deck, 
                s.cohort, s.support_program, s.industry, s.email, s.team, 
-               s.generating_revenue, s.ask, s.legal_entity, s.is_active, s.total_raised
+               s.generating_revenue, s.ask, s.legal_entity, s.is_active
       ORDER BY total_raised DESC
     `);
     
@@ -1384,17 +1382,14 @@ app.get('/api/admin/startups', adminAuth, async (req, res) => {
         s.ask,
         s.legal_entity,
         s.is_active,
-        CASE 
-          WHEN s.total_raised IS NOT NULL AND s.total_raised > 0 THEN s.total_raised
-          ELSE COALESCE(SUM(i.amount), 0)
-        END as total_raised,
+        COALESCE(SUM(i.amount), 0) as total_raised,
         COUNT(DISTINCT i.investor_id) as investor_count,
         s.created_at
       FROM startups s
       LEFT JOIN investments i ON s.id = i.startup_id
       GROUP BY s.id, s.name, s.slug, s.description, s.logo, s.pitch_deck, 
                s.cohort, s.support_program, s.industry, s.email, s.team, 
-               s.generating_revenue, s.ask, s.legal_entity, s.is_active, s.created_at, s.total_raised
+               s.generating_revenue, s.ask, s.legal_entity, s.is_active, s.created_at
       ORDER BY s.created_at DESC
     `);
     
@@ -1540,38 +1535,71 @@ app.put('/api/admin/startups/:id/votes', adminAuth, async (req, res) => {
   }
   
   try {
-    // Check if total_raised column exists
-    const columnCheck = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'startups' 
-      AND column_name = 'total_raised'
-    `);
-    
-    if (columnCheck.rows.length === 0) {
-      // Column doesn't exist, add it first
-      console.log('⚠️ total_raised column missing, adding it now...');
-      await pool.query('ALTER TABLE startups ADD COLUMN total_raised INTEGER DEFAULT 0');
-      console.log('✅ Added total_raised column');
-    }
-    
-    const result = await pool.query(
-      'UPDATE startups SET total_raised = $1 WHERE id = $2 RETURNING *',
-      [totalVotes, id]
+    // Get current total from actual investments
+    const currentResult = await pool.query(
+      'SELECT COALESCE(SUM(amount), 0) as current_total FROM investments WHERE startup_id = $1',
+      [id]
     );
     
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Startup not found' });
+    const currentTotal = parseInt(currentResult.rows[0]?.current_total || 0);
+    const difference = totalVotes - currentTotal;
+    
+    console.log(`📝 Admin vote adjustment for startup ${id}:`);
+    console.log(`   Current: ${currentTotal}, Target: ${totalVotes}, Difference: ${difference}`);
+    
+    if (difference === 0) {
+      console.log('✓ Already at target amount, no change needed');
+      await broadcastGameState();
+      return res.json({ 
+        success: true,
+        message: 'Already at target amount',
+        current: currentTotal,
+        target: totalVotes
+      });
     }
     
-    console.log(`📝 Admin manually updated votes for startup ${id}: ${totalVotes}`);
+    // Create or update an "ADMIN_ADJUSTMENT" investment to reach target
+    // Use investor_id = 0 or create a special admin investor
+    const adminInvestorId = 1; // Assuming investor ID 1 is admin or create one
+    
+    // Check if admin adjustment already exists for this startup
+    const existingAdjustment = await pool.query(
+      'SELECT id, amount FROM investments WHERE investor_id = $1 AND startup_id = $2',
+      [adminInvestorId, id]
+    );
+    
+    if (existingAdjustment.rows.length > 0) {
+      // Update existing adjustment
+      const newAdjustmentAmount = existingAdjustment.rows[0].amount + difference;
+      
+      if (newAdjustmentAmount === 0) {
+        // Remove adjustment if it zeros out
+        await pool.query('DELETE FROM investments WHERE id = $1', [existingAdjustment.rows[0].id]);
+        console.log('✓ Removed admin adjustment (zeroed out)');
+      } else {
+        await pool.query(
+          'UPDATE investments SET amount = $1 WHERE id = $2',
+          [newAdjustmentAmount, existingAdjustment.rows[0].id]
+        );
+        console.log(`✓ Updated admin adjustment to ${newAdjustmentAmount}`);
+      }
+    } else {
+      // Create new adjustment
+      await pool.query(
+        'INSERT INTO investments (investor_id, startup_id, amount) VALUES ($1, $2, $3)',
+        [adminInvestorId, id, difference]
+      );
+      console.log(`✓ Created admin adjustment of ${difference}`);
+    }
     
     await broadcastGameState();
     
     res.json({ 
-      success: true, 
-      startup: result.rows[0],
-      message: `Votes updated to ${totalVotes}`
+      success: true,
+      message: `Votes adjusted to ${totalVotes}`,
+      previous: currentTotal,
+      target: totalVotes,
+      adjustment: difference
     });
   } catch (error) {
     console.error('Error updating startup votes:', error);
