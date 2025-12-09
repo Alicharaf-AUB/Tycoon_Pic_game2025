@@ -304,13 +304,14 @@ const getGameState = async () => {
       SELECT 
         i.id,
         i.name,
+        i.email,
         i.starting_credit,
         i.submitted,
         COALESCE(SUM(inv.amount), 0) as invested,
         i.starting_credit - COALESCE(SUM(inv.amount), 0) as remaining
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      GROUP BY i.id, i.name, i.starting_credit, i.submitted
+      GROUP BY i.id, i.name, i.email, i.starting_credit, i.submitted
       ORDER BY i.name
     `);
     
@@ -548,50 +549,45 @@ app.post('/api/invest', async (req, res) => {
             AND inv.device_fingerprint IS NOT NULL
             AND inv.device_fingerprint != ''
             AND LENGTH(inv.device_fingerprint) > 10
+            AND inv.investor_id != $3
             AND inv.amount > 0
           LIMIT 1
-        `, [startupId, deviceFingerprint]);
+        `, [startupId, deviceFingerprint, investorId]);
         
-        console.log(`Found ${fpCheckQuery.rows.length} matching votes from any investors`);
+        console.log(`Found ${fpCheckQuery.rows.length} matching votes from other active investors`);
 
         if (fpCheckQuery.rows.length > 0) {
           const existingVote = fpCheckQuery.rows[0];
           
-          // Allow editing own vote
-          if (existingVote.investor_id === investorId) {
-            console.log('✅ Same investor editing their own vote - allowed');
-            // Continue to create/update investment
+          // EXTRA DEBUG: Check if this investor actually exists
+          const investorCheck = await pool.query(
+            'SELECT id, name, email FROM investors WHERE id = $1',
+            [existingVote.investor_id]
+          );
+          
+          console.log('🚫 Device fingerprint vote limit:', {
+            startupId,
+            deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
+            existingInvestor: existingVote.investor_name,
+            existingInvestorId: existingVote.investor_id,
+            investorStillExists: investorCheck.rows.length > 0,
+            investorData: investorCheck.rows[0],
+            attemptedInvestor: investorId,
+            message: 'Another active account from this device has already voted'
+          });
+          
+          // CRITICAL: If investor doesn't exist, this is a bug - delete the orphaned vote and allow
+          if (investorCheck.rows.length === 0) {
+            console.error('🐛 BUG DETECTED: Found vote from non-existent investor! Deleting orphaned vote...');
+            await pool.query('DELETE FROM investments WHERE id = $1', [existingVote.id]);
+            console.log('✅ Deleted orphaned vote, allowing this vote to proceed');
+            // Don't return error, let the vote continue
           } else {
-            // EXTRA DEBUG: Check if this investor actually exists
-            const investorCheck = await pool.query(
-              'SELECT id, name, email FROM investors WHERE id = $1',
-              [existingVote.investor_id]
-            );
-            
-            console.log('🚫 Device fingerprint vote limit:', {
-              startupId,
-              deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
-              existingInvestor: existingVote.investor_name,
-              existingInvestorId: existingVote.investor_id,
-              investorStillExists: investorCheck.rows.length > 0,
-              investorData: investorCheck.rows[0],
-              attemptedInvestor: investorId,
-              message: 'This device has already voted from a different account'
+            return res.status(403).json({
+              error: 'This device has already voted for this startup. Each device can only vote once per startup.',
+              details: 'Device-based vote limit reached',
+              existingInvestor: existingVote.investor_name
             });
-            
-            // CRITICAL: If investor doesn't exist, this is a bug - delete the orphaned vote and allow
-            if (investorCheck.rows.length === 0) {
-              console.error('🐛 BUG DETECTED: Found vote from non-existent investor! Deleting orphaned vote...');
-              await pool.query('DELETE FROM investments WHERE id = $1', [existingVote.id]);
-              console.log('✅ Deleted orphaned vote, allowing this vote to proceed');
-              // Don't return error, let the vote continue
-            } else {
-              return res.status(403).json({
-                error: '⚠️ This device has already voted for this startup from a different account. Each device can only vote once per startup.',
-                details: 'Device-based vote limit reached',
-                existingInvestor: existingVote.investor_name
-              });
-            }
           }
         } else {
           console.log('✅ Device fingerprint check passed:', {
@@ -958,6 +954,7 @@ app.get('/api/admin/investors', adminAuth, async (req, res) => {
       SELECT 
         i.id,
         i.name,
+        i.email,
         i.starting_credit,
         i.submitted,
         COALESCE(SUM(inv.amount), 0) as invested,
@@ -965,7 +962,7 @@ app.get('/api/admin/investors', adminAuth, async (req, res) => {
         i.created_at
       FROM investors i
       LEFT JOIN investments inv ON i.id = inv.investor_id
-      GROUP BY i.id, i.name, i.starting_credit, i.submitted, i.created_at
+      GROUP BY i.id, i.name, i.email, i.starting_credit, i.submitted, i.created_at
       ORDER BY i.created_at DESC
     `);
     
@@ -1436,32 +1433,6 @@ app.post('/api/admin/toggle-lock', adminAuth, async (req, res) => {
   } catch (error) {
     console.error('Error toggling lock:', error);
     res.status(500).json({ error: 'Failed to toggle lock' });
-  }
-});
-
-// Reopen voting - reset all submitted status (admin)
-app.post('/api/admin/reopen-voting', adminAuth, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      UPDATE investors 
-      SET submitted = false 
-      WHERE submitted = true
-      RETURNING id, name, email
-    `);
-    
-    console.log(`🔓 Voting reopened! Reset ${result.rows.length} investors' submitted status`);
-    
-    await broadcastGameState();
-    
-    res.json({ 
-      success: true, 
-      message: `Voting reopened! ${result.rows.length} investors can now edit their votes.`,
-      count: result.rows.length,
-      investors: result.rows
-    });
-  } catch (error) {
-    console.error('Error reopening voting:', error);
-    res.status(500).json({ error: 'Failed to reopen voting' });
   }
 });
 
