@@ -31,11 +31,31 @@ export default function AdminPage() {
 
     try {
       console.log('🔐 Attempting admin login with username:', username);
-      const result = await adminApi.getStats(username, password);
-      console.log('✅ Admin login successful:', result);
-      setAuthenticated(true);
-      localStorage.setItem('admin_username', username);
-      localStorage.setItem('admin_password', password);
+      
+      // Try stats endpoint first (normal flow)
+      try {
+        const result = await adminApi.getStats(username, password);
+        console.log('✅ Admin login successful via stats:', result);
+        setAuthenticated(true);
+        localStorage.setItem('admin_username', username);
+        localStorage.setItem('admin_password', password);
+        return;
+      } catch (statsError) {
+        console.warn('⚠️ Stats endpoint failed, trying test endpoint...', statsError);
+        
+        // Fallback: Try test endpoint to verify credentials work
+        try {
+          await adminApi.getInvestors(username, password);
+          console.log('✅ Admin login successful via investors endpoint');
+          setAuthenticated(true);
+          localStorage.setItem('admin_username', username);
+          localStorage.setItem('admin_password', password);
+          return;
+        } catch (testError) {
+          console.error('❌ Both endpoints failed');
+          throw testError;
+        }
+      }
     } catch (err) {
       console.error('❌ Admin login failed:', err);
       console.error('Error response:', err.response);
