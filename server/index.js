@@ -514,7 +514,6 @@ app.get('/api/game-state', async (req, res) => {
 app.get('/api/admin/check-credentials', (req, res) => {
   res.json({
     expectedUsername: ADMIN_USERNAME,
-    expectedPassword: ADMIN_PASSWORD, // TEMPORARY - REMOVE AFTER DEBUGGING
     passwordSet: !!ADMIN_PASSWORD,
     hint: 'Default password is demo123 unless changed in environment variables'
   });
@@ -1986,6 +1985,29 @@ const initializeDatabaseOnStartup = async () => {
         ON investments(device_fingerprint)
       `);
       console.log('✅ Added device_fingerprint column to investments for device-based vote limiting');
+      console.log('✅ Created index on device_fingerprint for query performance');
+    }
+
+    // Check if device_fingerprint column exists in investors (for account creation limiting)
+    const investorsDeviceFingerprintCheck = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'investors'
+      AND column_name = 'device_fingerprint'
+    `);
+
+    if (investorsDeviceFingerprintCheck.rows.length === 0) {
+      console.log('⚠️  Adding missing device_fingerprint column to investors...');
+      await pool.query(`
+        ALTER TABLE investors
+        ADD COLUMN device_fingerprint VARCHAR(255)
+      `);
+      // Create index for performance
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_investors_device
+        ON investors(device_fingerprint)
+      `);
+      console.log('✅ Added device_fingerprint column to investors for preventing duplicate accounts');
       console.log('✅ Created index on device_fingerprint for query performance');
     }
     

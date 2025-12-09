@@ -19,6 +19,7 @@ async function initializeDatabase() {
         remaining INTEGER DEFAULT 500,
         submitted BOOLEAN DEFAULT FALSE,
         remember_me BOOLEAN DEFAULT FALSE,
+        device_fingerprint VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -129,6 +130,7 @@ async function initializeDatabase() {
     await client.query('CREATE INDEX IF NOT EXISTS idx_fund_requests_status ON fund_requests(status)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_startups_active ON startups(is_active)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_investors_email ON investors(email)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_investors_device ON investors(device_fingerprint)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_error_logs_investor ON error_logs(investor_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_error_logs_timestamp ON error_logs(timestamp)');
 
