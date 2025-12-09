@@ -224,11 +224,16 @@ const adminAuth = (req, res, next) => {
   console.log('Request path:', req.method, req.path);
   console.log('Client IP:', clientIp);
   console.log('Credentials provided:', credentials ? `Yes (user: ${credentials.name})` : 'No');
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
 
   if (!credentials || credentials.name !== ADMIN_USERNAME || credentials.pass !== ADMIN_PASSWORD) {
     console.log('AUTH FAILED - Invalid credentials');
     console.log('Expected username:', ADMIN_USERNAME);
+    console.log('Expected password:', ADMIN_PASSWORD ? '(set)' : '(not set)');
     console.log('Provided username:', credentials?.name || 'none');
+    console.log('Provided password:', credentials?.pass ? '(provided)' : '(not provided)');
+    console.log('Username match:', credentials?.name === ADMIN_USERNAME);
+    console.log('Password match:', credentials?.pass === ADMIN_PASSWORD);
     res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
     return res.status(401).json({ error: 'Authentication required' });
   }
@@ -503,6 +508,15 @@ app.get('/api/game-state', async (req, res) => {
     console.error('Error getting game state:', error);
     res.status(500).json({ error: 'Failed to get game state' });
   }
+});
+
+// Debug endpoint for admin credentials (doesn't reveal password)
+app.get('/api/admin/check-credentials', (req, res) => {
+  res.json({
+    expectedUsername: ADMIN_USERNAME,
+    passwordSet: !!ADMIN_PASSWORD,
+    hint: 'Default password is demo123 unless changed in environment variables'
+  });
 });
 
 // Get investor by ID
