@@ -592,21 +592,28 @@ app.post('/api/invest', async (req, res) => {
         );
         const currentEmail = currentInvestor.rows[0]?.email;
         
+        console.log('🔍 Vote validation check:', {
+          investorId,
+          currentEmail,
+          deviceFingerprint: deviceFingerprint ? deviceFingerprint.substring(0, 16) + '...' : 'none',
+          startupId
+        });
+        
         const fpCheckQuery = await pool.query(`
           SELECT inv.id, inv.investor_id, inv.device_fingerprint, i.name as investor_name, i.email as investor_email, i.id as investor_exists
           FROM investments inv
           INNER JOIN investors i ON inv.investor_id = i.id
           WHERE inv.startup_id = $1
             AND inv.amount > 0
+            AND inv.investor_id != $2
             AND (
-              (inv.device_fingerprint = $2 AND inv.device_fingerprint IS NOT NULL AND LENGTH(inv.device_fingerprint) > 10)
-              OR (i.email = $3 AND $3 IS NOT NULL)
+              (inv.device_fingerprint = $3 AND inv.device_fingerprint IS NOT NULL AND LENGTH(inv.device_fingerprint) > 10)
+              OR (i.email = $4 AND $4 IS NOT NULL AND i.email != '')
             )
-            AND inv.investor_id != $4
           LIMIT 1
-        `, [startupId, deviceFingerprint, currentEmail, investorId]);
+        `, [startupId, investorId, deviceFingerprint, currentEmail]);
         
-        console.log(`Found ${fpCheckQuery.rows.length} matching votes from device fingerprint or email`);
+        console.log(`Found ${fpCheckQuery.rows.length} conflicting votes. Details:`, fpCheckQuery.rows);
 
         if (fpCheckQuery.rows.length > 0) {
           const existingVote = fpCheckQuery.rows[0];
