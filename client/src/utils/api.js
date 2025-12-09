@@ -55,7 +55,13 @@ export const api = {
 
   // Find existing investor by email and name
   findInvestor: async (email, name) => {
-    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { email, name }, { headers: getHeaders() });
+    let deviceFingerprint = null;
+    try {
+      deviceFingerprint = await getDeviceFingerprint();
+    } catch (err) {
+      console.warn('Failed to get device fingerprint for login:', err);
+    }
+    const { data } = await axios.post(`${API_BASE}/api/find-investor`, { email, name, deviceFingerprint }, { headers: getHeaders() });
     return data;
   },
 
@@ -258,16 +264,6 @@ export const adminApi = {
   toggleLock: async (username, password) => {
     const { data } = await axios.post(
       `${API_BASE}/api/admin/toggle-lock`,
-      {},
-      { headers: adminApi.getAuthHeader(username, password) }
-    );
-    return data;
-  },
-
-  // Reopen voting - reset all submitted status
-  reopenVoting: async (username, password) => {
-    const { data } = await axios.post(
-      `${API_BASE}/api/admin/reopen-voting`,
       {},
       { headers: adminApi.getAuthHeader(username, password) }
     );

@@ -341,7 +341,7 @@ const getGameState = async () => {
 
 // Join as investor
 app.post('/api/join', async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, deviceFingerprint } = req.body;
 
   if (!name || name.trim() === '') {
     return res.status(400).json({ error: 'Name is required' });
@@ -370,8 +370,25 @@ app.post('/api/join', async (req, res) => {
       return res.json({ investor: existing, rejoined: true });
     }
 
+    // Check if this device already has an account (prevent multiple accounts from same device)
+    if (deviceFingerprint && deviceFingerprint.length > 10) {
+      const existingAccount = await pool.query(
+        'SELECT id, name, email FROM investors WHERE device_fingerprint = $1 LIMIT 1',
+        [deviceFingerprint]
+      );
+      
+      if (existingAccount.rows.length > 0) {
+        const existingUser = existingAccount.rows[0];
+        console.log(`🚫 Device fingerprint already has account: ${existingUser.name} (${existingUser.email})`);
+        return res.status(403).json({ 
+          error: `⚠️ This device already has an account (${existingUser.name}). Each device can only create one account. Please use your existing account.`,
+          existingAccount: { name: existingUser.name, email: existingUser.email }
+        });
+      }
+    }
+
     // Create new investor
-    const investor = await dbHelpers.createInvestor(trimmedName, trimmedEmail);
+    const investor = await dbHelpers.createInvestor(trimmedName, trimmedEmail, deviceFingerprint);
 
     console.log(`New investor created: ${investor.name} (${investor.email})`);
 
@@ -389,7 +406,7 @@ app.post('/api/join', async (req, res) => {
 
 // Find investor by email AND name (for returning users) - auto-creates if not exists
 app.post('/api/find-investor', async (req, res) => {
-  const { email, name } = req.body;
+  const { email, name, deviceFingerprint } = req.body;
 
   if (!email || email.trim() === '') {
     return res.status(400).json({ error: 'Email is required' });
@@ -413,10 +430,27 @@ app.post('/api/find-investor', async (req, res) => {
     let investor = await dbHelpers.getInvestorByEmailOrName(trimmedEmail, trimmedName);
 
     if (!investor) {
+      // Check if this device already has an account (prevent multiple accounts from same device)
+      if (deviceFingerprint && deviceFingerprint.length > 10) {
+        const existingAccount = await pool.query(
+          'SELECT id, name, email FROM investors WHERE device_fingerprint = $1 LIMIT 1',
+          [deviceFingerprint]
+        );
+        
+        if (existingAccount.rows.length > 0) {
+          const existing = existingAccount.rows[0];
+          console.log(`🚫 Device fingerprint already has account: ${existing.name} (${existing.email})`);
+          return res.status(403).json({ 
+            error: `⚠️ This device already has an account (${existing.name}). Each device can only create one account. Please use your existing account.`,
+            existingAccount: { name: existing.name, email: existing.email }
+          });
+        }
+      }
+      
       // Account doesn't exist - create it automatically
       console.log(`Creating new account for: ${trimmedName} (${trimmedEmail})`);
 
-      investor = await dbHelpers.createInvestor(trimmedName, trimmedEmail);
+      investor = await dbHelpers.createInvestor(trimmedName, trimmedEmail, deviceFingerprint);
 
       console.log(`New investor created: ${investor.name} (${investor.email})`);
       await broadcastGameState();
