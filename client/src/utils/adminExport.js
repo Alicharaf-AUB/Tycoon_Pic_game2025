@@ -34,6 +34,7 @@ export function exportInvestorsToCSV(investors) {
   const data = investors.map(inv => ({
     'Investor ID': inv.id,
     'Name': inv.name,
+    'Email': inv.email || 'N/A',
     'Starting Credit': inv.starting_credit,
     'Total Invested': inv.invested || 0,
     'Remaining Funds': inv.remaining || 0,
@@ -83,6 +84,7 @@ export function exportInvestmentsToCSV(investments, startups, investors) {
     return {
       'Investment ID': inv.id,
       'Investor Name': inv.investor_name || investor?.name || 'Unknown',
+      'Investor Email': investor?.email || 'N/A',
       'Investor ID': inv.investor_id,
       'Startup Name': startup?.name || 'Unknown',
       'Startup ID': inv.startup_id,
