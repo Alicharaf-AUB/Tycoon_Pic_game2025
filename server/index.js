@@ -274,6 +274,7 @@ const getGameState = async () => {
     const isLocked = lockResult.rows[0]?.is_locked || false;
     
     // Get all active startups with investment totals
+    // Use stored total_raised if exists (for manual admin edits), otherwise calculate from investments
     const startupsResult = await pool.query(`
       SELECT 
         s.id,
@@ -291,13 +292,16 @@ const getGameState = async () => {
         s.ask,
         s.legal_entity,
         s.is_active,
-        COALESCE(SUM(i.amount), 0) as total_raised
+        CASE 
+          WHEN s.total_raised IS NOT NULL AND s.total_raised > 0 THEN s.total_raised
+          ELSE COALESCE(SUM(i.amount), 0)
+        END as total_raised
       FROM startups s
       LEFT JOIN investments i ON s.id = i.startup_id
       WHERE s.is_active = true
       GROUP BY s.id, s.name, s.slug, s.description, s.logo, s.pitch_deck, 
                s.cohort, s.support_program, s.industry, s.email, s.team, 
-               s.generating_revenue, s.ask, s.legal_entity, s.is_active
+               s.generating_revenue, s.ask, s.legal_entity, s.is_active, s.total_raised
       ORDER BY total_raised DESC
     `);
     
@@ -1380,14 +1384,17 @@ app.get('/api/admin/startups', adminAuth, async (req, res) => {
         s.ask,
         s.legal_entity,
         s.is_active,
-        COALESCE(SUM(i.amount), 0) as total_raised,
+        CASE 
+          WHEN s.total_raised IS NOT NULL AND s.total_raised > 0 THEN s.total_raised
+          ELSE COALESCE(SUM(i.amount), 0)
+        END as total_raised,
         COUNT(DISTINCT i.investor_id) as investor_count,
         s.created_at
       FROM startups s
       LEFT JOIN investments i ON s.id = i.startup_id
       GROUP BY s.id, s.name, s.slug, s.description, s.logo, s.pitch_deck, 
                s.cohort, s.support_program, s.industry, s.email, s.team, 
-               s.generating_revenue, s.ask, s.legal_entity, s.is_active, s.created_at
+               s.generating_revenue, s.ask, s.legal_entity, s.is_active, s.created_at, s.total_raised
       ORDER BY s.created_at DESC
     `);
     
