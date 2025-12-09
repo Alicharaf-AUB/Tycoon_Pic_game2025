@@ -23,7 +23,9 @@ const corsOptions = {
     ? true // Allow all origins in production (Railway handles this)
     : "http://localhost:5173", // In development, allow local client
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-app-access-token'],
+  exposedHeaders: ['WWW-Authenticate']
 };
 
 const io = socketIo(server, {
@@ -523,7 +525,18 @@ app.get('/api/admin/check-credentials', (req, res) => {
   res.json({
     expectedUsername: ADMIN_USERNAME,
     passwordSet: !!ADMIN_PASSWORD,
-    hint: 'Default password is demo123 unless changed in environment variables'
+    hint: 'Default password is demo123 unless changed in environment variables',
+    authHeaderPresent: !!req.headers.authorization,
+    authHeaderValue: req.headers.authorization ? 'Present (hidden)' : 'Missing'
+  });
+});
+
+// Test endpoint to verify admin can reach API
+app.get('/api/admin/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Admin API is reachable',
+    timestamp: new Date().toISOString()
   });
 });
 
