@@ -514,6 +514,7 @@ app.get('/api/game-state', async (req, res) => {
 app.get('/api/admin/check-credentials', (req, res) => {
   res.json({
     expectedUsername: ADMIN_USERNAME,
+    expectedPassword: ADMIN_PASSWORD, // TEMPORARY - REMOVE AFTER DEBUGGING
     passwordSet: !!ADMIN_PASSWORD,
     hint: 'Default password is demo123 unless changed in environment variables'
   });
