@@ -229,9 +229,13 @@ const adminAuth = (req, res, next) => {
   if (!credentials || credentials.name !== ADMIN_USERNAME || credentials.pass !== ADMIN_PASSWORD) {
     console.log('AUTH FAILED - Invalid credentials');
     console.log('Expected username:', ADMIN_USERNAME);
-    console.log('Expected password:', ADMIN_PASSWORD ? '(set)' : '(not set)');
+    console.log('Expected username length:', ADMIN_USERNAME.length);
+    console.log('Expected password:', ADMIN_PASSWORD);
+    console.log('Expected password length:', ADMIN_PASSWORD.length);
     console.log('Provided username:', credentials?.name || 'none');
-    console.log('Provided password:', credentials?.pass ? '(provided)' : '(not provided)');
+    console.log('Provided username length:', credentials?.name?.length || 0);
+    console.log('Provided password:', credentials?.pass || 'none');
+    console.log('Provided password length:', credentials?.pass?.length || 0);
     console.log('Username match:', credentials?.name === ADMIN_USERNAME);
     console.log('Password match:', credentials?.pass === ADMIN_PASSWORD);
     res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
