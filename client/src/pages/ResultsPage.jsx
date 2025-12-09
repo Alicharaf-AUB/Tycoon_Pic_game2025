@@ -81,8 +81,22 @@ export default function ResultsPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-8">
-        {/* Podium Section */}
-        {top3.length === 0 ? (
+        {/* Announcement */}
+        <div className="game-card text-center py-16">
+          <div className="text-8xl mb-6 animate-bounce">🏆</div>
+          <h2 className="text-4xl sm:text-5xl font-black text-amber-900 dark:text-amber-200 mb-4 uppercase">
+            Results Coming Soon!
+          </h2>
+          <p className="text-xl sm:text-2xl text-amber-700 dark:text-amber-400 font-bold mb-6">
+            Thank you for participating in {GAME_CONFIG.eventName}
+          </p>
+          <p className="text-lg text-amber-600 dark:text-amber-500">
+            Winners will be announced shortly. Stay tuned! 🎉
+          </p>
+        </div>
+
+        {/* Hidden results - will show when uncommented */}
+        {false && top3.length === 0 ? (
           <div className="game-card text-center py-12">
             <p className="text-6xl mb-4">🗳️</p>
             <p className="text-3xl font-black text-amber-900 dark:text-amber-200 mb-2">
@@ -92,7 +106,7 @@ export default function ResultsPage() {
               Results will appear here as voting begins...
             </p>
           </div>
-        ) : (
+        ) : false ? (
           <>
             {/* Top 3 Podium Display */}
             <div className="mb-12">
