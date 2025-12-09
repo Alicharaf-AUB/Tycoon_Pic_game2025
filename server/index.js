@@ -1533,6 +1533,21 @@ app.put('/api/admin/startups/:id/votes', adminAuth, async (req, res) => {
   }
   
   try {
+    // Check if total_raised column exists
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'startups' 
+      AND column_name = 'total_raised'
+    `);
+    
+    if (columnCheck.rows.length === 0) {
+      // Column doesn't exist, add it first
+      console.log('⚠️ total_raised column missing, adding it now...');
+      await pool.query('ALTER TABLE startups ADD COLUMN total_raised INTEGER DEFAULT 0');
+      console.log('✅ Added total_raised column');
+    }
+    
     const result = await pool.query(
       'UPDATE startups SET total_raised = $1 WHERE id = $2 RETURNING *',
       [totalVotes, id]
