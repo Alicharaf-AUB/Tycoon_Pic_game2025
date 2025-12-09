@@ -582,6 +582,7 @@ function InvestorsTab({ username, password, gameState, showToast }) {
               <tr key={investor.id} className="border-b-2 border-amber-900/30 hover:bg-amber-400/10 transition-colors">
                 <td className="py-4 px-4">
                   <p className="font-black text-amber-900 dark:text-amber-100">{investor.name}</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">{investor.email}</p>
                 </td>
                 <td className="py-4 px-4 text-center">
                   {investor.submitted ? (
@@ -674,6 +675,7 @@ function InvestorsTab({ username, password, gameState, showToast }) {
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="font-black text-amber-900 dark:text-amber-100 text-lg">{investor.name}</h3>
+                <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">{investor.email}</p>
                 <div className="mt-2">
                   {investor.submitted ? (
                     <span className="inline-flex items-center gap-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-black px-3 py-1 rounded-full border-2 border-green-900">
@@ -1391,6 +1393,7 @@ function SubmissionsTab({ gameState }) {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h4 className="font-black text-lg text-amber-900 dark:text-amber-100">{investor.name}</h4>
+                      <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{investor.email}</p>
                       <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
                         Voted: <span className="font-black text-green-700 dark:text-green-400">🪙 {formatCurrency(investor.invested)}</span> / 🪙 {formatCurrency(investor.starting_credit)}
                       </p>
@@ -1437,7 +1440,10 @@ function SubmissionsTab({ gameState }) {
           <div className="space-y-2">
             {pendingInvestors.map((investor) => (
               <div key={investor.id} className="flex items-center justify-between bg-yellow-500/10 border-2 border-yellow-900/30 p-4 rounded-xl hover:border-yellow-900/50 transition-all">
-                <span className="font-black text-amber-900 dark:text-amber-100">{investor.name}</span>
+                <div>
+                  <span className="font-black text-amber-900 dark:text-amber-100">{investor.name}</span>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">{investor.email}</p>
+                </div>
                 <span className="text-sm text-yellow-700 dark:text-yellow-400 font-black">
                   {investor.invested > 0 ? `🪙 ${formatCurrency(investor.invested)} voted` : 'No votes yet'}
                 </span>
