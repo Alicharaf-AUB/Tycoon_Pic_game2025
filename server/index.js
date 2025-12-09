@@ -1558,9 +1558,26 @@ app.put('/api/admin/startups/:id/votes', adminAuth, async (req, res) => {
       });
     }
     
-    // Create or update an "ADMIN_ADJUSTMENT" investment to reach target
-    // Use investor_id = 0 or create a special admin investor
-    const adminInvestorId = 1; // Assuming investor ID 1 is admin or create one
+    // Get or create a special "ADMIN" investor for adjustments
+    let adminInvestor = await pool.query(
+      'SELECT id FROM investors WHERE email = $1 LIMIT 1',
+      ['admin@system.internal']
+    );
+    
+    let adminInvestorId;
+    
+    if (adminInvestor.rows.length === 0) {
+      console.log('Creating ADMIN investor for vote adjustments...');
+      const newAdmin = await pool.query(
+        `INSERT INTO investors (name, email, starting_credit, invested, remaining, submitted) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        ['ADMIN_ADJUSTMENTS', 'admin@system.internal', 0, 0, 0, true]
+      );
+      adminInvestorId = newAdmin.rows[0].id;
+      console.log(`✓ Created ADMIN investor with ID: ${adminInvestorId}`);
+    } else {
+      adminInvestorId = adminInvestor.rows[0].id;
+    }
     
     // Check if admin adjustment already exists for this startup
     const existingAdjustment = await pool.query(
