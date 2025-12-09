@@ -157,12 +157,11 @@ export const api = {
 
 // Admin API
 export const adminApi = {
-  // Create basic auth header combined with app access token
+  // Create basic auth header (admin doesn't need app access token)
   getAuthHeader: (username, password) => {
     const token = btoa(`${username}:${password}`);
     return {
-      Authorization: `Basic ${token}`,
-      ...getHeaders()
+      Authorization: `Basic ${token}`
     };
   },
 
