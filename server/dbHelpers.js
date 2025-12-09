@@ -373,8 +373,19 @@ async function createAdminLog(action, details, ipAddress = null) {
 async function getAdminStats() {
   const totalInvestorsResult = await pool.query('SELECT COUNT(*) as count FROM investors');
   const totalStartupsResult = await pool.query('SELECT COUNT(*) as count FROM startups WHERE is_active = true');
-  // Calculate from investments table (safer than relying on total_raised column)
-  const totalInvestedResult = await pool.query('SELECT COALESCE(SUM(amount), 0) as total FROM investments');
+  
+  // Calculate total invested: use stored total_raised if exists (manual edits), otherwise sum from investments
+  const totalInvestedResult = await pool.query(`
+    SELECT COALESCE(SUM(
+      CASE 
+        WHEN s.total_raised IS NOT NULL AND s.total_raised > 0 THEN s.total_raised
+        ELSE COALESCE((SELECT SUM(amount) FROM investments WHERE startup_id = s.id), 0)
+      END
+    ), 0) as total
+    FROM startups s
+    WHERE s.is_active = true
+  `);
+  
   const totalInvestmentsResult = await pool.query('SELECT COUNT(*) as count FROM investments');
 
   return {
