@@ -607,8 +607,8 @@ app.post('/api/invest', async (req, res) => {
             AND inv.amount > 0
             AND inv.investor_id != $2
             AND (
-              (inv.device_fingerprint = $3 AND inv.device_fingerprint IS NOT NULL AND LENGTH(inv.device_fingerprint) > 10)
-              OR (i.email = $4 AND $4 IS NOT NULL AND i.email != '')
+              (inv.device_fingerprint = $3 AND $3 IS NOT NULL AND LENGTH($3) > 10 AND inv.device_fingerprint IS NOT NULL AND LENGTH(inv.device_fingerprint) > 10)
+              OR (i.email = $4 AND $4 IS NOT NULL AND i.email != '' AND i.email IS NOT NULL)
             )
           LIMIT 1
         `, [startupId, investorId, deviceFingerprint, currentEmail]);
