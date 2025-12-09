@@ -1439,6 +1439,32 @@ app.post('/api/admin/toggle-lock', adminAuth, async (req, res) => {
   }
 });
 
+// Reopen voting - reset all submitted status (admin)
+app.post('/api/admin/reopen-voting', adminAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      UPDATE investors 
+      SET submitted = false 
+      WHERE submitted = true
+      RETURNING id, name, email
+    `);
+    
+    console.log(`🔓 Voting reopened! Reset ${result.rows.length} investors' submitted status`);
+    
+    await broadcastGameState();
+    
+    res.json({ 
+      success: true, 
+      message: `Voting reopened! ${result.rows.length} investors can now edit their votes.`,
+      count: result.rows.length,
+      investors: result.rows
+    });
+  } catch (error) {
+    console.error('Error reopening voting:', error);
+    res.status(500).json({ error: 'Failed to reopen voting' });
+  }
+});
+
 // Get game statistics (admin)
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
   try {

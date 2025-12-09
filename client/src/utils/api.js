@@ -264,6 +264,16 @@ export const adminApi = {
     return data;
   },
 
+  // Reopen voting - reset all submitted status
+  reopenVoting: async (username, password) => {
+    const { data } = await axios.post(
+      `${API_BASE}/api/admin/reopen-voting`,
+      {},
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
+    return data;
+  },
+
     // Get admin statistics
   getStats: async (username, password) => {
     const { data } = await axios.get(`${API_BASE}/api/admin/stats`, {
