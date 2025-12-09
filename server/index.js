@@ -584,24 +584,37 @@ app.post('/api/invest', async (req, res) => {
         
         console.log(`📊 All votes for startup ${startupId}:`, allVotesForStartup.rows);
         
+        // Check if this device OR email has already voted (different investor)
+        // Get current investor's email for comparison
+        const currentInvestor = await pool.query(
+          'SELECT email FROM investors WHERE id = $1',
+          [investorId]
+        );
+        const currentEmail = currentInvestor.rows[0]?.email;
+        
         const fpCheckQuery = await pool.query(`
-          SELECT inv.id, inv.investor_id, i.name as investor_name, i.id as investor_exists
+          SELECT inv.id, inv.investor_id, inv.device_fingerprint, i.name as investor_name, i.email as investor_email, i.id as investor_exists
           FROM investments inv
           INNER JOIN investors i ON inv.investor_id = i.id
           WHERE inv.startup_id = $1
-            AND inv.device_fingerprint = $2
-            AND inv.device_fingerprint IS NOT NULL
-            AND inv.device_fingerprint != ''
-            AND LENGTH(inv.device_fingerprint) > 10
-            AND inv.investor_id != $3
             AND inv.amount > 0
+            AND (
+              (inv.device_fingerprint = $2 AND inv.device_fingerprint IS NOT NULL AND LENGTH(inv.device_fingerprint) > 10)
+              OR (i.email = $3 AND $3 IS NOT NULL)
+            )
+            AND inv.investor_id != $4
           LIMIT 1
-        `, [startupId, deviceFingerprint, investorId]);
+        `, [startupId, deviceFingerprint, currentEmail, investorId]);
         
-        console.log(`Found ${fpCheckQuery.rows.length} matching votes from other active investors`);
+        console.log(`Found ${fpCheckQuery.rows.length} matching votes from device fingerprint or email`);
 
         if (fpCheckQuery.rows.length > 0) {
           const existingVote = fpCheckQuery.rows[0];
+          
+          // Determine if blocked by device or email
+          const blockedByDevice = existingVote.device_fingerprint === deviceFingerprint;
+          const blockedByEmail = existingVote.investor_email === currentEmail;
+          const blockReason = blockedByDevice && blockedByEmail ? 'device and email' : blockedByDevice ? 'device' : 'email';
           
           // EXTRA DEBUG: Check if this investor actually exists
           const investorCheck = await pool.query(
@@ -609,15 +622,17 @@ app.post('/api/invest', async (req, res) => {
             [existingVote.investor_id]
           );
           
-          console.log('🚫 Device fingerprint vote limit:', {
+          console.log('🚫 Vote blocked:', {
             startupId,
             deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
+            currentEmail,
             existingInvestor: existingVote.investor_name,
+            existingEmail: existingVote.investor_email,
             existingInvestorId: existingVote.investor_id,
             investorStillExists: investorCheck.rows.length > 0,
-            investorData: investorCheck.rows[0],
             attemptedInvestor: investorId,
-            message: 'Another active account from this device has already voted'
+            blockReason,
+            message: `Blocked by ${blockReason} match`
           });
           
           // CRITICAL: If investor doesn't exist, this is a bug - delete the orphaned vote and allow
@@ -628,8 +643,8 @@ app.post('/api/invest', async (req, res) => {
             // Don't return error, let the vote continue
           } else {
             return res.status(403).json({
-              error: 'This device has already voted for this startup. Each device can only vote once per startup.',
-              details: 'Device-based vote limit reached',
+              error: `⚠️ This ${blockReason} has already voted for this startup. Each device and email can only vote once per startup.`,
+              details: `Vote blocked by ${blockReason} match`,
               existingInvestor: existingVote.investor_name
             });
           }
