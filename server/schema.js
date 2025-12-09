@@ -41,6 +41,7 @@ async function initializeDatabase() {
         generating_revenue TEXT DEFAULT '',
         ask TEXT DEFAULT '',
         legal_entity TEXT DEFAULT '',
+        total_raised INTEGER DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

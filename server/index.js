@@ -1891,7 +1891,8 @@ const initializeDatabaseOnStartup = async () => {
       { name: 'team', type: 'TEXT DEFAULT \'\'', description: 'Team info' },
       { name: 'generating_revenue', type: 'TEXT DEFAULT \'\'', description: 'Revenue status' },
       { name: 'ask', type: 'TEXT DEFAULT \'\'', description: 'Funding ask' },
-      { name: 'legal_entity', type: 'TEXT DEFAULT \'\'', description: 'Legal entity type' }
+      { name: 'legal_entity', type: 'TEXT DEFAULT \'\'', description: 'Legal entity type' },
+      { name: 'total_raised', type: 'INTEGER DEFAULT 0', description: 'Total votes/investment raised (for manual editing)' }
     ];
     
     for (const column of startupColumns) {
@@ -1909,6 +1910,20 @@ const initializeDatabaseOnStartup = async () => {
           ADD COLUMN ${column.name} ${column.type}
         `);
         console.log(`✅ Added ${column.name} column`);
+        
+        // If this is total_raised, populate it with current investment totals
+        if (column.name === 'total_raised') {
+          console.log('📊 Populating total_raised with current investment totals...');
+          await pool.query(`
+            UPDATE startups s
+            SET total_raised = COALESCE((
+              SELECT SUM(amount)
+              FROM investments i
+              WHERE i.startup_id = s.id
+            ), 0)
+          `);
+          console.log('✅ Populated total_raised column with existing investment data');
+        }
       }
     }
     
