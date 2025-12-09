@@ -315,6 +315,16 @@ const getGameState = async () => {
       ORDER BY i.name
     `);
     
+    // Debug: Log first investor to verify email is included
+    if (investorsResult.rows.length > 0) {
+      console.log('📧 Sample investor data:', {
+        id: investorsResult.rows[0].id,
+        name: investorsResult.rows[0].name,
+        email: investorsResult.rows[0].email,
+        hasEmail: !!investorsResult.rows[0].email
+      });
+    }
+    
     return {
       isLocked,
       startups: startupsResult.rows,
