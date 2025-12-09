@@ -30,12 +30,19 @@ export default function AdminPage() {
     setError('');
 
     try {
-      await adminApi.getStats(username, password);
+      console.log('🔐 Attempting admin login with username:', username);
+      const result = await adminApi.getStats(username, password);
+      console.log('✅ Admin login successful:', result);
       setAuthenticated(true);
       localStorage.setItem('admin_username', username);
       localStorage.setItem('admin_password', password);
     } catch (err) {
-      setError('⚠️ Invalid credentials! Access denied.');
+      console.error('❌ Admin login failed:', err);
+      console.error('Error response:', err.response);
+      console.error('Error status:', err.response?.status);
+      console.error('Error data:', err.response?.data);
+      const errorMsg = err.response?.data?.error || err.message || '⚠️ Invalid credentials! Access denied.';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
