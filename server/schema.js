@@ -130,7 +130,6 @@ async function initializeDatabase() {
     await client.query('CREATE INDEX IF NOT EXISTS idx_fund_requests_status ON fund_requests(status)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_startups_active ON startups(is_active)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_investors_email ON investors(email)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_investors_device ON investors(device_fingerprint)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_error_logs_investor ON error_logs(investor_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_error_logs_timestamp ON error_logs(timestamp)');
 
@@ -143,6 +142,24 @@ async function initializeDatabase() {
       console.log('✅ Created ip_address index');
     } catch (err) {
       // Column doesn't exist yet - will be added by migration in index.js
+      console.log('⚠️  Skipping ip_address index (column will be added by migration)');
+    }
+
+    // Create device_fingerprint indexes outside transaction (may not exist yet on existing databases)
+    try {
+      await client.query('CREATE INDEX IF NOT EXISTS idx_investors_device ON investors(device_fingerprint)');
+      console.log('✅ Created investors device_fingerprint index');
+    } catch (err) {
+      // Column doesn't exist yet - will be added by migration in index.js
+      console.log('⚠️  Skipping investors device_fingerprint index (column will be added by migration)');
+    }
+
+    try {
+      await client.query('CREATE INDEX IF NOT EXISTS idx_investments_device ON investments(device_fingerprint)');
+      console.log('✅ Created investments device_fingerprint index');
+    } catch (err) {
+      // Column doesn't exist yet - will be added by migration in index.js
+      console.log('⚠️  Skipping investments device_fingerprint index (column will be added by migration)');
       console.log('⚠️  Skipping ip_address index (column will be added by migration)');
     }
 
