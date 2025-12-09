@@ -30,18 +30,31 @@ function downloadCSV(content, filename) {
 }
 
 // Export Investors to CSV
-export function exportInvestorsToCSV(investors) {
-  const data = investors.map(inv => ({
-    'Investor ID': inv.id,
-    'Name': inv.name,
-    'Email': inv.email || 'N/A',
-    'Starting Credit': inv.starting_credit,
-    'Total Invested': inv.invested || 0,
-    'Remaining Funds': inv.remaining || 0,
-    'Allocation Rate': inv.starting_credit > 0 ? `${((inv.invested / inv.starting_credit) * 100).toFixed(1)}%` : '0%',
-    'Submitted': inv.submitted ? 'Yes' : 'No',
-    'Created At': new Date(inv.created_at).toLocaleString(),
-  }));
+export function exportInvestorsToCSV(investors, investments = [], startups = []) {
+  const data = investors.map(inv => {
+    // Get all investments by this investor
+    const investorVotes = investments.filter(investment => investment.investor_id === inv.id);
+    
+    // Create list of startups voted for with amounts
+    const votesDetails = investorVotes.map(vote => {
+      const startup = startups.find(s => s.id === vote.startup_id);
+      const startupName = startup ? startup.name : `Startup #${vote.startup_id} (deleted)`;
+      return `${startupName}: $${vote.amount}`;
+    }).join(' | ');
+    
+    return {
+      'Investor ID': inv.id,
+      'Name': inv.name,
+      'Email': inv.email || 'N/A',
+      'Starting Credit': inv.starting_credit,
+      'Total Invested': inv.invested || 0,
+      'Remaining Funds': inv.remaining || 0,
+      'Allocation Rate': inv.starting_credit > 0 ? `${((inv.invested / inv.starting_credit) * 100).toFixed(1)}%` : '0%',
+      'Submitted': inv.submitted ? 'Yes' : 'No',
+      'Votes': votesDetails || 'No votes yet',
+      'Created At': new Date(inv.created_at).toLocaleString(),
+    };
+  });
 
   const headers = Object.keys(data[0] || {});
   const csv = convertToCSV(data, headers);

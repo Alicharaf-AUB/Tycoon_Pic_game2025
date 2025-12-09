@@ -1471,7 +1471,7 @@ function AnalyticsTab({ gameState }) {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <button
-            onClick={() => exportInvestorsToCSV(investors)}
+            onClick={() => exportInvestorsToCSV(investors, investments, startups)}
             className="px-4 py-3 bg-gradient-to-b from-blue-400 to-blue-600 border-4 border-blue-900 rounded-xl font-black text-white text-sm min-h-[44px] flex items-center justify-center gap-2 hover:from-blue-300 hover:to-blue-500 transition-all"
           >
             👥 Players CSV
