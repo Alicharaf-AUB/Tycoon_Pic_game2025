@@ -44,6 +44,10 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'demo123';
 const APP_ACCESS_PASSWORD = process.env.APP_ACCESS_PASSWORD || 'PIC2025';
 
+console.log('🔐 Admin Credentials on Server Start:');
+console.log('   Username:', ADMIN_USERNAME);
+console.log('   Password:', ADMIN_PASSWORD);
+
 // Store for valid access tokens (in production, use Redis or database)
 const validAccessTokens = new Set();
 
