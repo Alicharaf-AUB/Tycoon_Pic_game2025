@@ -921,11 +921,15 @@ function StartupsTab({ username, password, gameState, showToast }) {
     }
 
     try {
-      await adminApi.updateStartupVotes(username, password, editingVotes.id, Number(newVoteAmount));
+      console.log('🪙 Updating votes for startup:', editingVotes.id, 'to amount:', Number(newVoteAmount));
+      const result = await adminApi.updateStartupVotes(username, password, editingVotes.id, Number(newVoteAmount));
+      console.log('✅ Vote update successful:', result);
       setEditingVotes(null);
       setVotePassword('');
       showToast(`✅ Votes updated for "${editingVotes.name}"`, 'success');
     } catch (err) {
+      console.error('❌ Failed to update votes:', err);
+      console.error('Error response:', err.response);
       showToast(err.response?.data?.error || 'Failed to update votes', 'error');
     }
   };
