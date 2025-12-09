@@ -260,6 +260,16 @@ export const adminApi = {
     return data;
   },
 
+  // Update startup votes
+  updateStartupVotes: async (username, password, startupId, totalVotes) => {
+    const { data} = await axios.put(
+      `${API_BASE}/api/admin/startups/${startupId}/votes`,
+      { totalVotes },
+      { headers: adminApi.getAuthHeader(username, password) }
+    );
+    return data;
+  },
+
   // Toggle lock
   toggleLock: async (username, password) => {
     const { data } = await axios.post(

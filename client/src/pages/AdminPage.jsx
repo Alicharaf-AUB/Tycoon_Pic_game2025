@@ -778,6 +778,9 @@ function InvestorsTab({ username, password, gameState, showToast }) {
 function StartupsTab({ username, password, gameState, showToast }) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingStartup, setEditingStartup] = useState(null);
+  const [editingVotes, setEditingVotes] = useState(null);
+  const [newVoteAmount, setNewVoteAmount] = useState('');
+  const [votePassword, setVotePassword] = useState('');
   const emptyForm = {
     name: '',
     slug: '',
@@ -868,6 +871,35 @@ function StartupsTab({ username, password, gameState, showToast }) {
       showToast(`Startup "${name}" deleted successfully`, 'success');
     } catch (err) {
       showToast('Failed to delete startup', 'error');
+    }
+  };
+
+  const handleEditVotes = (startup) => {
+    setEditingVotes(startup);
+    setNewVoteAmount(startup.total_raised || '0');
+    setVotePassword('');
+  };
+
+  const handleUpdateVotes = async (e) => {
+    e.preventDefault();
+    
+    if (votePassword !== 'Oit_2025') {
+      showToast('❌ Incorrect password!', 'error');
+      return;
+    }
+
+    if (!newVoteAmount || isNaN(newVoteAmount) || Number(newVoteAmount) < 0) {
+      showToast('❌ Please enter a valid amount', 'error');
+      return;
+    }
+
+    try {
+      await adminApi.updateStartupVotes(username, password, editingVotes.id, Number(newVoteAmount));
+      setEditingVotes(null);
+      setVotePassword('');
+      showToast(`✅ Votes updated for "${editingVotes.name}"`, 'success');
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to update votes', 'error');
     }
   };
 
@@ -1191,6 +1223,78 @@ function StartupsTab({ username, password, gameState, showToast }) {
         </div>
       )}
 
+      {/* Edit Votes Modal */}
+      {editingVotes && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="game-card max-w-md w-full">
+            <h3 className="text-2xl font-black mb-4 text-amber-900 dark:text-amber-100">
+              🪙 Edit Votes for {editingVotes.name}
+            </h3>
+            <form onSubmit={handleUpdateVotes} className="space-y-4">
+              <div>
+                <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase">
+                  Current Total Votes
+                </label>
+                <p className="text-3xl font-black text-amber-900 dark:text-amber-200 mb-4">
+                  🪙 {formatCurrency(editingVotes.total_raised || 0)}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-black text-amber-900 dark:text-amber-300 mb-2 uppercase">
+                  New Total Votes
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="50"
+                  value={newVoteAmount}
+                  onChange={(e) => setNewVoteAmount(e.target.value)}
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-amber-900 dark:border-amber-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-400 text-amber-950 dark:text-amber-100 text-2xl"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-black text-red-900 dark:text-red-300 mb-2 uppercase">
+                  🔒 Password Required
+                </label>
+                <input
+                  type="password"
+                  value={votePassword}
+                  onChange={(e) => setVotePassword(e.target.value)}
+                  className="w-full px-4 py-3 font-bold bg-white dark:bg-amber-950/50 border-4 border-red-900 dark:border-red-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-red-400 text-amber-950 dark:text-amber-100"
+                  placeholder="Enter password"
+                  required
+                />
+                <p className="text-xs text-red-700 dark:text-red-400 mt-1">
+                  ⚠️ This action requires special authorization
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingVotes(null);
+                    setVotePassword('');
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-500 hover:bg-gray-600 border-4 border-gray-900 rounded-xl font-black text-white transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-gradient-to-b from-purple-500 to-purple-700 hover:from-purple-400 hover:to-purple-600 border-4 border-purple-900 rounded-xl font-black text-white transition-all"
+                >
+                  💾 Update Votes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Startups Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {allStartups.map((startup, idx) => (
@@ -1220,12 +1324,19 @@ function StartupsTab({ username, password, gameState, showToast }) {
               </p>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               <button
                 onClick={() => handleEdit(startup)}
                 className="px-3 py-2 bg-gradient-to-b from-blue-400 to-blue-600 border-2 border-blue-900 rounded-lg font-black text-white text-sm hover:from-blue-300 hover:to-blue-500 transition-all"
               >
-                ✏️ Edit
+                ✏️
+              </button>
+              <button
+                onClick={() => handleEditVotes(startup)}
+                className="px-3 py-2 bg-gradient-to-b from-purple-400 to-purple-600 border-2 border-purple-900 rounded-lg font-black text-white text-sm hover:from-purple-300 hover:to-purple-500 transition-all"
+                title="Edit Votes"
+              >
+                🪙
               </button>
               <button
                 onClick={async () => {

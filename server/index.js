@@ -1488,6 +1488,40 @@ app.delete('/api/admin/startups/:id', adminAuth, async (req, res) => {
   }
 });
 
+// Update startup votes/total_raised (admin)
+app.put('/api/admin/startups/:id/votes', adminAuth, async (req, res) => {
+  const { id } = req.params;
+  const { totalVotes } = req.body;
+  
+  if (totalVotes === undefined || totalVotes === null || isNaN(totalVotes) || totalVotes < 0) {
+    return res.status(400).json({ error: 'Invalid total votes amount' });
+  }
+  
+  try {
+    const result = await pool.query(
+      'UPDATE startups SET total_raised = $1 WHERE id = $2 RETURNING *',
+      [totalVotes, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Startup not found' });
+    }
+    
+    console.log(`📝 Admin manually updated votes for startup ${id}: ${totalVotes}`);
+    
+    await broadcastGameState();
+    
+    res.json({ 
+      success: true, 
+      startup: result.rows[0],
+      message: `Votes updated to ${totalVotes}`
+    });
+  } catch (error) {
+    console.error('Error updating startup votes:', error);
+    res.status(500).json({ error: 'Failed to update votes' });
+  }
+});
+
 // Toggle game lock (admin)
 app.post('/api/admin/toggle-lock', adminAuth, async (req, res) => {
   try {
